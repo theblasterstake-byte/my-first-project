@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>タスク管理</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>タスク管理</h1>
+      <p class="subtitle" id="summary"></p>
+    </header>
+
+    <form id="task-form" class="task-form">
+      <input type="text" id="task-input" placeholder="新しいタスクを入力…" autocomplete="off" required>
+      <select id="priority-input">
+        <option value="low">低</option>
+        <option value="medium" selected>中</option>
+        <option value="high">高</option>
+      </select>
+      <input type="date" id="due-input">
+      <button type="submit">追加</button>
+    </form>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">すべて</button>
+      <button class="filter-btn" data-filter="active">未完了</button>
+      <button class="filter-btn" data-filter="done">完了済み</button>
+      <button id="clear-done" class="clear-btn">完了済みを削除</button>
+    </div>
+
+    <ul id="task-list" class="task-list"></ul>
+
+    <p id="empty-state" class="empty-state" hidden>タスクはありません。上のフォームから追加してください。</p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
