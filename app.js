@@ -26,6 +26,12 @@ function saveTasks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
+function createId() {
+  // crypto.randomUUID は secure context 限定のため、file:// で開いた場合に備える
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
 function priorityLabel(priority) {
   return { high: "高", medium: "中", low: "低" }[priority] || "中";
 }
@@ -100,7 +106,7 @@ function render() {
 
 function addTask(title, priority, due) {
   tasks.unshift({
-    id: crypto.randomUUID(),
+    id: createId(),
     title,
     priority,
     due: due || null,
