@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>議事録メーカー</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app app-wide">
+    <header>
+      <nav class="app-nav">
+        <a href="index.html">タスク管理</a>
+        <a href="minutes.html" class="active">議事録メーカー</a>
+      </nav>
+      <h1>議事録メーカー</h1>
+      <p class="subtitle">会議の文字起こしを貼り付けるだけで、決定事項・アクションアイテム・要点を整理した議事録に変換します。</p>
+    </header>
+
+    <div class="minutes-layout">
+      <section class="pane">
+        <div class="pane-head">
+          <h2>文字起こし</h2>
+          <div class="pane-actions">
+            <button type="button" id="sample-btn" class="link-btn">サンプルを入れる</button>
+            <button type="button" id="clear-btn" class="link-btn danger">クリア</button>
+          </div>
+        </div>
+
+        <textarea id="transcript" class="transcript" spellcheck="false"
+          placeholder="ここに文字起こしを貼り付けてください。
+
+例:
+2026-08-05 プロダクト定例
+参加者: 田中、佐藤、山田
+
+田中: まず先週の進捗を共有してください。
+佐藤: 実装は今週いっぱいかかりそうです。
+山田: 来週水曜までに仕様を確認して共有します。"></textarea>
+
+        <div class="pane-foot">
+          <span id="input-stats" class="hint"></span>
+          <button type="button" id="generate-btn" class="primary-btn">議事録を作成</button>
+        </div>
+      </section>
+
+      <section class="pane">
+        <div class="pane-head">
+          <h2>議事録</h2>
+          <div class="tabs">
+            <button type="button" class="tab-btn active" data-tab="preview">プレビュー</button>
+            <button type="button" class="tab-btn" data-tab="markdown">Markdown</button>
+          </div>
+        </div>
+
+        <div id="output-empty" class="empty-state">
+          左に文字起こしを貼り付けて「議事録を作成」を押してください。
+        </div>
+
+        <div id="preview" class="minutes-preview" hidden></div>
+        <pre id="markdown" class="markdown-out" hidden></pre>
+
+        <div class="pane-foot" id="output-actions" hidden>
+          <span id="output-stats" class="hint"></span>
+          <div class="pane-actions">
+            <button type="button" id="tasks-btn" class="link-btn">タスクに追加</button>
+            <button type="button" id="download-btn" class="link-btn">.md を保存</button>
+            <button type="button" id="copy-btn" class="primary-btn">コピー</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <p id="toast" class="toast" hidden></p>
+  </div>
+
+  <script src="minutes-parser.js"></script>
+  <script src="minutes.js"></script>
+</body>
+</html>
