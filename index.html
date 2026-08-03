@@ -14,14 +14,39 @@
     </header>
 
     <form id="task-form" class="task-form">
-      <input type="text" id="task-input" placeholder="新しいタスクを入力…" autocomplete="off" required>
-      <select id="priority-input">
-        <option value="low">低</option>
-        <option value="medium" selected>中</option>
-        <option value="high">高</option>
-      </select>
-      <input type="date" id="due-input">
-      <button type="submit">追加</button>
+      <div class="field field-full">
+        <label for="task-input">タスク名</label>
+        <input type="text" id="task-input" placeholder="新しいタスクを入力…" autocomplete="off" required>
+      </div>
+
+      <div class="field">
+        <label for="priority-input">優先度</label>
+        <select id="priority-input">
+          <option value="low">低</option>
+          <option value="medium" selected>中</option>
+          <option value="high">高</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="created-input">追加日</label>
+        <input type="date" id="created-input">
+      </div>
+
+      <div class="field">
+        <label class="checkbox-label">
+          <input type="checkbox" id="due-toggle">
+          期限を設定する
+        </label>
+        <input type="date" id="due-input" disabled>
+      </div>
+
+      <div class="field field-full">
+        <label for="notes-input">備考</label>
+        <textarea id="notes-input" rows="2" placeholder="備考(任意)"></textarea>
+      </div>
+
+      <button type="submit" class="field-full">追加</button>
     </form>
 
     <div class="filters">
@@ -34,6 +59,16 @@
     <ul id="task-list" class="task-list"></ul>
 
     <p id="empty-state" class="empty-state" hidden>タスクはありません。上のフォームから追加してください。</p>
+  </div>
+
+  <div id="confirm-modal" class="modal-overlay" hidden>
+    <div class="modal">
+      <p>このタスクを削除しますか？この操作は元に戻せません。</p>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="btn-secondary">キャンセル</button>
+        <button id="confirm-delete" class="btn-danger">削除する</button>
+      </div>
+    </div>
   </div>
 
   <script src="app.js"></script>

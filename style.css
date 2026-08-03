@@ -48,18 +48,44 @@ h1 {
 }
 
 .task-form {
-  display: flex;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
   margin-bottom: 16px;
-  flex-wrap: wrap;
 }
 
-.task-form input[type="text"] {
-  flex: 1 1 200px;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-full {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  width: 14px;
+  height: 14px;
 }
 
 .task-form input,
 .task-form select,
+.task-form textarea,
 .task-form button {
   padding: 10px 12px;
   border: 1px solid var(--border);
@@ -67,6 +93,16 @@ h1 {
   font-size: 14px;
   background: var(--card-bg);
   color: var(--text);
+  font-family: inherit;
+}
+
+.task-form textarea {
+  resize: vertical;
+}
+
+.task-form input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .task-form button {
@@ -162,6 +198,16 @@ h1 {
   margin-top: 4px;
   font-size: 12px;
   color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.task-notes {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .priority-badge {
@@ -200,6 +246,60 @@ h1 {
   color: var(--muted);
   margin-top: 40px;
   font-size: 14px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 20px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal p {
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
 }
 
 @media (prefers-color-scheme: dark) {

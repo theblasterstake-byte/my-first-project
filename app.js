@@ -3,15 +3,30 @@ const STORAGE_KEY = "tasks";
 const form = document.getElementById("task-form");
 const input = document.getElementById("task-input");
 const priorityInput = document.getElementById("priority-input");
+const createdInput = document.getElementById("created-input");
+const dueToggle = document.getElementById("due-toggle");
 const dueInput = document.getElementById("due-input");
+const notesInput = document.getElementById("notes-input");
 const list = document.getElementById("task-list");
 const summary = document.getElementById("summary");
 const emptyState = document.getElementById("empty-state");
 const clearDoneBtn = document.getElementById("clear-done");
 const filterBtns = document.querySelectorAll(".filter-btn");
+const confirmModal = document.getElementById("confirm-modal");
+const confirmCancelBtn = document.getElementById("confirm-cancel");
+const confirmDeleteBtn = document.getElementById("confirm-delete");
 
 let tasks = loadTasks();
 let currentFilter = "all";
+let pendingDeleteId = null;
+
+function todayStr() {
+  const d = new Date();
+  const offset = d.getTimezoneOffset();
+  return new Date(d.getTime() - offset * 60000).toISOString().slice(0, 10);
+}
+
+createdInput.value = todayStr();
 
 function loadTasks() {
   try {
@@ -32,9 +47,7 @@ function priorityLabel(priority) {
 
 function isOverdue(task) {
   if (!task.due || task.done) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return new Date(task.due) < today;
+  return task.due < todayStr();
 }
 
 function render() {
@@ -70,6 +83,12 @@ function render() {
     badge.textContent = priorityLabel(task.priority);
     meta.appendChild(badge);
 
+    if (task.createdAt) {
+      const created = document.createElement("span");
+      created.textContent = `追加日: ${task.createdAt}`;
+      meta.appendChild(created);
+    }
+
     if (task.due) {
       const due = document.createElement("span");
       due.textContent = `期限: ${task.due}`;
@@ -80,11 +99,18 @@ function render() {
     body.appendChild(title);
     body.appendChild(meta);
 
+    if (task.notes) {
+      const notes = document.createElement("span");
+      notes.className = "task-notes";
+      notes.textContent = task.notes;
+      body.appendChild(notes);
+    }
+
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete-btn";
     deleteBtn.textContent = "✕";
     deleteBtn.setAttribute("aria-label", "削除");
-    deleteBtn.addEventListener("click", () => deleteTask(task.id));
+    deleteBtn.addEventListener("click", () => requestDelete(task.id));
 
     li.appendChild(checkbox);
     li.appendChild(body);
@@ -98,12 +124,14 @@ function render() {
   summary.textContent = `全 ${tasks.length} 件中 ${doneCount} 件完了`;
 }
 
-function addTask(title, priority, due) {
+function addTask(title, priority, createdAt, due, notes) {
   tasks.unshift({
     id: crypto.randomUUID(),
     title,
     priority,
+    createdAt: createdAt || todayStr(),
     due: due || null,
+    notes: notes || "",
     done: false,
   });
   saveTasks();
@@ -115,6 +143,16 @@ function toggleTask(id) {
   if (task) task.done = !task.done;
   saveTasks();
   render();
+}
+
+function requestDelete(id) {
+  pendingDeleteId = id;
+  confirmModal.hidden = false;
+}
+
+function closeConfirm() {
+  pendingDeleteId = null;
+  confirmModal.hidden = true;
 }
 
 function deleteTask(id) {
@@ -133,14 +171,37 @@ form.addEventListener("submit", (e) => {
   e.preventDefault();
   const title = input.value.trim();
   if (!title) return;
-  addTask(title, priorityInput.value, dueInput.value);
+  const due = dueToggle.checked ? dueInput.value : "";
+  addTask(title, priorityInput.value, createdInput.value, due, notesInput.value.trim());
   input.value = "";
+  notesInput.value = "";
+  dueToggle.checked = false;
   dueInput.value = "";
+  dueInput.disabled = true;
+  createdInput.value = todayStr();
   priorityInput.value = "medium";
   input.focus();
 });
 
+dueToggle.addEventListener("change", () => {
+  dueInput.disabled = !dueToggle.checked;
+  if (!dueToggle.checked) {
+    dueInput.value = "";
+  } else {
+    dueInput.focus();
+  }
+});
+
 clearDoneBtn.addEventListener("click", clearDone);
+
+confirmCancelBtn.addEventListener("click", closeConfirm);
+confirmDeleteBtn.addEventListener("click", () => {
+  if (pendingDeleteId) deleteTask(pendingDeleteId);
+  closeConfirm();
+});
+confirmModal.addEventListener("click", (e) => {
+  if (e.target === confirmModal) closeConfirm();
+});
 
 filterBtns.forEach((btn) => {
   btn.addEventListener("click", () => {
