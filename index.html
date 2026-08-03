@@ -3,39 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>タスク管理</title>
+<title>タスク管理 / 議事録メーカー</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app">
-    <header>
-      <h1>タスク管理</h1>
-      <p class="subtitle" id="summary"></p>
-    </header>
+    <nav class="tabs" role="tablist">
+      <button class="tab-btn active" data-view="tasks" role="tab" aria-selected="true">タスク</button>
+      <button class="tab-btn" data-view="minutes" role="tab" aria-selected="false">議事録</button>
+    </nav>
 
-    <form id="task-form" class="task-form">
-      <input type="text" id="task-input" placeholder="新しいタスクを入力…" autocomplete="off" required>
-      <select id="priority-input">
-        <option value="low">低</option>
-        <option value="medium" selected>中</option>
-        <option value="high">高</option>
-      </select>
-      <input type="date" id="due-input">
-      <button type="submit">追加</button>
-    </form>
+    <section id="view-tasks" class="view" role="tabpanel">
+      <header>
+        <h1>タスク管理</h1>
+        <p class="subtitle" id="summary"></p>
+      </header>
 
-    <div class="filters">
-      <button class="filter-btn active" data-filter="all">すべて</button>
-      <button class="filter-btn" data-filter="active">未完了</button>
-      <button class="filter-btn" data-filter="done">完了済み</button>
-      <button id="clear-done" class="clear-btn">完了済みを削除</button>
-    </div>
+      <form id="task-form" class="task-form">
+        <input type="text" id="task-input" placeholder="新しいタスクを入力…" autocomplete="off" required>
+        <select id="priority-input">
+          <option value="low">低</option>
+          <option value="medium" selected>中</option>
+          <option value="high">高</option>
+        </select>
+        <input type="date" id="due-input">
+        <button type="submit">追加</button>
+      </form>
 
-    <ul id="task-list" class="task-list"></ul>
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">すべて</button>
+        <button class="filter-btn" data-filter="active">未完了</button>
+        <button class="filter-btn" data-filter="done">完了済み</button>
+        <button id="clear-done" class="clear-btn">完了済みを削除</button>
+      </div>
 
-    <p id="empty-state" class="empty-state" hidden>タスクはありません。上のフォームから追加してください。</p>
+      <ul id="task-list" class="task-list"></ul>
+
+      <p id="empty-state" class="empty-state" hidden>タスクはありません。上のフォームから追加してください。</p>
+    </section>
+
+    <section id="view-minutes" class="view" role="tabpanel" hidden>
+      <header>
+        <h1>議事録メーカー</h1>
+        <p class="subtitle">会議の文字起こしを貼り付けるだけで、整形された議事録に変換します。</p>
+      </header>
+
+      <textarea id="transcript-input" class="transcript-input" rows="12" spellcheck="false"
+        placeholder="会議の文字起こしを貼り付けてください。
+
+例)
+会議名: 8月リリース定例
+日時: 2026年8月3日
+参加者: 田中、佐藤
+
+[00:01:12] 田中: 今日はリリース日程について確認したいです。
+佐藤: リリース日は8/20で決定ということで進めましょう。"></textarea>
+
+      <div class="minutes-controls">
+        <label class="checkbox">
+          <input type="checkbox" id="include-log" checked> 議事詳細を含める
+        </label>
+        <button id="generate-btn" class="primary-btn">議事録を作成</button>
+        <button id="sample-btn" class="ghost-btn">サンプルを入力</button>
+        <button id="clear-transcript" class="ghost-btn">クリア</button>
+      </div>
+
+      <p id="minutes-error" class="minutes-error" hidden></p>
+
+      <div id="minutes-result" class="minutes-result" hidden>
+        <div class="result-toolbar">
+          <div class="mode-switch">
+            <button class="mode-btn active" data-mode="preview">プレビュー</button>
+            <button class="mode-btn" data-mode="markdown">Markdown</button>
+          </div>
+          <button id="copy-btn" class="ghost-btn">コピー</button>
+          <button id="download-btn" class="ghost-btn">.md を保存</button>
+          <button id="to-tasks-btn" class="ghost-btn">ToDoをタスクに追加</button>
+        </div>
+
+        <div id="minutes-preview" class="minutes-preview"></div>
+        <pre id="minutes-markdown" class="minutes-markdown" hidden></pre>
+      </div>
+    </section>
   </div>
 
   <script src="app.js"></script>
+  <script src="minutes-parser.js"></script>
+  <script src="minutes.js"></script>
 </body>
 </html>
