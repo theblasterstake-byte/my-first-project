@@ -151,11 +151,11 @@ footer a.admin:hover{border-color:var(--kuri)}
           <span aria-hidden="true">🔍</span>
           <input id="q" type="search" placeholder="サイト内を検索（例：モンブラン）" aria-label="サイト内検索">
         </div>
-        <button class="iconbtn" id="theme" title="ダークモード切替">🌙</button>
+        <button class="iconbtn" id="theme" title="ダークモード切替" aria-label="ダークモードに切り替える">🌙</button>
       </div>
     </div>
     <div class="hitbar" id="hitbar">
-      <span id="hittext"></span>
+      <span id="hittext" aria-live="polite"></span>
       <button class="iconbtn" id="clearq">検索をクリア</button>
       <span id="favcount" style="margin-left:auto"></span>
     </div>
@@ -177,7 +177,7 @@ footer a.admin:hover{border-color:var(--kuri)}
   </div>
 </section>
 
-<div class="wrap"><hr class="hr"></div>
+<div class="wrap sep"><hr class="hr"></div>
 
 <section id="story" data-sec="こだわり">
   <div class="wrap">
@@ -192,7 +192,7 @@ footer a.admin:hover{border-color:var(--kuri)}
   </div>
 </section>
 
-<div class="wrap"><hr class="hr"></div>
+<div class="wrap sep"><hr class="hr"></div>
 
 <section id="menu" data-sec="お品書き">
   <div class="wrap">
@@ -203,7 +203,7 @@ footer a.admin:hover{border-color:var(--kuri)}
   </div>
 </section>
 
-<div class="wrap"><hr class="hr"></div>
+<div class="wrap sep"><hr class="hr"></div>
 
 <section id="faq" data-sec="よくあるご質問">
   <div class="wrap">
@@ -213,7 +213,7 @@ footer a.admin:hover{border-color:var(--kuri)}
   </div>
 </section>
 
-<div class="wrap"><hr class="hr"></div>
+<div class="wrap sep"><hr class="hr"></div>
 
 <section id="access" data-sec="アクセス">
   <div class="wrap">
@@ -244,13 +244,14 @@ footer a.admin:hover{border-color:var(--kuri)}
   </div>
 </section>
 
-<div class="wrap"><hr class="hr"></div>
+<div class="wrap sep"><hr class="hr"></div>
 
 <section id="contact" data-sec="ご予約・お問い合わせ">
   <div class="wrap">
     <p class="eyebrow rv">CONTACT</p>
     <h2 class="mincho rv">ご予約・お問い合わせ</h2>
-    <p class="lead rv">1日80食かぎりのため、ご予約のお客様を優先してご案内しております。いただいた内容はお店の受付システムに届き、スタッフが確認のうえご返信します。</p>
+    <p class="lead rv">1日80食かぎりのため、ご予約のお客様を優先してご案内しております。いただいた内容はお店の受付システム（管理画面）に届き、スタッフが確認のうえご返信します。</p>
+    <p class="lead rv" style="font-size:15px;margin-top:10px">※ これは体験用のデモです。送信してもインターネットには何も送られません。入力した内容は、いまお使いのブラウザの中だけに保存され、同じブラウザで開いた管理画面に表示されます。共有のパソコンでは、他の方に見えてしまうことがあります。</p>
     <form id="form" class="rv" novalidate>
       <div>
         <label for="type">ご用件<span class="req">必須</span></label>
@@ -274,7 +275,8 @@ footer a.admin:hover{border-color:var(--kuri)}
     </form>
     <div class="thanks hidden" id="thanks">
       <h3 class="mincho">ありがとうございます。承りました。</h3>
-      <p>いただいた内容はお店の受付システムに届きました。スタッフが確認のうえ、2営業日以内にご返信いたします。</p>
+      <p>いただいた内容はお店の受付システム（管理画面）に届きました。スタッフが確認のうえ、2営業日以内にご返信いたします。</p>
+      <p style="font-size:15px;color:var(--muted)">※ デモのため、実際の送信は行われません。内容はこのブラウザの中だけに保存されています。</p>
       <p class="no" id="thanksno"></p>
       <p style="margin-top:14px"><button class="iconbtn" id="again">もう一度送る</button></p>
     </div>
@@ -297,7 +299,12 @@ footer a.admin:hover{border-color:var(--kuri)}
 <script>
 "use strict";
 const K={inbox:"tsukikuri.inbox.v1",fav:"tsukikuri.favorites.v1",theme:"tsukikuri.theme.v1"};
-const get=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
+const get=(k,d)=>{try{
+  const v=localStorage.getItem(k); if(v===null)return d;
+  const p=JSON.parse(v); if(p===null||p===undefined)return d;
+  if(Array.isArray(d)&&!Array.isArray(p))return d;   // 形が違う保存値では既定値に戻す
+  return p;
+}catch(e){return d;}};
 const set=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -325,7 +332,7 @@ let favs=get(K.fav,["m1"]);
 function drawMenu(){
   $("#menugrid").innerHTML=MENU.map(m=>`
     <div class="card rv" data-item="${m.id}">
-      <button class="fav ${favs.includes(m.id)?"on":""}" data-fav="${m.id}" title="お気に入り">${favs.includes(m.id)?"❤️":"🤍"}</button>
+      <button class="fav ${favs.includes(m.id)?"on":""}" data-fav="${m.id}" aria-pressed="${favs.includes(m.id)}" aria-label="${esc(m.name)}をお気に入りに保存">${favs.includes(m.id)?"❤️":"🤍"}</button>
       ${m.tag?`<span class="tag">${esc(m.tag)}</span>`:""}
       <h3 class="mincho">${esc(m.name)}</h3>
       <div class="price">${esc(m.price)}</div>
@@ -336,6 +343,7 @@ function drawMenu(){
     const id=b.dataset.fav;
     favs=favs.includes(id)?favs.filter(x=>x!==id):[...favs,id];
     set(K.fav,favs); drawMenu(); reveal();
+    const q=$("#q").value.trim(); if(q)search(q);   // 検索中でも絞り込みを保ったままにする
     toast(favs.includes(id)?"お気に入りに保存しました":"お気に入りから外しました");
   });
   $("#favcount").textContent="お気に入り "+favs.length+"件";
@@ -346,8 +354,10 @@ function drawMenu(){
 $("#faqlist").innerHTML=FAQ.map(([q,a])=>`<details><summary class="mincho">${esc(q)}</summary><div class="ans">${esc(a)}</div></details>`).join("");
 
 /* ---- スクロールで出現 ---- */
+let io=null;
 function reveal(){
-  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}}),{threshold:.12});
+  if(io)io.disconnect();
+  io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}}),{threshold:.12});
   $$(".rv:not(.in)").forEach(el=>io.observe(el));
 }
 
@@ -361,13 +371,19 @@ const targets=()=>$$("section [data-item], section .card, section details, secti
 let originals=new Map();
 const editable=s=>!s.querySelector("form,#thanks"); // 入力中の内容を消さないため、フォームのある節は書き換えない
 function saveOriginals(){ originals=new Map(); $$("section").forEach(s=>{if(editable(s))originals.set(s,s.innerHTML);}); }
-function restore(){ originals.forEach((html,s)=>{s.innerHTML=html;}); bindDynamic(); }
+function showAll(){ $$(".rv").forEach(el=>el.classList.add("in")); } // 復元した中身が透明のまま残らないように
+function restore(){ originals.forEach((html,s)=>{s.innerHTML=html;}); bindDynamic(); showAll(); }
 function highlight(node,re){
   [...node.childNodes].forEach(n=>{
     if(n.nodeType===3){
-      const t=n.nodeValue; if(!re.test(t))return; re.lastIndex=0;
+      const t=n.nodeValue; re.lastIndex=0; if(!re.test(t))return; re.lastIndex=0;
       const span=document.createElement("span");
-      span.innerHTML=esc(t).replace(re,m=>"<mark>"+m+"</mark>");
+      let html="",last=0,m;                       // 生の文字列で切り出してから1つずつエスケープする
+      while((m=re.exec(t))!==null){
+        html+=esc(t.slice(last,m.index))+"<mark>"+esc(m[0])+"</mark>";
+        last=m.index+m[0].length; if(m[0]==="")re.lastIndex++;
+      }
+      span.innerHTML=html+esc(t.slice(last));
       n.replaceWith(span);
     } else if(n.nodeType===1&&!/^(SCRIPT|STYLE|MARK|INPUT|SELECT|TEXTAREA)$/.test(n.tagName)) highlight(n,re);
   });
@@ -375,7 +391,11 @@ function highlight(node,re){
 function search(qs){
   restore();
   const q=qs.trim();
-  if(!q){$("#hitbar").classList.remove("on");$$("section").forEach(s=>s.classList.remove("hidden"));$("#favcount").textContent="お気に入り "+favs.length+"件";return;}
+  if(!q){$("#hitbar").classList.remove("on");
+    $$("section").forEach(s=>s.classList.remove("hidden"));
+    $$(".sep").forEach(s=>s.classList.remove("hidden"));
+    $("#favcount").textContent="お気に入り "+favs.length+"件";showAll();return;}
+  $$(".sep").forEach(s=>s.classList.add("hidden")); // 検索中は区切り線を隠す
   const re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
   let hits=0, secHit=0;
   $$("section").forEach(s=>{
@@ -390,6 +410,7 @@ function search(qs){
       hits+=(s.textContent.match(re)||[]).length; re.lastIndex=0;
     }
   });
+  showAll();
   $("#hitbar").classList.add("on");
   $("#hittext").innerHTML=hits?`「${esc(q)}」の検索結果： <b>${secHit}セクション ／ ${hits}箇所</b> がヒットしました`:`「${esc(q)}」に一致する内容は見つかりませんでした`;
 }

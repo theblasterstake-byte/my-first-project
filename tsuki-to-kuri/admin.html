@@ -106,8 +106,12 @@ input,select,textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px s
 .toast.on{opacity:1;transform:translateX(-50%)}
 @media (max-width:720px){
   body{font-size:17px}.wrap{padding:0 18px}.cols{grid-template-columns:1fr}
-  table{font-size:15px}td,th{padding-left:6px;padding-right:6px}
+  table{font-size:15px;min-width:460px}td,th{padding-left:6px;padding-right:6px}
+  .panel{overflow-x:auto;padding-left:18px;padding-right:18px}
   .hide-sp{display:none}
+  .kpi b{font-size:30px}
+  .badge{font-size:12px;padding:2px 7px}
+  button.btn.sm{font-size:14px;padding:6px 10px}
 }
 </style>
 </head>
@@ -140,9 +144,22 @@ const K={
   log:"tsukikuri.log.v1",               // 操作ログ（誰がいつ承認したか）
   settings:"tsukikuri.settings.v1",     // 店舗設定
   favorites:"tsukikuri.favorites.v1",   // サイト側のお気に入り
+  theme:"tsukikuri.theme.v1",           // サイト側のダークモード設定
   seeded:"tsukikuri.seeded.v1"          // サンプル投入済みフラグ
 };
-const get=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v);}catch(e){return d;}};
+// 保存データが壊れていても画面が落ちないよう、型まで確認してから返す
+const get=(k,d)=>{
+  try{
+    const v=localStorage.getItem(k);
+    if(v===null)return d;
+    const p=JSON.parse(v);
+    if(p===null||p===undefined)return d;
+    if(Array.isArray(d)&&!Array.isArray(p))return d;
+    if(!Array.isArray(d)&&typeof d==="object"&&(typeof p!=="object"||Array.isArray(p)))return d;
+    return p;
+  }catch(e){return d;}
+};
+const n0=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
 const set=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){toast("保存できませんでした");}};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -150,9 +167,10 @@ const yen=n=>"¥"+Number(n||0).toLocaleString("ja-JP");
 const d2=n=>String(n).padStart(2,"0");
 const ymd=d=>d.getFullYear()+"-"+d2(d.getMonth()+1)+"-"+d2(d.getDate());
 const jp=s=>{if(!s)return"—";const[a,b,c]=s.split("-");return `${Number(b)}月${Number(c)}日`;};
-const rel=iso=>{const m=Math.floor((Date.now()-new Date(iso))/60000);
+const rel=iso=>{const t=new Date(iso); if(isNaN(t))return "日時不明"; const m=Math.floor((Date.now()-t)/60000);
   return m<1?"たった今":m<60?m+"分前":m<1440?Math.floor(m/60)+"時間前":Math.floor(m/1440)+"日前";};
 const today=ymd(new Date());
+const tsYmd=iso=>{const d=new Date(iso);return isNaN(d)?"":ymd(d);}; // 保存はISO、比較はローカル日付で
 const plus=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d);};
 
 const DEFAULT_SETTINGS={shop:"月と栗",capacity:80,seats:18,closedDay:2,autoMin:80,reviewMin:50,staff:"店長 三浦"};
@@ -217,7 +235,8 @@ function scoreOf(e,st){
     const diff=Math.round((new Date(e.date)-new Date(today))/86400000);
     if(diff>=7)add(8,"7日以上先で仕込みに余裕がある");
     else if(diff<=1)add(-8,"直前のご希望（席と食数の調整が必要）");
-    if(new Date(e.date).getDay()===st.closedDay)add(-15,"定休日（火曜）のご希望");
+    const dp=String(e.date).split("-");
+    if(dp.length===3&&new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()===st.closedDay)add(-15,"定休日（火曜）のご希望");
   } else add(-5,"ご希望日の記入なし");
   const ppl=parseInt(e.people||"0",10)||0;
   if(e.people==="5名以上")add(4,"5名以上（席の調整が必要）");
@@ -232,6 +251,8 @@ function scoreOf(e,st){
   const band=s>=st.autoMin?"auto":(s>=st.reviewMin?"review":"reject");
   return {score:s,band,reasons:r};
 }
+const NEXT={confirmed:{to:"seated",btn:"ご来店を確認する",q:"ご来店として記録しますか？"},
+            seated:{to:"done",btn:"お会計・完了にする",q:"お会計・完了として記録しますか？"}};
 const BAND={auto:{label:"自動でOK（承認推奨）",cls:"b-auto"},review:{label:"人が確認",cls:"b-review"},reject:{label:"却下候補",cls:"b-reject"}};
 function rescoreAll(){
   const st=get(K.settings,DEFAULT_SETTINGS);
@@ -246,7 +267,9 @@ function modal({title,body,confirm,danger,onOk,validate}){
   $("#modal").innerHTML=`<h3 class="mincho">${esc(title)}</h3><div>${body}</div>
     <div class="acts"><button class="btn" id="mno">やめる</button>
     <button class="btn ${danger?"danger":"pri"}" id="mok">${esc(confirm)}</button></div>`;
+  $("#modal").setAttribute("role","dialog"); $("#modal").setAttribute("aria-modal","true");
   $("#mask").classList.add("on");
+  setTimeout(()=>{const f=$("#modal input")||$("#mok"); if(f)f.focus();},60);
   const close=()=>{$("#mask").classList.remove("on");$("#modal").innerHTML="";document.onkeydown=null;};
   $("#mno").onclick=close;
   $("#mok").onclick=()=>{if(validate&&!validate())return;close();onOk&&onOk();};
@@ -293,7 +316,7 @@ function viewDash(){
   const seatsUsed=todays.reduce((a,r)=>a+(parseInt(r.people,10)||5),0);
   const cnt={auto:newOnes.filter(e=>e.band==="auto").length,review:newOnes.filter(e=>e.band==="review").length,reject:newOnes.filter(e=>e.band==="reject").length};
   const last7=[...Array(7)].map((_,i)=>{const d=plus(-6+i);
-    return {k:(Number(d.split("-")[2]))+"日",v:inbox.filter(e=>e.ts.slice(0,10)===d).length};});
+    return {k:(Number(d.split("-")[2]))+"日",v:inbox.filter(e=>tsYmd(e.ts)===d).length};});
   const low=stock.filter(s=>s.stock<s.daily);
   const favs=get(K.favorites,[]);
   const MENU={m1:"搾りたて和栗モンブラン",m2:"和栗モンブラン 極",m3:"季節の栗きんとんパフェ",m4:"焙じ茶と和栗のテリーヌ",m5:"栗と黒糖のどら焼き",m6:"月見ラテ"};
@@ -304,7 +327,7 @@ function viewDash(){
     <div class="kpi"><span>本日のご予約</span><b class="num">${todays.length}<small>件 ／ ${seatsUsed}名</small></b></div>
     <div class="kpi"><span>未対応の受信</span><b class="num">${newOnes.length}<small>件</small></b></div>
     <div class="kpi"><span>自動でOKの候補</span><b class="num" style="color:var(--ok)">${cnt.auto}<small>件</small></b></div>
-    <div class="kpi"><span>本日の残り食数</span><b class="num">${Math.max(0,st.capacity-seatsUsed*2)}<small>／${st.capacity}食</small></b></div>
+    <div class="kpi"><span>本日の残り食数</span><b class="num">${Math.max(0,st.capacity-seatsUsed*2)}<small>／${n0(st.capacity)}食</small></b></div>
   </div>
   <div class="cols">
     <div class="panel">
@@ -316,14 +339,14 @@ function viewDash(){
       ${[["auto","自動でOK",cnt.auto,"ok"],["review","人が確認",cnt.review,"warn"],["reject","却下候補",cnt.reject,"ng"]].map(([k,n,v,c])=>`
         <div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:16px"><span>${n}</span><span class="num">${v}件</span></div>
         <div class="bar"><i class="${c}" style="width:${newOnes.length?Math.round(v/newOnes.length*100):0}%"></i></div></div>`).join("")}
-      <p style="font-size:15px;color:var(--muted);margin-top:10px">しきい値：${st.autoMin}点以上=自動でOK／${st.reviewMin}点以上=人が確認</p>
+      <p style="font-size:15px;color:var(--muted);margin-top:10px">しきい値：${n0(st.autoMin)}点以上=自動でOK／${n0(st.reviewMin)}点以上=人が確認</p>
     </div>
   </div>
   <div class="cols">
     <div class="panel">
       <h3 class="mincho">いま気にすること</h3>
       <table><tbody>
-        ${low.length?low.map(s=>`<tr><td>${esc(s.name)}</td><td class="r num" style="text-align:right;color:#a2432c">残り${s.stock}${esc(s.unit)}（本日必要 ${s.daily}）</td></tr>`).join("")
+        ${low.length?low.map(s=>`<tr><td>${esc(s.name)}</td><td class="r num" style="text-align:right;color:#a2432c">残り${n0(s.stock)}${esc(s.unit)}（本日必要 ${n0(s.daily)}）</td></tr>`).join("")
           :`<tr><td colspan="2" class="empty">仕込みの不足はありません</td></tr>`}
         ${newOnes.filter(e=>e.band==="auto").slice(0,3).map(e=>`<tr><td>${esc(e.name)} 様のご予約</td><td style="text-align:right"><span class="badge b-auto">${e.score}点・承認推奨</span></td></tr>`).join("")}
       </tbody></table>
@@ -361,11 +384,11 @@ function viewInbox(){
       <table>
         <thead><tr><th>スコア</th><th>お客様</th><th class="hide-sp">ご希望</th><th>状態</th></tr></thead>
         <tbody>
-        ${list.length?list.map(e=>`<tr class="row ${sel===e.id?"sel":""}" data-id="${e.id}">
+        ${list.length?list.map(e=>`<tr class="row ${sel===e.id?"sel":""}" data-id="${esc(e.id)}">
           <td><span class="sc num">${e.score}</span><div><span class="badge ${BAND[e.band].cls}">${BAND[e.band].label}</span></div></td>
           <td>${esc(e.name)}<div style="font-size:14px;color:var(--muted)">${esc(e.type)}・${rel(e.ts)}</div></td>
           <td class="hide-sp">${jp(e.date)} ${esc(e.time||"")}<div style="font-size:14px;color:var(--muted)">${esc(e.people)}</div></td>
-          <td><span class="badge ${e.status==="new"?"b-review":"b-done"}">${statusLabel(e.status)}</span></td>
+          <td><span class="badge ${e.status==="new"?"b-review":"b-done"}">${esc(statusLabel(e.status))}</span></td>
         </tr>`).join(""):`<tr><td colspan="4" class="empty">該当する受信はありません</td></tr>`}
         </tbody>
       </table>
@@ -394,7 +417,7 @@ function viewInbox(){
             <button class="btn pri" id="ap">承認して予約を確定する</button>
             <button class="btn sm" id="hd">保留にする</button>
             <button class="btn sm danger" id="rj">却下する</button>
-          </div>`:`<p style="color:var(--muted)">この受信は「${statusLabel(cur.status)}」として処理済みです。</p>`}
+          </div>`:`<p style="color:var(--muted)">この受信は「${esc(statusLabel(cur.status))}」として処理済みです。</p>`}
       `:`<p class="empty">左の一覧から1件選ぶと、詳細と採点の内訳が表示されます。</p>`}
     </div>
   </div>
@@ -439,7 +462,6 @@ function viewOps(){
   const f=filter;
   const list=res.filter(r=>f==="all"?true:f==="today"?r.date===today:r.status===f);
   const label={confirmed:"確定（来店待ち）",seated:"ご来店中",done:"完了",noshow:"不泊・キャンセル"};
-  const next={confirmed:{to:"seated",btn:"ご来店を確認する",q:"ご来店として記録しますか？"},seated:{to:"done",btn:"お会計・完了にする",q:"完了として記録しますか？"}};
   return `
   <h2 class="mincho">予約・当日オペ</h2>
   <p class="sub">承認された予約だけがここに並びます。次の段階へ進めるときは、かならず人が確認してから進みます。</p>
@@ -457,8 +479,8 @@ function viewOps(){
         <td>${esc(r.name)}<div style="font-size:14px;color:var(--muted)">${esc(r.people)}</div></td>
         <td>${r.date===today?"<b>本日</b>":jp(r.date)} ${esc(r.time)}</td>
         <td class="hide-sp" style="font-size:15px;color:var(--muted)">${esc(r.memo||"—")}</td>
-        <td><span class="badge ${r.status==="done"?"b-done":r.status==="seated"?"b-auto":"b-review"}">${label[r.status]||r.status}</span></td>
-        <td style="text-align:right">${next[r.status]?`<button class="btn sm" data-adv="${r.id}">${next[r.status].btn}</button>`:""}</td>
+        <td><span class="badge ${r.status==="done"?"b-done":r.status==="seated"?"b-auto":"b-review"}">${esc(label[r.status]||r.status)}</span></td>
+        <td style="text-align:right">${NEXT[r.status]?`<button class="btn sm" data-adv="${esc(r.id)}">${NEXT[r.status].btn}</button>`:""}</td>
       </tr>`).join(""):`<tr><td colspan="6" class="empty">該当する予約はありません</td></tr>`}
       </tbody>
     </table>
@@ -479,10 +501,9 @@ function viewOps(){
 function bindOps(){
   [...document.querySelectorAll("[data-f]")].forEach(b=>b.onclick=()=>{filter=b.dataset.f;render();});
   const res=get(K.reservations,[]);
-  const next={confirmed:{to:"seated",q:"ご来店として記録しますか？",btn:"来店を記録する"},seated:{to:"done",q:"お会計・完了として記録しますか？",btn:"完了にする"}};
   [...document.querySelectorAll("[data-adv]")].forEach(b=>b.onclick=()=>{
     const r=res.find(x=>x.id===b.dataset.adv); if(!r)return;
-    const n=next[r.status];
+    const n=NEXT[r.status];
     modal({title:n.q,body:`<p>この操作は記録に残ります。次の段階へ引き継ぎます。</p><div class="box">${esc(r.id)}／${esc(r.name)} 様／${jp(r.date)} ${esc(r.time)}</div>`,
       confirm:n.btn,
       onOk:()=>{set(K.reservations,res.map(x=>x.id===r.id?{...x,status:n.to}:x));
@@ -491,11 +512,12 @@ function bindOps(){
 }
 
 /* ============ 4. 仕込み・在庫 ============ */
-function stockScore(s){
-  const need=s.daily, have=s.stock, days=need?have/need:9;
-  let sc=Math.round(Math.max(0,Math.min(100,(1-days/3)*100)));      // 3日分あれば0点、なくなるほど高得点
-  const band=sc>=80?"auto":(sc>=50?"review":"reject");
-  return {sc,band,days:Math.round(days*10)/10,order:Math.max(0,s.par-s.stock)};
+function stockScore(s,st){
+  st=st||get(K.settings,DEFAULT_SETTINGS);
+  const need=n0(s.daily), have=n0(s.stock), days=need?have/need:99;
+  const sc=Math.round(Math.max(0,Math.min(100,100-days*25)));  // 残り0日=100点、4日分あれば0点
+  const band=sc>=n0(st.autoMin)?"auto":(sc>=n0(st.reviewMin)?"review":"reject");
+  return {sc,band,days:Math.round(days*10)/10,order:Math.max(0,n0(s.par)-have)};
 }
 function viewStock(){
   const stock=get(K.stock,[]);
@@ -508,12 +530,12 @@ function viewStock(){
       <tbody>
       ${stock.map(s=>{const r=stockScore(s);return `<tr>
         <td>${esc(s.name)}<div style="font-size:14px;color:var(--muted)">仕入先：${esc(s.supplier)}</div></td>
-        <td class="num">${s.stock}${esc(s.unit)}<div class="bar" style="width:120px"><i class="${r.band==="auto"?"ng":r.band==="review"?"warn":"ok"}" style="width:${Math.min(100,Math.round(s.stock/s.par*100))}%"></i></div>
+        <td class="num">${n0(s.stock)}${esc(s.unit)}<div class="bar" style="width:120px"><i class="${r.band==="auto"?"ng":r.band==="review"?"warn":"ok"}" style="width:${Math.min(100,Math.round(n0(s.stock)/(n0(s.par)||1)*100))}%"></i></div>
           <div style="font-size:14px;color:var(--muted)">あと約${r.days}日分</div></td>
-        <td class="hide-sp num">${s.daily}${esc(s.unit)}</td>
+        <td class="hide-sp num">${n0(s.daily)}${esc(s.unit)}</td>
         <td><span class="sc num">${r.sc}</span></td>
         <td><span class="badge ${r.band==="auto"?"b-auto":r.band==="review"?"b-review":"b-reject"}">${r.band==="auto"?"すぐ発注（推奨）":r.band==="review"?"人が確認":"今は見送り"}</span></td>
-        <td style="text-align:right">${r.order?`<button class="btn sm" data-ord="${s.id}">${r.order}${esc(s.unit)} 発注を承認</button>`:""}</td>
+        <td style="text-align:right">${r.order?`<button class="btn sm" data-ord="${esc(s.id)}">${n0(r.order)}${esc(s.unit)} 発注を承認</button>`:""}</td>
       </tr>`;}).join("")}
       </tbody>
     </table>
@@ -530,7 +552,7 @@ function bindStock(){
     const r=stockScore(s);
     modal({title:"この発注を確定しますか？",
       body:`<p>承認すると在庫に反映され、記録に残ります。仕入先へのご連絡は別途お願いします。</p>
-        <div class="box">${esc(s.name)}<br>発注量 ${r.order}${esc(s.unit)}（${s.stock}${esc(s.unit)} → ${s.par}${esc(s.unit)}）<br>緊急度 ${r.sc}点</div>`,
+        <div class="box">${esc(s.name)}<br>発注量 ${n0(r.order)}${esc(s.unit)}（${n0(s.stock)}${esc(s.unit)} → ${n0(s.par)}${esc(s.unit)}）<br>緊急度 ${n0(r.sc)}点</div>`,
       confirm:"発注を承認する",
       onOk:()=>{set(K.stock,stock.map(x=>x.id===s.id?{...x,stock:x.par}:x));
         log("発注承認",s.id,s.name+" を "+r.order+s.unit);toast(s.name+" の発注を承認しました");render();}});
@@ -551,10 +573,10 @@ function viewSettings(){
       <h3 class="mincho">お店の設定</h3>
       <div class="fld"><label>店名</label><input id="s_shop" value="${esc(st.shop)}"></div>
       <div class="fld"><label>担当者名（記録に残ります）</label><input id="s_staff" value="${esc(st.staff)}"></div>
-      <div class="fld"><label>1日の上限食数</label><input id="s_cap" type="number" value="${st.capacity}"></div>
-      <div class="fld"><label>席数</label><input id="s_seats" type="number" value="${st.seats}"></div>
-      <div class="fld"><label>「自動でOK」のしきい値（点以上）</label><input id="s_auto" type="number" value="${st.autoMin}"></div>
-      <div class="fld"><label>「人が確認」のしきい値（点以上）</label><input id="s_rev" type="number" value="${st.reviewMin}"></div>
+      <div class="fld"><label>1日の上限食数</label><input id="s_cap" type="number" value="${n0(st.capacity)}"></div>
+      <div class="fld"><label>席数</label><input id="s_seats" type="number" value="${n0(st.seats)}"></div>
+      <div class="fld"><label>「自動でOK」のしきい値（点以上）</label><input id="s_auto" type="number" value="${n0(st.autoMin)}"></div>
+      <div class="fld"><label>「人が確認」のしきい値（点以上）</label><input id="s_rev" type="number" value="${n0(st.reviewMin)}"></div>
       <button class="btn pri" id="s_save">設定を保存する</button>
     </div>
     <div class="panel">
@@ -577,12 +599,16 @@ function bindSettings(){
   $("#s_save").onclick=()=>{
     const st={...get(K.settings,DEFAULT_SETTINGS),
       shop:$("#s_shop").value.trim()||"月と栗", staff:$("#s_staff").value.trim()||"スタッフ",
-      capacity:Number($("#s_cap").value)||80, seats:Number($("#s_seats").value)||18,
-      autoMin:Number($("#s_auto").value)||80, reviewMin:Number($("#s_rev").value)||50};
+      capacity:Math.max(1,n0($("#s_cap").value)||80), seats:Math.max(1,n0($("#s_seats").value)||18),
+      autoMin:Math.min(100,Math.max(0,n0($("#s_auto").value))), reviewMin:Math.min(100,Math.max(0,n0($("#s_rev").value)))};
+    if(st.reviewMin>st.autoMin){toast("「人が確認」は「自動でOK」より小さい点数にしてください");return;}
     set(K.settings,st); log("設定変更","settings","しきい値 "+st.autoMin+"／"+st.reviewMin);
     toast("設定を保存しました"); render();
   };
-  $("#d_copy").onclick=()=>{
+  $("#d_copy").onclick=()=>modal({title:"全データをコピーしますか？",
+    body:`<p>お客様の氏名・電話番号・メールアドレス・ご要望を含む内容が、そのままクリップボードにコピーされます。貼り付け先にご注意ください。</p>`,
+    confirm:"コピーする",onOk:()=>doCopy()});
+  const doCopy=()=>{
     const all={}; Object.values(K).forEach(k=>all[k]=get(k,null));
     const t=JSON.stringify(all,null,2);
     const done=()=>toast("全データをコピーしました");
@@ -594,7 +620,7 @@ function bindSettings(){
       <div class="box">置き換わるもの：受信 ${get(K.inbox,[]).length}件／予約 ${get(K.reservations,[]).length}件／在庫 ${get(K.stock,[]).length}件</div>`,
     confirm:"入れ直す",onOk:()=>{seed(true);toast("サンプルデータを入れ直しました");render();}});
   $("#d_clear").onclick=()=>modal({title:"本当にすべて消しますか？",danger:true,
-    body:`<p>この管理システムとサイトが保存している内容（${Object.keys(K).length}件のキー）をすべて削除します。元には戻せません。</p>
+    body:`<p>この管理システムとサイト（${Object.keys(K).length}件のキー）に保存された内容をすべて削除し、初期状態（サンプルデータ）に戻します。いま入っているお客様の情報は元に戻せません。</p>
       <div class="box">先に「📋 全データをコピー」で控えを取っておくと安心です。</div>
       <p style="font-size:15px">よろしければ、下の欄に <b>削除</b> と入力してください。</p>
       <input id="cf" placeholder="削除" style="margin-top:8px">`,
@@ -614,7 +640,15 @@ function bindSettings(){
 function render(){
   drawTabs();
   const v=$("#view");
-  v.innerHTML=tab==="dash"?viewDash():tab==="inbox"?viewInbox():tab==="ops"?viewOps():tab==="stock"?viewStock():viewSettings();
+  try{
+    v.innerHTML=tab==="dash"?viewDash():tab==="inbox"?viewInbox():tab==="ops"?viewOps():tab==="stock"?viewStock():viewSettings();
+  }catch(err){
+    v.innerHTML=`<div class="panel"><h2 class="mincho">データを読み込めませんでした</h2>
+      <p class="sub">保存されている内容が壊れている可能性があります。「設定・データ」からサンプルを入れ直すと元に戻ります。</p>
+      <button class="btn pri" id="fix">サンプルデータで初期化する</button></div>`;
+    const f=$("#fix"); if(f)f.onclick=()=>{seed(true);toast("初期化しました");render();};
+    return;
+  }
   v.style.animation="none"; void v.offsetWidth; v.style.animation="";
   if(tab==="inbox")bindInbox(); else if(tab==="ops")bindOps(); else if(tab==="stock")bindStock(); else if(tab==="settings")bindSettings();
 }
