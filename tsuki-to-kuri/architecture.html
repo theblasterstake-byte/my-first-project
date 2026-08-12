@@ -1,0 +1,276 @@
+<title>月と栗 システム全体像</title>
+<style>
+  :root{
+    --paper:#fffdfa;
+    --card:#ffffff;
+    --tint:#faf7f2;
+    --ink:#1f1a16;
+    --sub:#6f665e;
+    --rule:#e8e3db;
+    --kuri:#6b4423;
+    --tsuki:#c8a34a;
+    --midori:#4a7c59;
+    --mincho:"Hiragino Mincho ProN","Yu Mincho",YuMincho,"MS PMincho",serif;
+    --gothic:"Hiragino Sans","Yu Gothic",YuGothic,Meiryo,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  body{background:var(--paper);color:var(--ink);font-family:var(--gothic);margin:0;padding:32px 28px 44px;}
+  figure{margin:0 auto;max-width:1400px;}
+  svg{display:block;width:100%;height:auto;}
+  figcaption{margin-top:22px;font-size:14px;line-height:1.9;color:var(--sub);
+    border-top:1px solid var(--rule);padding-top:16px;max-width:1000px;}
+
+  .t-title{font-family:var(--mincho);font-size:29px;fill:var(--ink);letter-spacing:.02em;}
+  .t-lede{font-size:14.5px;fill:var(--sub);}
+  .t-sec{font-family:var(--mincho);font-size:20px;fill:var(--ink);letter-spacing:.02em;}
+  .t-col{font-size:14px;fill:var(--sub);letter-spacing:.06em;}
+  .t-panel{font-family:var(--mincho);font-size:19px;fill:var(--ink);}
+  .t-panelsub{font-size:14px;fill:var(--sub);}
+  .t-block{font-size:15px;fill:var(--ink);}
+  .t-blocksub{font-size:14px;fill:var(--sub);}
+  .t-key{font-family:var(--mono);font-size:14px;fill:var(--kuri);}
+  .t-flow{font-size:14px;fill:var(--kuri);}
+  .t-gate{font-size:14px;fill:var(--ink);}
+  .t-box{font-family:var(--mincho);font-size:17px;fill:var(--ink);}
+  .t-boxsub{font-size:14px;fill:var(--sub);}
+  .t-badge{font-size:14.5px;fill:var(--ink);}
+  .t-note{font-size:14px;fill:var(--sub);}
+  .t-legend{font-size:14px;fill:var(--sub);}
+  .mono{font-family:var(--mono);}
+
+  .panel{fill:var(--card);stroke:var(--rule);stroke-width:1;}
+  .block{fill:var(--tint);stroke:var(--rule);stroke-width:1;}
+  .block-hot{fill:var(--card);stroke:var(--kuri);stroke-width:1.4;}
+  .rule{stroke:var(--rule);stroke-width:1;}
+  .flowline{fill:none;stroke:var(--kuri);stroke-width:1.5;}
+  .dash{fill:none;stroke:var(--sub);stroke-width:1;stroke-dasharray:4 4;opacity:.75;}
+  .halo{fill:var(--paper);}
+  .halo-card{fill:var(--card);}
+</style>
+
+<figure>
+<svg viewBox="0 0 1400 1000" role="img"
+     aria-label="和栗モンブラン専門店「月と栗」のWebシステム全体像。ホームページのフォーム送信がブラウザのlocalStorage内のtsukikuri.inbox.v1に書き込まれ、管理画面の受信トレイに着信する。受信データは100点満点で自動採点され80点以上・50から79点・49点以下の3段階に振り分けられるが、予約確定と来店完了へは必ず人の承認を挟む。">
+
+  <defs>
+    <marker id="arrowKuri" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,1 L9,5 L0,9 z" fill="#6b4423"/>
+    </marker>
+    <marker id="arrowGray" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,1.5 L8.5,5 L0,8.5 z" fill="#6f665e"/>
+    </marker>
+    <g id="lock" fill="none" stroke="#1f1a16" stroke-width="1.3">
+      <path d="M4 7.4 V5 a3 3 0 0 1 6 0 V7.4"/>
+      <rect x="1.8" y="7.4" width="10.4" height="7.8" rx="1.8"/>
+    </g>
+  </defs>
+
+  <!-- ══ ヘッダー ══ -->
+  <text class="t-title" x="48" y="56">月と栗 — 和栗モンブラン専門店 Web システム 全体像</text>
+  <text class="t-lede" x="48" y="86">ホームページ（表）／ブラウザの localStorage（保存）／管理画面（裏）の三層。受け付けから予約確定・来店までを、要所で人の判断を挟みながら一本の線でつなぐ。</text>
+  <line class="rule" x1="48" y1="108" x2="1352" y2="108"/>
+
+  <!-- ══ 列見出し ══ -->
+  <text class="t-col" x="48"  y="132">表 — お客様が見る画面</text>
+  <text class="t-col" x="508" y="132">保存 — ブラウザの localStorage</text>
+  <text class="t-col" x="968" y="132">裏 — 店主が使う管理画面</text>
+
+  <!-- ══ 左パネル：index.html ══ -->
+  <rect class="panel" x="48" y="146" width="384" height="404" rx="6"/>
+  <text class="t-panel"    x="66" y="178">index.html</text>
+  <text class="t-panelsub" x="66" y="200">ホームページ（お客様が見る表の顔）</text>
+  <line class="rule" x1="66" y1="214" x2="414" y2="214"/>
+
+  <rect class="block" x="66" y="232" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="84" y="252">ヒーロー</text>
+  <text class="t-blocksub" x="84" y="271">店の顔・季節の栗を見せる</text>
+
+  <rect class="block" x="66" y="289" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="84" y="309">メニュー</text>
+  <text class="t-blocksub" x="84" y="328">商品一覧（お気に入り保存）</text>
+
+  <rect class="block" x="66" y="346" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="84" y="366">FAQ</text>
+  <text class="t-blocksub" x="84" y="385">よくある質問</text>
+
+  <rect class="block" x="66" y="403" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="84" y="423">サイト内検索</text>
+  <text class="t-blocksub" x="84" y="442">ページを横断して探す</text>
+
+  <rect class="block-hot" x="66" y="460" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="84" y="480">お問い合わせ・予約リクエストフォーム</text>
+  <text class="t-blocksub" x="84" y="499">送信＝このシステムの入口</text>
+
+  <!-- ══ 中央パネル：localStorage ══ -->
+  <rect class="panel" x="508" y="146" width="384" height="404" rx="6"/>
+  <text class="t-panel"    x="526" y="178">localStorage</text>
+  <text class="t-panelsub" x="526" y="200">ブラウザの中に置かれた 6 つのキー</text>
+  <line class="rule" x1="526" y1="214" x2="874" y2="214"/>
+
+  <rect class="block-hot" x="526" y="232" width="348" height="44" rx="4"/>
+  <rect fill="#6b4423" x="526" y="232" width="3" height="44"/>
+  <text class="t-key"      x="544" y="251">tsukikuri.inbox.v1</text>
+  <text class="t-blocksub" x="544" y="268">受信した問い合わせ・予約リクエスト</text>
+
+  <rect class="block" x="526" y="282" width="348" height="44" rx="4"/>
+  <rect fill="#c8a34a" x="526" y="282" width="3" height="44"/>
+  <text class="t-key"      x="544" y="301">tsukikuri.reservations.v1</text>
+  <text class="t-blocksub" x="544" y="318">確定した予約</text>
+
+  <rect class="block" x="526" y="332" width="348" height="44" rx="4"/>
+  <rect fill="#c8a34a" x="526" y="332" width="3" height="44"/>
+  <text class="t-key"      x="544" y="351">tsukikuri.stock.v1</text>
+  <text class="t-blocksub" x="544" y="368">仕込み・在庫</text>
+
+  <rect class="block" x="526" y="382" width="348" height="44" rx="4"/>
+  <rect fill="#c8a34a" x="526" y="382" width="3" height="44"/>
+  <text class="t-key"      x="544" y="401">tsukikuri.log.v1</text>
+  <text class="t-blocksub" x="544" y="418">操作ログ</text>
+
+  <rect class="block" x="526" y="432" width="348" height="44" rx="4"/>
+  <rect fill="#c8a34a" x="526" y="432" width="3" height="44"/>
+  <text class="t-key"      x="544" y="451">tsukikuri.favorites.v1</text>
+  <text class="t-blocksub" x="544" y="468">お気に入り</text>
+
+  <rect class="block" x="526" y="482" width="348" height="44" rx="4"/>
+  <rect fill="#c8a34a" x="526" y="482" width="3" height="44"/>
+  <text class="t-key"      x="544" y="501">tsukikuri.theme.v1</text>
+  <text class="t-blocksub" x="544" y="518">ダークモード設定</text>
+
+  <!-- ══ 右パネル：admin.html ══ -->
+  <rect class="panel" x="968" y="146" width="384" height="404" rx="6"/>
+  <text class="t-panel"    x="986" y="178">admin.html</text>
+  <text class="t-panelsub" x="986" y="200">管理画面（裏側）— タブ 5 つ</text>
+  <line class="rule" x1="986" y1="214" x2="1334" y2="214"/>
+
+  <rect class="block" x="986" y="232" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="1004" y="252">ダッシュボード</text>
+  <text class="t-blocksub" x="1004" y="271">今日の状況をひと目で</text>
+
+  <rect class="block-hot" x="986" y="289" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="1004" y="309">受信トレイ</text>
+  <text class="t-blocksub" x="1004" y="328">届いた依頼を読み、承認する</text>
+
+  <rect class="block" x="986" y="346" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="1004" y="366">予約・当日オペ</text>
+  <text class="t-blocksub" x="1004" y="385">確定分の当日運用</text>
+
+  <rect class="block" x="986" y="403" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="1004" y="423">仕込み・在庫</text>
+  <text class="t-blocksub" x="1004" y="442">仕込み量と残数を管理</text>
+
+  <rect class="block" x="986" y="460" width="348" height="48" rx="4"/>
+  <text class="t-block"    x="1004" y="480">設定・データ</text>
+  <text class="t-blocksub" x="1004" y="499">テーマ切替・書き出し</text>
+
+  <!-- ══ 細い破線：各画面が読み書きする保存先 ══ -->
+  <path class="dash" d="M414,313 C 462,313 478,454 520,454" marker-end="url(#arrowGray)"/>
+  <path class="dash" d="M878,304 C 918,304 942,370 982,370" marker-end="url(#arrowGray)"/>
+  <path class="dash" d="M878,354 C 918,354 942,427 982,427" marker-end="url(#arrowGray)"/>
+  <path class="dash" d="M878,504 C 918,504 942,484 982,484" marker-end="url(#arrowGray)"/>
+  <path class="dash" d="M966,399 C 936,399 916,404 882,404" marker-end="url(#arrowGray)"/>
+
+  <!-- ══ 主線 ①：フォーム送信 → inbox ══ -->
+  <path class="flowline" d="M414,484 C 456,484 458,254 520,254" marker-end="url(#arrowKuri)"/>
+  <rect class="halo" x="437" y="278" width="62" height="20" rx="3"/>
+  <text class="t-flow" x="468" y="293" text-anchor="middle">① 送信</text>
+
+  <!-- ══ 主線 ②：inbox → 受信トレイ ══ -->
+  <path class="flowline" d="M878,254 C 916,254 944,313 982,313" marker-end="url(#arrowKuri)"/>
+  <rect class="halo" x="899" y="242" width="62" height="20" rx="3"/>
+  <text class="t-flow" x="930" y="257" text-anchor="middle">② 着信</text>
+
+  <!-- ══ 図全体の注記 ══ -->
+  <text class="t-note" x="48" y="576">※ localStorage は「そのブラウザの中だけ」に保存される。端末やブラウザが変われば、同じデータは見えない。</text>
+
+  <!-- ══ スコア判定 ══ -->
+  <text class="t-sec" x="48" y="612">スコア判定 — 受信データを 100 点満点で自動採点し、3 段階に振り分ける</text>
+  <line class="rule" x1="48" y1="626" x2="1352" y2="626"/>
+
+  <rect class="block" x="48" y="676" width="230" height="64" rx="4"/>
+  <text class="t-box"    x="68" y="702">受信データ</text>
+  <text class="t-boxsub" x="68" y="724">問い合わせ／予約リクエスト</text>
+
+  <line class="flowline" x1="278" y1="708" x2="326" y2="708" marker-end="url(#arrowKuri)"/>
+
+  <rect class="block" x="330" y="676" width="250" height="64" rx="4"/>
+  <text class="t-box"    x="350" y="702">自動採点</text>
+  <text class="t-boxsub" x="350" y="724">100 点満点でスコアを付ける</text>
+
+  <path class="flowline" d="M580,708 C 604,708 604,661 626,661" marker-end="url(#arrowKuri)"/>
+  <path class="flowline" d="M580,708 C 604,708 604,706 626,706" marker-end="url(#arrowKuri)"/>
+  <path class="flowline" d="M580,708 C 604,708 604,751 626,751" marker-end="url(#arrowKuri)"/>
+
+  <rect x="630" y="644" width="340" height="34" rx="4" fill="#ffffff" stroke="#4a7c59" stroke-width="1.3"/>
+  <rect x="630" y="644" width="4" height="34" fill="#4a7c59"/>
+  <text class="t-badge" x="650" y="666"><tspan class="mono" fill="#4a7c59">80 点以上</tspan>　自動で OK（承認推奨）</text>
+
+  <rect x="630" y="689" width="340" height="34" rx="4" fill="#ffffff" stroke="#c8a34a" stroke-width="1.3"/>
+  <rect x="630" y="689" width="4" height="34" fill="#c8a34a"/>
+  <text class="t-badge" x="650" y="711"><tspan class="mono" fill="#a8843a">50〜79 点</tspan>　人が確認</text>
+
+  <rect x="630" y="734" width="340" height="34" rx="4" fill="#faf7f2" stroke="#d8d2c8" stroke-width="1.3"/>
+  <rect x="630" y="734" width="4" height="34" fill="#6f665e"/>
+  <text class="t-badge" x="650" y="756" fill="#6f665e"><tspan class="mono">49 点以下</tspan>　却下候補</text>
+
+  <rect x="1010" y="644" width="342" height="124" rx="4" fill="#faf7f2" stroke="#e8e3db" stroke-width="1"/>
+  <rect x="1010" y="644" width="4" height="124" fill="#6b4423"/>
+  <text class="t-boxsub" x="1032" y="676" fill="#1f1a16">スコアは自動、判断は人。</text>
+  <text class="t-boxsub" x="1032" y="700">80 点以上でも予約は自動確定しない。</text>
+  <text class="t-boxsub" x="1032" y="722">採点はあくまで並べ替えの目安で、</text>
+  <text class="t-boxsub" x="1032" y="744">確定は必ず受信トレイで人が承認する。</text>
+
+  <!-- ══ 承認ゲート ══ -->
+  <text class="t-sec" x="48" y="812">承認ゲート — 受け付けから来店まで、要所で人が引き継ぐ</text>
+  <line class="rule" x1="48" y1="826" x2="1352" y2="826"/>
+
+  <rect class="block-hot" x="94" y="846" width="280" height="64" rx="4"/>
+  <text class="t-box"    x="114" y="872">受信トレイ</text>
+  <text class="t-boxsub" x="114" y="894">届いた依頼が並ぶ</text>
+
+  <use href="#lock" x="429" y="854"/>
+  <text class="t-gate" x="451" y="867">人が承認</text>
+  <line class="flowline" x1="390" y1="886" x2="546" y2="886" marker-end="url(#arrowKuri)"/>
+
+  <rect class="block-hot" x="560" y="846" width="280" height="64" rx="4"/>
+  <text class="t-box"    x="580" y="872">予約確定</text>
+  <text class="t-boxsub" x="580" y="894" class="mono" font-size="13.5">tsukikuri.reservations.v1</text>
+
+  <use href="#lock" x="895" y="854"/>
+  <text class="t-gate" x="917" y="867">人が確認</text>
+  <line class="flowline" x1="856" y1="886" x2="1012" y2="886" marker-end="url(#arrowKuri)"/>
+
+  <rect class="block-hot" x="1026" y="846" width="280" height="64" rx="4"/>
+  <text class="t-box"    x="1046" y="872">来店・完了</text>
+  <text class="t-boxsub" x="1046" y="894">当日オペで消し込み</text>
+
+  <!-- ══ 凡例 ══ -->
+  <line class="rule" x1="48" y1="944" x2="1352" y2="944"/>
+
+  <rect x="48" y="966" width="14" height="14" rx="2" fill="#ffffff" stroke="#4a7c59" stroke-width="1.3"/>
+  <rect x="48" y="966" width="4" height="14" fill="#4a7c59"/>
+  <text class="t-legend" x="70" y="978">自動で OK（80 点以上）</text>
+
+  <rect x="300" y="966" width="14" height="14" rx="2" fill="#ffffff" stroke="#c8a34a" stroke-width="1.3"/>
+  <rect x="300" y="966" width="4" height="14" fill="#c8a34a"/>
+  <text class="t-legend" x="322" y="978">人が確認（50〜79 点）</text>
+
+  <rect x="552" y="966" width="14" height="14" rx="2" fill="#faf7f2" stroke="#d8d2c8" stroke-width="1.3"/>
+  <rect x="552" y="966" width="4" height="14" fill="#6f665e"/>
+  <text class="t-legend" x="574" y="978">却下候補（49 点以下）</text>
+
+  <line x1="804" y1="973" x2="834" y2="973" stroke="#6b4423" stroke-width="1.5" marker-end="url(#arrowKuri)"/>
+  <text class="t-legend" x="846" y="978">実線＝データの流れ</text>
+
+  <line x1="1056" y1="973" x2="1086" y2="973" stroke="#6f665e" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arrowGray)"/>
+  <text class="t-legend" x="1098" y="978">破線＝画面と保存先の読み書き</text>
+
+</svg>
+
+<figcaption>
+お客様のフォーム送信は <code>tsukikuri.inbox.v1</code> に書き込まれ、それが管理画面の受信トレイに現れる — 送信と着信をつないでいるのはサーバーではなく、同じブラウザの localStorage である。
+受信データには 100 点満点のスコアが自動で付き 3 段階に振り分けられるが、スコアは並べ替えの目安にすぎず、予約確定と来店完了の手前には必ず人の承認が挟まる。
+</figcaption>
+</figure>

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月と栗｜受付管理システム</title>
+<style>
+:root{
+  --bg:#fffdfa; --card:#ffffff; --ink:#1f1a16; --muted:#6f665e; --line:#e8e3db;
+  --kuri:#6b4423; --tsuki:#c8a34a; --ok:#4a7c59; --warn:#b8873a; --ng:#8d8378;
+  --shadow:0 1px 3px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  font-size:18px;line-height:1.85;letter-spacing:.03em;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+.mincho{font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:0 26px}
+
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40}
+.hd{display:flex;align-items:center;gap:18px;padding:18px 0;flex-wrap:wrap}
+.logo{font-size:22px;letter-spacing:.12em;white-space:nowrap}
+.logo small{display:block;font-size:12px;letter-spacing:.28em;color:var(--tsuki);font-weight:400;font-family:inherit}
+.hd .sp{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+a.btn,button.btn{font:inherit;font-size:16px;background:var(--card);color:inherit;border:1px solid var(--line);
+  border-radius:6px;padding:10px 17px;cursor:pointer;text-decoration:none;transition:border-color .3s,transform .2s;white-space:nowrap}
+a.btn:hover,button.btn:hover{border-color:var(--kuri)}
+button.btn:active{transform:scale(.97)}
+button.btn.pri{background:var(--kuri);color:#fff;border-color:var(--kuri)}
+button.btn.pri:hover{opacity:.9}
+button.btn.danger{color:#a2432c;border-color:#e3c7bd}
+button.btn.sm{font-size:15px;padding:7px 13px}
+
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{font:inherit;font-size:17px;background:none;border:none;color:var(--muted);padding:15px 20px;cursor:pointer;
+  border-bottom:2px solid transparent;white-space:nowrap;transition:color .3s,border-color .3s}
+.tabs button:hover{color:var(--ink)}
+.tabs button.on{color:var(--kuri);border-bottom-color:var(--kuri)}
+
+main{padding:36px 0 90px;animation:rise .45s ease-out both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h2{font-size:26px;letter-spacing:.06em;margin-bottom:6px}
+.sub{color:var(--muted);font-size:16px;margin-bottom:28px}
+h3{font-size:19px;letter-spacing:.05em;margin-bottom:14px}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;margin-bottom:36px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:22px 24px;box-shadow:var(--shadow)}
+.kpi span{display:block;font-size:14px;letter-spacing:.16em;color:var(--muted);margin-bottom:2px}
+.kpi b{font-size:34px;font-weight:600;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;line-height:1.3}
+.kpi b small{font-size:16px;color:var(--muted);margin-left:5px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:26px 26px 22px;box-shadow:var(--shadow);margin-bottom:26px}
+.cols{display:grid;grid-template-columns:1.25fr .75fr;gap:26px}
+@media (max-width:900px){.cols{grid-template-columns:1fr}}
+
+table{width:100%;border-collapse:collapse;font-size:16px}
+th{text-align:left;font-size:13px;letter-spacing:.14em;color:var(--muted);font-weight:400;border-bottom:1px solid var(--ink);padding:0 10px 9px}
+td{border-bottom:1px solid var(--line);padding:13px 10px;vertical-align:top}
+tr.row{cursor:pointer;transition:background .25s}
+tr.row:hover{background:#faf7f2}
+tr.row.sel{background:#f6f1e8}
+.badge{display:inline-block;font-size:13px;border-radius:3px;padding:2px 10px;white-space:nowrap;border:1px solid}
+.b-auto{color:var(--ok);border-color:var(--ok)}
+.b-review{color:var(--warn);border-color:var(--warn)}
+.b-reject{color:var(--ng);border-color:var(--ng)}
+.b-done{color:var(--muted);border-color:var(--line);background:#f6f4f0}
+.sc{font-size:22px;font-family:"Hiragino Mincho ProN","Yu Mincho",serif}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.filters button{font:inherit;font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:6px 16px;cursor:pointer;color:var(--muted);transition:all .3s}
+.filters button.on{border-color:var(--kuri);color:var(--kuri);background:#fbf7f1}
+.detail dl{display:grid;grid-template-columns:130px 1fr;gap:6px 14px;font-size:16px;margin-bottom:18px}
+.detail dt{color:var(--muted);font-size:14px;letter-spacing:.1em}
+.detail dd{word-break:break-word}
+.reasons{list-style:none;font-size:15px;color:var(--muted);margin:10px 0 18px}
+.reasons li{padding:5px 0;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;gap:12px}
+.reasons li b{color:var(--ink);font-weight:600}
+.bar{height:9px;border-radius:5px;background:#f0ece5;overflow:hidden;margin:6px 0 2px}
+.bar i{display:block;height:100%;background:var(--kuri);border-radius:5px;transition:width .7s cubic-bezier(.2,.8,.3,1)}
+.bar i.ok{background:var(--ok)} .bar i.warn{background:var(--warn)} .bar i.ng{background:var(--ng)}
+.hint{border-left:3px solid var(--tsuki);background:#fdfaf3;border-radius:0 6px 6px 0;padding:18px 22px;font-size:16px;color:#5c5348;margin-top:30px}
+.hint b{display:block;font-size:15px;letter-spacing:.12em;color:var(--tsuki);margin-bottom:6px}
+.hint ul{margin:6px 0 0 20px}
+.hint li{margin:3px 0}
+.flow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:15px;color:var(--muted);margin-bottom:18px}
+.flow span{border:1px solid var(--line);border-radius:20px;padding:4px 14px;background:var(--card)}
+.flow span.now{border-color:var(--kuri);color:var(--kuri)}
+.empty{color:var(--muted);font-size:16px;padding:26px 0;text-align:center}
+input,select,textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:inherit;width:100%}
+.fld{margin-bottom:16px}.fld label{display:block;font-size:14px;letter-spacing:.1em;color:var(--muted);margin-bottom:5px}
+.keys{font-size:15px}
+.keys div{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--line)}
+.keys code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;color:var(--kuri)}
+
+/* モーダル */
+.mask{position:fixed;inset:0;background:rgba(31,26,22,.42);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;
+  padding:24px;z-index:100;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .28s,visibility .28s}
+.mask.on{opacity:1;visibility:visible;pointer-events:auto}
+.modal{background:var(--card);border-radius:10px;max-width:560px;width:100%;padding:32px 32px 26px;box-shadow:0 12px 40px rgba(0,0,0,.18);
+  transform:translateY(12px) scale(.985);transition:transform .3s cubic-bezier(.2,.9,.3,1)}
+.mask.on .modal{transform:none}
+.modal h3{font-size:22px;margin-bottom:10px}
+.modal p{font-size:16px;color:var(--muted);margin-bottom:8px}
+.modal .box{background:#faf7f2;border:1px solid var(--line);border-radius:6px;padding:14px 16px;font-size:16px;margin:14px 0}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#fff;
+  padding:13px 24px;border-radius:6px;font-size:16px;opacity:0;pointer-events:none;transition:all .4s;z-index:110}
+.toast.on{opacity:1;transform:translateX(-50%)}
+@media (max-width:720px){
+  body{font-size:17px}.wrap{padding:0 18px}.cols{grid-template-columns:1fr}
+  table{font-size:15px}td,th{padding-left:6px;padding-right:6px}
+  .hide-sp{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hd">
+      <div class="logo mincho">月と栗 受付管理システム<small>ADMIN CONSOLE</small></div>
+      <div class="sp">
+        <span id="clock" class="num" style="font-size:15px;color:var(--muted)"></span>
+        <a class="btn" href="index.html">🌐 サイト（表の顔）を見る</a>
+      </div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+</header>
+
+<main class="wrap" id="view"></main>
+
+<div class="mask" id="mask"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============ 保存キー（tsukikuri.◯◯.v1 で統一） ============ */
+const K={
+  inbox:"tsukikuri.inbox.v1",           // ホームページから届いた問い合わせ・予約リクエスト
+  reservations:"tsukikuri.reservations.v1", // 承認後の確定予約
+  stock:"tsukikuri.stock.v1",           // 仕込み・在庫
+  log:"tsukikuri.log.v1",               // 操作ログ（誰がいつ承認したか）
+  settings:"tsukikuri.settings.v1",     // 店舗設定
+  favorites:"tsukikuri.favorites.v1",   // サイト側のお気に入り
+  seeded:"tsukikuri.seeded.v1"          // サンプル投入済みフラグ
+};
+const get=(k,d)=>{try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v);}catch(e){return d;}};
+const set=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){toast("保存できませんでした");}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const yen=n=>"¥"+Number(n||0).toLocaleString("ja-JP");
+const d2=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+d2(d.getMonth()+1)+"-"+d2(d.getDate());
+const jp=s=>{if(!s)return"—";const[a,b,c]=s.split("-");return `${Number(b)}月${Number(c)}日`;};
+const rel=iso=>{const m=Math.floor((Date.now()-new Date(iso))/60000);
+  return m<1?"たった今":m<60?m+"分前":m<1440?Math.floor(m/60)+"時間前":Math.floor(m/1440)+"日前";};
+const today=ymd(new Date());
+const plus=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d);};
+
+const DEFAULT_SETTINGS={shop:"月と栗",capacity:80,seats:18,closedDay:2,autoMin:80,reviewMin:50,staff:"店長 三浦"};
+
+/* ============ サンプルデータ ============ */
+function seed(force){
+  const inbox=[
+   {id:"RQ-0001",ts:new Date(Date.now()-32*60000).toISOString(),type:"ご予約リクエスト",name:"鎌倉 花子",tel:"090-1111-2222",email:"hanako@example.com",people:"2名",date:plus(6),time:"14:00",message:"母の誕生日で伺います。カウンター席で搾るところを見せてあげたいです。",source:"ホームページ",status:"new"},
+   {id:"RQ-0002",ts:new Date(Date.now()-95*60000).toISOString(),type:"ご予約リクエスト",name:"山下 亮",tel:"080-3333-4444",email:"ryo.y@example.com",people:"4名",date:plus(9),time:"11:00",message:"友人と4名で伺います。テイクアウトのどら焼きも同時に受け取れますか。",source:"ホームページ",status:"new"},
+   {id:"RQ-0003",ts:new Date(Date.now()-3*3600000).toISOString(),type:"貸切・お取り置きのご相談",name:"江ノ島 商工会",tel:"0466-00-0000",email:"info@enoshima-sk.example.com",people:"5名以上",date:plus(21),time:"17:00",message:"12名で貸切を検討しています。予算と可否をご相談させてください。",source:"ホームページ",status:"new"},
+   {id:"RQ-0004",ts:new Date(Date.now()-5*3600000).toISOString(),type:"お問い合わせ",name:"佐野 みなみ",tel:"",email:"minami@example.com",people:"2名",date:"",time:"",message:"小麦アレルギーがあります。食べられる品はありますか。",source:"ホームページ",status:"new"},
+   {id:"RQ-0005",ts:new Date(Date.now()-7*3600000).toISOString(),type:"ご予約リクエスト",name:"匿名希望",tel:"",email:"a@b.c",people:"5名以上",date:plus(1),time:"13:00",message:"あす行きます",source:"ホームページ",status:"new"},
+   {id:"RQ-0006",ts:new Date(Date.now()-9*3600000).toISOString(),type:"取材・コラボのご相談",name:"和菓子マガジン編集部",tel:"03-5555-6666",email:"press@wagashi-mag.example.com",people:"3名",date:plus(14),time:"15:00",message:"秋の和栗特集で取材させていただきたく、ご相談です。撮影は1時間程度を予定しています。",source:"ホームページ",status:"new"},
+   {id:"RQ-0007",ts:new Date(Date.now()-26*3600000).toISOString(),type:"お問い合わせ",name:"SEO対策のご案内",tel:"",email:"info@ad-example.com",people:"1名",date:"",time:"",message:"御社サイトのSEO順位を無料で診断します。相互リンクとまとめて一括送信のご提案です。",source:"ホームページ",status:"new"},
+   {id:"RQ-0008",ts:new Date(Date.now()-30*3600000).toISOString(),type:"ご予約リクエスト",name:"北鎌倉 大輔",tel:"070-7777-8888",email:"daisuke@example.com",people:"2名",date:plus(4),time:"16:00",message:"いつも伺っています。今月の限定パフェを楽しみにしています。",source:"ホームページ",status:"approved"},
+   {id:"RQ-0009",ts:new Date(Date.now()-52*3600000).toISOString(),type:"ご予約リクエスト",name:"三浦 さくら",tel:"090-9999-0000",email:"sakura@example.com",people:"3名",date:plus(2),time:"12:00",message:"車いすの家族と伺います。入口に段差はありますか。",source:"ホームページ",status:"approved"},
+   {id:"RQ-0010",ts:new Date(Date.now()-74*3600000).toISOString(),type:"ご予約リクエスト",name:"（テスト）あああ",tel:"",email:"x@x.x",people:"1名",date:plus(0),time:"11:00",message:"てすと",source:"ホームページ",status:"rejected"}
+  ];
+  const reservations=[
+   {id:"RS-0001",inboxId:"RQ-0008",name:"北鎌倉 大輔",date:plus(4),time:"16:00",people:"2名",status:"confirmed",memo:"常連。カウンター希望。",ts:new Date(Date.now()-29*3600000).toISOString()},
+   {id:"RS-0002",inboxId:"RQ-0009",name:"三浦 さくら",date:plus(2),time:"12:00",people:"3名",status:"confirmed",memo:"車いす1台。土間側の席をご案内。",ts:new Date(Date.now()-50*3600000).toISOString()},
+   {id:"RS-0003",inboxId:"",name:"藤沢 いずみ",date:today,time:"12:00",people:"2名",status:"seated",memo:"ご来店済み。",ts:new Date(Date.now()-4*3600000).toISOString()},
+   {id:"RS-0004",inboxId:"",name:"長谷 健一",date:today,time:"13:00",people:"4名",status:"confirmed",memo:"お子さま1名、椅子を用意。",ts:new Date(Date.now()-28*3600000).toISOString()},
+   {id:"RS-0005",inboxId:"",name:"由比ヶ浜 美咲",date:today,time:"15:00",people:"2名",status:"confirmed",memo:"",ts:new Date(Date.now()-27*3600000).toISOString()},
+   {id:"RS-0006",inboxId:"",name:"稲村 陽介",date:plus(-1),time:"14:00",people:"2名",status:"done",memo:"完了。極を2つ。",ts:new Date(Date.now()-50*3600000).toISOString()}
+  ];
+  const stock=[
+   {id:"S1",name:"熊本県産 和栗（生）",unit:"kg",stock:6,par:18,daily:9,supplier:"山あい栗園"},
+   {id:"S2",name:"和栗ペースト（自家製）",unit:"kg",stock:4,par:10,daily:6,supplier:"自社工房"},
+   {id:"S3",name:"渋皮栗の甘露煮",unit:"個",stock:52,par:120,daily:40,supplier:"山あい栗園"},
+   {id:"S4",name:"生クリーム（乳脂肪45%）",unit:"L",stock:9,par:12,daily:5,supplier:"鎌倉牛乳"},
+   {id:"S5",name:"焙じ茶メレンゲ土台",unit:"個",stock:74,par:90,daily:60,supplier:"自社工房"},
+   {id:"S6",name:"お持ち帰り箱（小）",unit:"枚",stock:210,par:150,daily:35,supplier:"湘南パッケージ"}
+  ];
+  // 初回はサンプルを足すだけ。サイトから既に届いている内容は消さない（消すのは「入れ直す」を承認したときだけ）
+  const keep=force?[]:get(K.inbox,[]).filter(e=>!/^RQ-00\d\d$/.test(e.id));
+  set(K.inbox,[...keep,...inbox]);
+  set(K.reservations,force?reservations:[...get(K.reservations,[]).filter(r=>!/^RS-000\d$/.test(r.id)),...reservations]);
+  set(K.stock,stock);
+  set(K.log,[{ts:new Date(Date.now()-29*3600000).toISOString(),who:"店長 三浦",action:"承認",target:"RQ-0008",detail:"予約 RS-0001 を作成しました"},
+             {ts:new Date(Date.now()-50*3600000).toISOString(),who:"店長 三浦",action:"承認",target:"RQ-0009",detail:"予約 RS-0002 を作成しました"},
+             {ts:new Date(Date.now()-73*3600000).toISOString(),who:"店長 三浦",action:"却下",target:"RQ-0010",detail:"内容がテスト送信のため"}]);
+  set(K.settings,DEFAULT_SETTINGS); set(K.seeded,true);
+}
+if(!get(K.seeded,false)) seed();
+
+/* ============ スコアリング（100点満点・3段階） ============ */
+const NG=["SEO","一括送信","相互リンク","無料で診断","副業","出会い"];
+function scoreOf(e,st){
+  const r=[]; let s=0;
+  const add=(pt,why)=>{s+=pt;r.push({pt,why});};
+  const t=e.type||"";
+  if(t.indexOf("ご予約")===0)add(30,"ご予約リクエスト（来店に直結）");
+  else if(t.indexOf("貸切")===0)add(25,"貸切・お取り置きのご相談");
+  else if(t.indexOf("取材")===0)add(15,"取材・コラボのご相談");
+  else add(20,"お問い合わせ");
+  if(/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(e.email||""))add(15,"メールアドレスが正しい形式");
+  else add(-10,"メールアドレスが不完全");
+  if((e.tel||"").replace(/[^0-9]/g,"").length>=10)add(10,"電話番号あり（当日連絡がとれる）");
+  if(e.date){
+    add(10,"ご希望日の記入あり");
+    const diff=Math.round((new Date(e.date)-new Date(today))/86400000);
+    if(diff>=7)add(8,"7日以上先で仕込みに余裕がある");
+    else if(diff<=1)add(-8,"直前のご希望（席と食数の調整が必要）");
+    if(new Date(e.date).getDay()===st.closedDay)add(-15,"定休日（火曜）のご希望");
+  } else add(-5,"ご希望日の記入なし");
+  const ppl=parseInt(e.people||"0",10)||0;
+  if(e.people==="5名以上")add(4,"5名以上（席の調整が必要）");
+  else if(ppl>=1&&ppl<=4)add(12,"1〜4名で席をご案内しやすい");
+  const msg=(e.message||"");
+  if(msg.length>=25)add(10,"ご要望が具体的に書かれている");
+  else if(msg.length>=8)add(5,"ご要望の記入あり");
+  else add(-5,"ご要望がほぼ空欄");
+  if(NG.some(w=>msg.indexOf(w)>=0||(e.name||"").indexOf(w)>=0))add(-45,"営業・宣伝と思われる語句を含む");
+  if((e.favs||[]).length>=1)add(5,"サイトでお気に入りを保存している（熱量が高い）");
+  s=Math.max(0,Math.min(100,s));
+  const band=s>=st.autoMin?"auto":(s>=st.reviewMin?"review":"reject");
+  return {score:s,band,reasons:r};
+}
+const BAND={auto:{label:"自動でOK（承認推奨）",cls:"b-auto"},review:{label:"人が確認",cls:"b-review"},reject:{label:"却下候補",cls:"b-reject"}};
+function rescoreAll(){
+  const st=get(K.settings,DEFAULT_SETTINGS);
+  const inbox=get(K.inbox,[]).map(e=>{const r=scoreOf(e,st);return {...e,score:r.score,band:r.band,reasons:r.reasons};});
+  set(K.inbox,inbox); return inbox;
+}
+
+/* ============ 共通UI ============ */
+let tt=null;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),2800);}
+function modal({title,body,confirm,danger,onOk,validate}){
+  $("#modal").innerHTML=`<h3 class="mincho">${esc(title)}</h3><div>${body}</div>
+    <div class="acts"><button class="btn" id="mno">やめる</button>
+    <button class="btn ${danger?"danger":"pri"}" id="mok">${esc(confirm)}</button></div>`;
+  $("#mask").classList.add("on");
+  const close=()=>{$("#mask").classList.remove("on");$("#modal").innerHTML="";document.onkeydown=null;};
+  $("#mno").onclick=close;
+  $("#mok").onclick=()=>{if(validate&&!validate())return;close();onOk&&onOk();};
+  $("#mask").onclick=e=>{if(e.target===$("#mask"))close();};
+  document.onkeydown=e=>{if(e.key==="Escape")close();};
+}
+function log(action,target,detail){
+  const st=get(K.settings,DEFAULT_SETTINGS);
+  const l=get(K.log,[]); l.unshift({ts:new Date().toISOString(),who:st.staff,action,target,detail}); set(K.log,l.slice(0,200));
+}
+function hint(title,items){
+  return `<div class="hint"><b>${esc(title)}</b><ul>${items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>`;
+}
+function bars(data,max){ // 外部ライブラリを使わないSVG棒グラフ
+  const w=560,h=190,pad=30,bw=(w-pad*2)/data.length;
+  const mx=max||Math.max(...data.map(d=>d.v),1);
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto" role="img" aria-label="棒グラフ">
+   <line x1="${pad}" y1="${h-28}" x2="${w-pad}" y2="${h-28}" stroke="#e8e3db"/>
+   ${data.map((d,i)=>{const bh=Math.round((h-70)*d.v/mx),x=pad+i*bw+bw*.22,y=h-28-bh;
+     return `<rect x="${x}" y="${y}" width="${bw*.56}" height="${bh}" rx="3" fill="${d.c||"#6b4423"}" opacity=".9">
+       <animate attributeName="height" from="0" to="${bh}" dur="0.6s" fill="freeze"/>
+       <animate attributeName="y" from="${h-28}" to="${y}" dur="0.6s" fill="freeze"/></rect>
+     <text x="${x+bw*.28}" y="${h-10}" font-size="13" fill="#6f665e" text-anchor="middle">${esc(d.k)}</text>
+     <text x="${x+bw*.28}" y="${y-7}" font-size="13" fill="#1f1a16" text-anchor="middle">${d.v}</text>`;}).join("")}
+  </svg>`;
+}
+
+/* ============ タブ ============ */
+const TABS=[["dash","ダッシュボード"],["inbox","受信トレイ"],["ops","予約・当日オペ"],["stock","仕込み・在庫"],["settings","設定・データ"]];
+let tab="dash", filter="all", sel=null;
+function drawTabs(){
+  $("#tabs").innerHTML=TABS.map(([k,n])=>{
+    let n2=n;
+    if(k==="inbox"){const c=get(K.inbox,[]).filter(e=>e.status==="new").length; if(c)n2=n+"（"+c+"）";}
+    return `<button class="${tab===k?"on":""}" data-t="${k}">${esc(n2)}</button>`;}).join("");
+  [...document.querySelectorAll("#tabs button")].forEach(b=>b.onclick=()=>{tab=b.dataset.t;sel=null;filter="all";render();});
+}
+
+/* ============ 1. ダッシュボード ============ */
+function viewDash(){
+  const st=get(K.settings,DEFAULT_SETTINGS), inbox=rescoreAll(), res=get(K.reservations,[]), stock=get(K.stock,[]);
+  const newOnes=inbox.filter(e=>e.status==="new");
+  const todays=res.filter(r=>r.date===today&&r.status!=="cancel");
+  const seatsUsed=todays.reduce((a,r)=>a+(parseInt(r.people,10)||5),0);
+  const cnt={auto:newOnes.filter(e=>e.band==="auto").length,review:newOnes.filter(e=>e.band==="review").length,reject:newOnes.filter(e=>e.band==="reject").length};
+  const last7=[...Array(7)].map((_,i)=>{const d=plus(-6+i);
+    return {k:(Number(d.split("-")[2]))+"日",v:inbox.filter(e=>e.ts.slice(0,10)===d).length};});
+  const low=stock.filter(s=>s.stock<s.daily);
+  const favs=get(K.favorites,[]);
+  const MENU={m1:"搾りたて和栗モンブラン",m2:"和栗モンブラン 極",m3:"季節の栗きんとんパフェ",m4:"焙じ茶と和栗のテリーヌ",m5:"栗と黒糖のどら焼き",m6:"月見ラテ"};
+  return `
+  <h2 class="mincho">ダッシュボード</h2>
+  <p class="sub">${esc(st.shop)}の今日の状況です。サイトから届いた内容は自動で採点され、3段階に振り分けられます。</p>
+  <div class="kpis">
+    <div class="kpi"><span>本日のご予約</span><b class="num">${todays.length}<small>件 ／ ${seatsUsed}名</small></b></div>
+    <div class="kpi"><span>未対応の受信</span><b class="num">${newOnes.length}<small>件</small></b></div>
+    <div class="kpi"><span>自動でOKの候補</span><b class="num" style="color:var(--ok)">${cnt.auto}<small>件</small></b></div>
+    <div class="kpi"><span>本日の残り食数</span><b class="num">${Math.max(0,st.capacity-seatsUsed*2)}<small>／${st.capacity}食</small></b></div>
+  </div>
+  <div class="cols">
+    <div class="panel">
+      <h3 class="mincho">直近7日間に届いた件数</h3>
+      ${bars(last7)}
+    </div>
+    <div class="panel">
+      <h3 class="mincho">未対応の振り分け</h3>
+      ${[["auto","自動でOK",cnt.auto,"ok"],["review","人が確認",cnt.review,"warn"],["reject","却下候補",cnt.reject,"ng"]].map(([k,n,v,c])=>`
+        <div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:16px"><span>${n}</span><span class="num">${v}件</span></div>
+        <div class="bar"><i class="${c}" style="width:${newOnes.length?Math.round(v/newOnes.length*100):0}%"></i></div></div>`).join("")}
+      <p style="font-size:15px;color:var(--muted);margin-top:10px">しきい値：${st.autoMin}点以上=自動でOK／${st.reviewMin}点以上=人が確認</p>
+    </div>
+  </div>
+  <div class="cols">
+    <div class="panel">
+      <h3 class="mincho">いま気にすること</h3>
+      <table><tbody>
+        ${low.length?low.map(s=>`<tr><td>${esc(s.name)}</td><td class="r num" style="text-align:right;color:#a2432c">残り${s.stock}${esc(s.unit)}（本日必要 ${s.daily}）</td></tr>`).join("")
+          :`<tr><td colspan="2" class="empty">仕込みの不足はありません</td></tr>`}
+        ${newOnes.filter(e=>e.band==="auto").slice(0,3).map(e=>`<tr><td>${esc(e.name)} 様のご予約</td><td style="text-align:right"><span class="badge b-auto">${e.score}点・承認推奨</span></td></tr>`).join("")}
+      </tbody></table>
+    </div>
+    <div class="panel">
+      <h3 class="mincho">サイトで保存されたお気に入り</h3>
+      ${favs.length?favs.map(f=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding:8px 0"><span>${esc(MENU[f]||f)}</span><span style="color:var(--tsuki)">❤︎</span></div>`).join("")
+        :`<p class="empty">まだお気に入りはありません</p>`}
+      <p style="font-size:15px;color:var(--muted);margin-top:12px">サイト側の❤︎は、翌日の仕込み数を決める参考にしています。</p>
+    </div>
+  </div>
+  ${hint("この画面でAIに頼むと良いこと",[
+    "「直近7日の受信を見て、来週の仕込み数を提案して」",
+    "「未対応のうち、今日中に返信すべき順に並べ替えて」",
+    "「残り食数と予約数から、当日枠をあと何席出せるか計算して」"])}`;
+}
+
+/* ============ 2. 受信トレイ ============ */
+function viewInbox(){
+  const inbox=rescoreAll();
+  const f=filter;
+  const list=inbox.filter(e=>f==="all"?true:f==="new"?e.status==="new":f==="done"?e.status!=="new":e.band===f&&e.status==="new");
+  const cur=sel?inbox.find(e=>e.id===sel):null;
+  const statusLabel=s=>({new:"未対応",approved:"承認済み",rejected:"却下",hold:"保留"})[s]||s;
+  return `
+  <h2 class="mincho">受信トレイ</h2>
+  <p class="sub">ホームページのフォームから届いた内容です。100点満点で自動採点し、3段階に振り分けています。予約の確定は、かならず人が承認してから進みます。</p>
+  <div class="flow"><span class="now">① 受信・自動採点</span>→<span>② 人が承認</span>→<span>③ 予約confirmed</span>→<span>④ 来店・完了</span></div>
+  <div class="filters">
+    ${[["all","すべて"],["new","未対応"],["auto","自動でOK"],["review","人が確認"],["reject","却下候補"],["done","対応済み"]]
+      .map(([k,n])=>`<button class="${f===k?"on":""}" data-f="${k}">${n}</button>`).join("")}
+  </div>
+  <div class="cols">
+    <div class="panel">
+      <table>
+        <thead><tr><th>スコア</th><th>お客様</th><th class="hide-sp">ご希望</th><th>状態</th></tr></thead>
+        <tbody>
+        ${list.length?list.map(e=>`<tr class="row ${sel===e.id?"sel":""}" data-id="${e.id}">
+          <td><span class="sc num">${e.score}</span><div><span class="badge ${BAND[e.band].cls}">${BAND[e.band].label}</span></div></td>
+          <td>${esc(e.name)}<div style="font-size:14px;color:var(--muted)">${esc(e.type)}・${rel(e.ts)}</div></td>
+          <td class="hide-sp">${jp(e.date)} ${esc(e.time||"")}<div style="font-size:14px;color:var(--muted)">${esc(e.people)}</div></td>
+          <td><span class="badge ${e.status==="new"?"b-review":"b-done"}">${statusLabel(e.status)}</span></td>
+        </tr>`).join(""):`<tr><td colspan="4" class="empty">該当する受信はありません</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+    <div class="panel detail">
+      ${cur?`
+        <h3 class="mincho">${esc(cur.name)} 様</h3>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <span class="sc num" style="font-size:38px">${cur.score}</span><span style="color:var(--muted)">点 / 100</span>
+          <span class="badge ${BAND[cur.band].cls}">${BAND[cur.band].label}</span>
+        </div>
+        <div class="bar"><i class="${cur.band==="auto"?"ok":cur.band==="review"?"warn":"ng"}" style="width:${cur.score}%"></i></div>
+        <dl>
+          <dt>受付番号</dt><dd class="num">${esc(cur.id)}</dd>
+          <dt>ご用件</dt><dd>${esc(cur.type)}</dd>
+          <dt>ご希望</dt><dd>${jp(cur.date)} ${esc(cur.time||"")}／${esc(cur.people)}</dd>
+          <dt>お電話</dt><dd>${esc(cur.tel||"—")}</dd>
+          <dt>メール</dt><dd>${esc(cur.email)}</dd>
+          <dt>ご要望</dt><dd>${esc(cur.message||"—")}</dd>
+          <dt>受信</dt><dd>${rel(cur.ts)}（${esc(cur.source)}）</dd>
+        </dl>
+        <h3 class="mincho" style="font-size:17px">採点の内訳</h3>
+        <ul class="reasons">${cur.reasons.map(r=>`<li><span>${esc(r.why)}</span><b>${r.pt>0?"+":""}${r.pt}</b></li>`).join("")}</ul>
+        ${cur.status==="new"?`
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn pri" id="ap">承認して予約を確定する</button>
+            <button class="btn sm" id="hd">保留にする</button>
+            <button class="btn sm danger" id="rj">却下する</button>
+          </div>`:`<p style="color:var(--muted)">この受信は「${statusLabel(cur.status)}」として処理済みです。</p>`}
+      `:`<p class="empty">左の一覧から1件選ぶと、詳細と採点の内訳が表示されます。</p>`}
+    </div>
+  </div>
+  ${hint("この画面でAIに頼むと良いこと",[
+    "「このお客様への返信メールを、お店の言葉づかいで下書きして」",
+    "「却下候補に入った理由を、やさしい日本語で説明して」",
+    "「今日の未対応をまとめて、朝礼で読み上げる用の3行に要約して」"])}`;
+}
+function bindInbox(){
+  [...document.querySelectorAll("[data-f]")].forEach(b=>b.onclick=()=>{filter=b.dataset.f;render();});
+  [...document.querySelectorAll("tr.row")].forEach(r=>r.onclick=()=>{sel=r.dataset.id;render();});
+  const inbox=get(K.inbox,[]), cur=inbox.find(e=>e.id===sel);
+  if(!cur)return;
+  const ap=$("#ap"); if(ap)ap.onclick=()=>modal({
+    title:"この内容で予約を確定しますか？",
+    body:`<p>承認すると「予約・当日オペ」に引き継がれ、確定予約として登録されます。この操作は記録に残ります。</p>
+      <div class="box">${esc(cur.name)} 様／${jp(cur.date)} ${esc(cur.time||"")}／${esc(cur.people)}<br>
+      スコア ${cur.score}点（${BAND[cur.band].label}）</div>
+      <p style="font-size:15px">確定後は、お客様へのご連絡もお忘れなく。</p>`,
+    confirm:"承認して引き継ぐ",
+    onOk:()=>{
+      const rs=get(K.reservations,[]);
+      const id="RS-"+String(Date.now()).slice(-6);
+      rs.unshift({id,inboxId:cur.id,name:cur.name,date:cur.date||today,time:cur.time||"14:00",people:cur.people,status:"confirmed",memo:cur.message||"",ts:new Date().toISOString()});
+      set(K.reservations,rs);
+      set(K.inbox,inbox.map(e=>e.id===cur.id?{...e,status:"approved"}:e));
+      log("承認",cur.id,"予約 "+id+" を作成しました");
+      toast("承認しました。予約 "+id+" を作成しました");
+      tab="ops"; sel=null; render();
+    }});
+  const hd=$("#hd"); if(hd)hd.onclick=()=>modal({title:"保留にしますか？",body:`<p>あとで判断する印を付けます。一覧では「保留」と表示されます。</p><div class="box">${esc(cur.name)} 様</div>`,confirm:"保留にする",
+    onOk:()=>{set(K.inbox,inbox.map(e=>e.id===cur.id?{...e,status:"hold"}:e));log("保留",cur.id,"あとで判断");toast("保留にしました");render();}});
+  const rj=$("#rj"); if(rj)rj.onclick=()=>modal({title:"この受信を却下しますか？",danger:true,
+    body:`<p>却下すると予約には進みません。取り消しはできませんので、内容をご確認ください。</p><div class="box">${esc(cur.name)} 様／${esc(cur.type)}<br>スコア ${cur.score}点（${BAND[cur.band].label}）</div>`,
+    confirm:"却下する",
+    onOk:()=>{set(K.inbox,inbox.map(e=>e.id===cur.id?{...e,status:"rejected"}:e));log("却下",cur.id,"スコア"+cur.score+"点");toast("却下しました");render();}});
+}
+
+/* ============ 3. 予約・当日オペ ============ */
+function viewOps(){
+  const res=get(K.reservations,[]), st=get(K.settings,DEFAULT_SETTINGS);
+  const f=filter;
+  const list=res.filter(r=>f==="all"?true:f==="today"?r.date===today:r.status===f);
+  const label={confirmed:"確定（来店待ち）",seated:"ご来店中",done:"完了",noshow:"不泊・キャンセル"};
+  const next={confirmed:{to:"seated",btn:"ご来店を確認する",q:"ご来店として記録しますか？"},seated:{to:"done",btn:"お会計・完了にする",q:"完了として記録しますか？"}};
+  return `
+  <h2 class="mincho">予約・当日オペ</h2>
+  <p class="sub">承認された予約だけがここに並びます。次の段階へ進めるときは、かならず人が確認してから進みます。</p>
+  <div class="flow"><span>① 受信・自動採点</span>→<span>② 人が承認</span>→<span class="now">③ 予約confirmed</span>→<span class="now">④ 来店・完了</span></div>
+  <div class="filters">
+    ${[["all","すべて"],["today","本日"],["confirmed","来店待ち"],["seated","ご来店中"],["done","完了"]]
+      .map(([k,n])=>`<button class="${f===k?"on":""}" data-f="${k}">${n}</button>`).join("")}
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th>予約番号</th><th>お客様</th><th>日時</th><th class="hide-sp">メモ</th><th>状態</th><th></th></tr></thead>
+      <tbody>
+      ${list.length?list.map(r=>`<tr>
+        <td class="num">${esc(r.id)}</td>
+        <td>${esc(r.name)}<div style="font-size:14px;color:var(--muted)">${esc(r.people)}</div></td>
+        <td>${r.date===today?"<b>本日</b>":jp(r.date)} ${esc(r.time)}</td>
+        <td class="hide-sp" style="font-size:15px;color:var(--muted)">${esc(r.memo||"—")}</td>
+        <td><span class="badge ${r.status==="done"?"b-done":r.status==="seated"?"b-auto":"b-review"}">${label[r.status]||r.status}</span></td>
+        <td style="text-align:right">${next[r.status]?`<button class="btn sm" data-adv="${r.id}">${next[r.status].btn}</button>`:""}</td>
+      </tr>`).join(""):`<tr><td colspan="6" class="empty">該当する予約はありません</td></tr>`}
+      </tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <h3 class="mincho">操作の記録（承認ログ）</h3>
+    <table><tbody>
+      ${get(K.log,[]).slice(0,6).map(l=>`<tr><td style="width:130px;color:var(--muted);font-size:15px">${rel(l.ts)}</td>
+        <td>${esc(l.who)}が<b>${esc(l.action)}</b>：${esc(l.target)}</td><td style="color:var(--muted);font-size:15px">${esc(l.detail)}</td></tr>`).join("")
+        ||`<tr><td class="empty">まだ記録はありません</td></tr>`}
+    </tbody></table>
+  </div>
+  ${hint("この画面でAIに頼むと良いこと",[
+    "「本日の予約を時間順に並べて、席割りの案を出して」",
+    "「来店中のお客様のメモから、次回に活かすメモを1行でまとめて」",
+    "「今週の予約から、常連さんと初来店の割合を出して」"])}`;
+}
+function bindOps(){
+  [...document.querySelectorAll("[data-f]")].forEach(b=>b.onclick=()=>{filter=b.dataset.f;render();});
+  const res=get(K.reservations,[]);
+  const next={confirmed:{to:"seated",q:"ご来店として記録しますか？",btn:"来店を記録する"},seated:{to:"done",q:"お会計・完了として記録しますか？",btn:"完了にする"}};
+  [...document.querySelectorAll("[data-adv]")].forEach(b=>b.onclick=()=>{
+    const r=res.find(x=>x.id===b.dataset.adv); if(!r)return;
+    const n=next[r.status];
+    modal({title:n.q,body:`<p>この操作は記録に残ります。次の段階へ引き継ぎます。</p><div class="box">${esc(r.id)}／${esc(r.name)} 様／${jp(r.date)} ${esc(r.time)}</div>`,
+      confirm:n.btn,
+      onOk:()=>{set(K.reservations,res.map(x=>x.id===r.id?{...x,status:n.to}:x));
+        log(n.to==="seated"?"来店":"完了",r.id,r.name+" 様");toast(r.id+" を更新しました");render();}});
+  });
+}
+
+/* ============ 4. 仕込み・在庫 ============ */
+function stockScore(s){
+  const need=s.daily, have=s.stock, days=need?have/need:9;
+  let sc=Math.round(Math.max(0,Math.min(100,(1-days/3)*100)));      // 3日分あれば0点、なくなるほど高得点
+  const band=sc>=80?"auto":(sc>=50?"review":"reject");
+  return {sc,band,days:Math.round(days*10)/10,order:Math.max(0,s.par-s.stock)};
+}
+function viewStock(){
+  const stock=get(K.stock,[]);
+  return `
+  <h2 class="mincho">仕込み・在庫</h2>
+  <p class="sub">1日80食を作るための材料です。必要日数から発注の緊急度を100点満点で採点し、3段階に振り分けます。発注はかならず人が承認してから確定します。</p>
+  <div class="panel">
+    <table>
+      <thead><tr><th>材料</th><th>残り</th><th class="hide-sp">1日に使う量</th><th>緊急度</th><th>発注の判断</th><th></th></tr></thead>
+      <tbody>
+      ${stock.map(s=>{const r=stockScore(s);return `<tr>
+        <td>${esc(s.name)}<div style="font-size:14px;color:var(--muted)">仕入先：${esc(s.supplier)}</div></td>
+        <td class="num">${s.stock}${esc(s.unit)}<div class="bar" style="width:120px"><i class="${r.band==="auto"?"ng":r.band==="review"?"warn":"ok"}" style="width:${Math.min(100,Math.round(s.stock/s.par*100))}%"></i></div>
+          <div style="font-size:14px;color:var(--muted)">あと約${r.days}日分</div></td>
+        <td class="hide-sp num">${s.daily}${esc(s.unit)}</td>
+        <td><span class="sc num">${r.sc}</span></td>
+        <td><span class="badge ${r.band==="auto"?"b-auto":r.band==="review"?"b-review":"b-reject"}">${r.band==="auto"?"すぐ発注（推奨）":r.band==="review"?"人が確認":"今は見送り"}</span></td>
+        <td style="text-align:right">${r.order?`<button class="btn sm" data-ord="${s.id}">${r.order}${esc(s.unit)} 発注を承認</button>`:""}</td>
+      </tr>`;}).join("")}
+      </tbody>
+    </table>
+  </div>
+  ${hint("この画面でAIに頼むと良いこと",[
+    "「明日の予約数から、和栗を何kg仕込めばいいか計算して」",
+    "「仕入先ごとに発注書の文面をまとめて作って」",
+    "「先週の使用量と比べて、多すぎる仕込みがないか指摘して」"])}`;
+}
+function bindStock(){
+  const stock=get(K.stock,[]);
+  [...document.querySelectorAll("[data-ord]")].forEach(b=>b.onclick=()=>{
+    const s=stock.find(x=>x.id===b.dataset.ord); if(!s)return;
+    const r=stockScore(s);
+    modal({title:"この発注を確定しますか？",
+      body:`<p>承認すると在庫に反映され、記録に残ります。仕入先へのご連絡は別途お願いします。</p>
+        <div class="box">${esc(s.name)}<br>発注量 ${r.order}${esc(s.unit)}（${s.stock}${esc(s.unit)} → ${s.par}${esc(s.unit)}）<br>緊急度 ${r.sc}点</div>`,
+      confirm:"発注を承認する",
+      onOk:()=>{set(K.stock,stock.map(x=>x.id===s.id?{...x,stock:x.par}:x));
+        log("発注承認",s.id,s.name+" を "+r.order+s.unit);toast(s.name+" の発注を承認しました");render();}});
+  });
+}
+
+/* ============ 5. 設定・データ ============ */
+function viewSettings(){
+  const st=get(K.settings,DEFAULT_SETTINGS);
+  const rows=Object.entries(K).map(([n,k])=>{
+    const v=get(k,null); const c=Array.isArray(v)?v.length+"件":v===null?"—":typeof v==="object"?Object.keys(v).length+"項目":String(v);
+    return `<div><code>${esc(k)}</code><span style="color:var(--muted)">${esc(c)}</span></div>`;}).join("");
+  return `
+  <h2 class="mincho">設定・データ</h2>
+  <p class="sub">採点のしきい値やお店の条件を変えると、受信トレイの振り分けがその場で変わります。</p>
+  <div class="cols">
+    <div class="panel">
+      <h3 class="mincho">お店の設定</h3>
+      <div class="fld"><label>店名</label><input id="s_shop" value="${esc(st.shop)}"></div>
+      <div class="fld"><label>担当者名（記録に残ります）</label><input id="s_staff" value="${esc(st.staff)}"></div>
+      <div class="fld"><label>1日の上限食数</label><input id="s_cap" type="number" value="${st.capacity}"></div>
+      <div class="fld"><label>席数</label><input id="s_seats" type="number" value="${st.seats}"></div>
+      <div class="fld"><label>「自動でOK」のしきい値（点以上）</label><input id="s_auto" type="number" value="${st.autoMin}"></div>
+      <div class="fld"><label>「人が確認」のしきい値（点以上）</label><input id="s_rev" type="number" value="${st.reviewMin}"></div>
+      <button class="btn pri" id="s_save">設定を保存する</button>
+    </div>
+    <div class="panel">
+      <h3 class="mincho">保存されているデータ</h3>
+      <div class="keys">${rows}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">
+        <button class="btn sm" id="d_copy">📋 全データをコピー</button>
+        <button class="btn sm" id="d_seed">サンプルを入れ直す</button>
+        <button class="btn sm danger" id="d_clear">すべて消す</button>
+      </div>
+      <p style="font-size:15px;color:var(--muted);margin-top:14px">データはこのブラウザの中だけに保存されます。サーバーには送信されません。</p>
+    </div>
+  </div>
+  ${hint("この画面でAIに頼むと良いこと",[
+    "「しきい値を80点から75点に下げると、何件が自動OKに変わるか教えて」",
+    "「保存データを見て、今月の傾向を3行でまとめて」",
+    "「この管理画面に次に足すと便利な機能を3つ提案して」"])}`;
+}
+function bindSettings(){
+  $("#s_save").onclick=()=>{
+    const st={...get(K.settings,DEFAULT_SETTINGS),
+      shop:$("#s_shop").value.trim()||"月と栗", staff:$("#s_staff").value.trim()||"スタッフ",
+      capacity:Number($("#s_cap").value)||80, seats:Number($("#s_seats").value)||18,
+      autoMin:Number($("#s_auto").value)||80, reviewMin:Number($("#s_rev").value)||50};
+    set(K.settings,st); log("設定変更","settings","しきい値 "+st.autoMin+"／"+st.reviewMin);
+    toast("設定を保存しました"); render();
+  };
+  $("#d_copy").onclick=()=>{
+    const all={}; Object.values(K).forEach(k=>all[k]=get(k,null));
+    const t=JSON.stringify(all,null,2);
+    const done=()=>toast("全データをコピーしました");
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,()=>fb(t,done)); else fb(t,done);
+  };
+  const fb=(t,done)=>{const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");done();}catch(e){toast("コピーできませんでした");}document.body.removeChild(a);};
+  $("#d_seed").onclick=()=>modal({title:"サンプルデータを入れ直しますか？",danger:true,
+    body:`<p>いまの受信トレイ・予約・在庫・記録は、サンプルの内容で置き換わります。元には戻せません。</p>
+      <div class="box">置き換わるもの：受信 ${get(K.inbox,[]).length}件／予約 ${get(K.reservations,[]).length}件／在庫 ${get(K.stock,[]).length}件</div>`,
+    confirm:"入れ直す",onOk:()=>{seed(true);toast("サンプルデータを入れ直しました");render();}});
+  $("#d_clear").onclick=()=>modal({title:"本当にすべて消しますか？",danger:true,
+    body:`<p>この管理システムとサイトが保存している内容（${Object.keys(K).length}件のキー）をすべて削除します。元には戻せません。</p>
+      <div class="box">先に「📋 全データをコピー」で控えを取っておくと安心です。</div>
+      <p style="font-size:15px">よろしければ、下の欄に <b>削除</b> と入力してください。</p>
+      <input id="cf" placeholder="削除" style="margin-top:8px">`,
+    confirm:"すべて消す",
+    validate:()=>{ // 二段確認：入力が「削除」のときだけ実行できる
+      const cf=$("#cf");
+      if(!cf||cf.value.trim()!=="削除"){toast("「削除」と入力すると実行できます");return false;}
+      return true;
+    },
+    onOk:()=>{
+      Object.values(K).forEach(k=>localStorage.removeItem(k));
+      seed(true); toast("すべて消して、初期状態に戻しました"); render();
+    }});
+}
+
+/* ============ 描画 ============ */
+function render(){
+  drawTabs();
+  const v=$("#view");
+  v.innerHTML=tab==="dash"?viewDash():tab==="inbox"?viewInbox():tab==="ops"?viewOps():tab==="stock"?viewStock():viewSettings();
+  v.style.animation="none"; void v.offsetWidth; v.style.animation="";
+  if(tab==="inbox")bindInbox(); else if(tab==="ops")bindOps(); else if(tab==="stock")bindStock(); else if(tab==="settings")bindSettings();
+}
+function clock(){const d=new Date();$("#clock").textContent=`${d.getMonth()+1}月${d.getDate()}日 ${d2(d.getHours())}:${d2(d.getMinutes())}`;}
+clock(); setInterval(clock,30000);
+render();
+// 別タブ（サイト側）からの送信を検知して自動で反映
+window.addEventListener("storage",e=>{if(e.key===K.inbox){toast("サイトから新しい受信が届きました");render();}});
+</script>
+</body>
+</html>

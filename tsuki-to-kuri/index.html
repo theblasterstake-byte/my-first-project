@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月と栗｜鎌倉の和栗モンブラン専門店</title>
+<style>
+:root{
+  --bg:#fffdfa; --card:#ffffff; --ink:#1f1a16; --muted:#6f665e; --line:#e8e3db;
+  --kuri:#6b4423; --tsuki:#c8a34a; --mark:rgba(200,163,74,.28); --shadow:0 1px 3px rgba(0,0,0,.05);
+}
+html[data-theme="dark"]{
+  --bg:#14110e; --card:#1c1815; --ink:#f3efe8; --muted:#a79d92; --line:#2e2822;
+  --kuri:#d9a86f; --tsuki:#e0bd6a; --mark:rgba(224,189,106,.3); --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+  font-size:18px;line-height:1.9;letter-spacing:.04em;color:var(--ink);background:var(--bg);
+  -webkit-font-smoothing:antialiased;transition:background .4s ease,color .4s ease;
+}
+.mincho{font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;font-weight:600}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+a{color:inherit}
+mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 2px}
+
+/* ヘッダー */
+header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hd{display:flex;align-items:center;gap:20px;padding:16px 0;flex-wrap:wrap}
+.logo{font-size:24px;letter-spacing:.14em;white-space:nowrap}
+.logo small{display:block;font-size:12px;letter-spacing:.3em;color:var(--tsuki);font-family:inherit;font-weight:400}
+nav{display:flex;gap:18px;font-size:15px;margin-left:auto;flex-wrap:wrap}
+nav a{text-decoration:none;color:var(--muted);transition:color .3s}
+nav a:hover{color:var(--ink)}
+.tools{display:flex;align-items:center;gap:10px}
+.search{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:6px;padding:8px 12px;background:var(--card);min-width:180px}
+@media (min-width:1040px){.hd{flex-wrap:nowrap}}
+.search input{font:inherit;font-size:16px;border:none;background:transparent;color:inherit;width:100%;outline:none}
+.iconbtn{font:inherit;font-size:16px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:9px 13px;cursor:pointer;color:inherit;transition:border-color .3s,transform .2s;white-space:nowrap}
+.iconbtn:hover{border-color:var(--kuri)}
+.iconbtn:active{transform:scale(.96)}
+.hitbar{display:none;padding:12px 0;border-top:1px solid var(--line);font-size:16px;color:var(--muted);align-items:center;gap:14px;flex-wrap:wrap}
+.hitbar.on{display:flex}
+
+/* セクション共通 */
+section{padding:96px 0;scroll-margin-top:132px}
+.eyebrow{font-size:13px;letter-spacing:.34em;color:var(--tsuki);margin-bottom:14px}
+h2{font-size:30px;letter-spacing:.08em;line-height:1.5;margin-bottom:14px}
+.lead{color:var(--muted);font-size:17px;max-width:640px}
+.rv{opacity:0;transform:translateY(10px);transition:opacity .7s ease-out,transform .7s ease-out}
+.rv.in{opacity:1;transform:none}
+.hr{height:1px;background:var(--line);border:none}
+
+/* ヒーロー */
+.hero{padding:110px 0 96px;position:relative;overflow:hidden}
+.hero h1{font-size:44px;line-height:1.55;letter-spacing:.1em;margin-bottom:24px}
+.hero p{font-size:19px;color:var(--muted);max-width:560px}
+.moon{position:absolute;right:6%;top:70px;width:190px;height:190px;border-radius:50%;
+  background:radial-gradient(circle at 34% 32%,#fdf3dc,var(--tsuki));opacity:.5;filter:blur(.3px);
+  animation:float 9s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.facts{display:flex;gap:44px;margin-top:44px;flex-wrap:wrap}
+.facts div span{display:block;font-size:13px;letter-spacing:.2em;color:var(--muted)}
+.facts div b{font-size:26px;font-weight:600;font-family:"Hiragino Mincho ProN","Yu Mincho",serif}
+
+/* メニュー */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:26px;margin-top:44px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:28px 26px;box-shadow:var(--shadow);
+  transition:transform .35s ease-out,border-color .35s ease-out}
+.card:hover{transform:translateY(-3px);border-color:var(--kuri)}
+.card h3{font-size:21px;margin-bottom:6px;letter-spacing:.05em}
+.card .price{color:var(--kuri);font-size:19px;font-family:"Hiragino Mincho ProN","Yu Mincho",serif;margin-bottom:10px}
+.card p{font-size:16px;color:var(--muted)}
+.card .tag{display:inline-block;font-size:13px;color:var(--tsuki);border:1px solid var(--tsuki);border-radius:3px;padding:1px 9px;margin-bottom:10px}
+.fav{background:none;border:none;font-size:22px;cursor:pointer;float:right;line-height:1;filter:grayscale(1);opacity:.45;transition:all .3s}
+.fav.on{filter:none;opacity:1;animation:pop .45s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+
+/* FAQ */
+.faq{border-top:1px solid var(--line);margin-top:36px}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;padding:22px 40px 22px 0;font-size:18px;position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"＋";position:absolute;right:6px;color:var(--tsuki);transition:transform .3s}
+.faq details[open] summary::after{content:"−"}
+.faq .ans{padding:0 0 22px;color:var(--muted);font-size:17px}
+
+/* アクセス */
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:40px}
+.info dl{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:26px}
+.info dt{font-size:13px;letter-spacing:.2em;color:var(--tsuki);margin-bottom:4px}
+.info dd{font-size:18px;margin-bottom:16px;word-break:keep-all}
+.info dd:last-child{margin-bottom:0}
+
+/* フォーム */
+form{margin-top:40px;display:grid;gap:22px;max-width:760px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+label{display:block;font-size:15px;letter-spacing:.1em;color:var(--muted);margin-bottom:7px}
+input,select,textarea{font:inherit;font-size:17px;width:100%;padding:13px 14px;border:1px solid var(--line);
+  border-radius:6px;background:var(--card);color:inherit;transition:border-color .3s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--kuri)}
+textarea{min-height:130px;resize:vertical}
+.req{color:var(--kuri);font-size:13px;margin-left:4px}
+button.send{font:inherit;font-size:18px;letter-spacing:.1em;background:var(--kuri);color:#fff;border:none;border-radius:6px;
+  padding:17px 40px;cursor:pointer;transition:opacity .3s,transform .2s;justify-self:start}
+button.send:hover{opacity:.88}
+button.send:active{transform:scale(.98)}
+.err{color:#b4472f;font-size:15px;min-height:1px}
+.thanks{background:var(--card);border:1px solid var(--tsuki);border-radius:8px;padding:34px 30px;margin-top:40px;
+  animation:rise .6s ease-out both;max-width:760px}
+.thanks h3{font-size:23px;margin-bottom:10px}
+.thanks .no{font-size:15px;color:var(--muted);margin-top:8px}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+footer{border-top:1px solid var(--line);padding:44px 0 60px;font-size:16px;color:var(--muted)}
+.frow{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer a.admin{text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:10px 18px;transition:border-color .3s}
+footer a.admin:hover{border-color:var(--kuri)}
+.hidden{display:none!important}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(12px);background:var(--ink);color:var(--bg);
+  padding:13px 24px;border-radius:6px;font-size:16px;opacity:0;pointer-events:none;transition:all .4s ease-out;z-index:99}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+@media (max-width:720px){
+  body{font-size:17px}
+  .wrap{padding:0 20px}
+  section{padding:64px 0}
+  .hero{padding:70px 0 64px}
+  .hero h1{font-size:32px}
+  h2{font-size:25px}
+  .moon{width:120px;height:120px;right:-10px;top:30px;opacity:.35}
+  .f2{grid-template-columns:1fr}
+  nav{gap:14px;font-size:15px;order:3;width:100%;margin-left:0}
+  .search{min-width:0;flex:1 1 auto}
+  .facts{gap:26px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hd">
+      <div class="logo mincho">月と栗<small>TSUKI TO KURI</small></div>
+      <nav>
+        <a href="#story">こだわり</a><a href="#menu">お品書き</a><a href="#faq">よくあるご質問</a>
+        <a href="#access">アクセス</a><a href="#contact">ご予約・お問い合わせ</a>
+      </nav>
+      <div class="tools">
+        <div class="search">
+          <span aria-hidden="true">🔍</span>
+          <input id="q" type="search" placeholder="サイト内を検索（例：モンブラン）" aria-label="サイト内検索">
+        </div>
+        <button class="iconbtn" id="theme" title="ダークモード切替">🌙</button>
+      </div>
+    </div>
+    <div class="hitbar" id="hitbar">
+      <span id="hittext"></span>
+      <button class="iconbtn" id="clearq">検索をクリア</button>
+      <span id="favcount" style="margin-left:auto"></span>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero" data-sec="ヒーロー">
+  <div class="moon" aria-hidden="true"></div>
+  <div class="wrap">
+    <p class="eyebrow rv">KAMAKURA ・ MONT BLANC</p>
+    <h1 class="mincho rv">搾りたての和栗を、<br>3分以内に。</h1>
+    <p class="rv">鎌倉・小町通りから一本入った路地、築90年の古民家。熊本県産の和栗を毎朝この場所でペーストにして、ご注文をいただいてから3分以内にお出しします。1日80食かぎりの、できたてのモンブランです。</p>
+    <div class="facts rv">
+      <div><span>OPEN</span><b>11:00 - 18:00</b></div>
+      <div><span>限定</span><b>1日 80食</b></div>
+      <div><span>定休日</span><b>火曜日</b></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="hr"></div>
+
+<section id="story" data-sec="こだわり">
+  <div class="wrap">
+    <p class="eyebrow rv">OUR CRAFT</p>
+    <h2 class="mincho rv">毎朝、この場所で栗をむいています。</h2>
+    <p class="lead rv">和栗の香りは、むいてから時間とともに静かに逃げていきます。だから月と栗では、熊本県産の和栗を毎朝、店の奥の小さな工房でペーストにします。搾るのはご注文をいただいてから。細い口金から生まれたての栗が落ちていく、その音まで含めてお出ししたいと思っています。</p>
+    <div class="grid">
+      <div class="card rv"><h3 class="mincho">熊本県産・和栗100%</h3><p>契約農家さんから届く、その年いちばん香りの立つ品種だけを使います。砂糖は栗の甘さに合わせて毎朝加減します。</p></div>
+      <div class="card rv"><h3 class="mincho">搾りたて3分以内</h3><p>ペーストは搾った瞬間から香りが変わります。お待たせしても3分以内。カウンター席では搾る様子をご覧いただけます。</p></div>
+      <div class="card rv"><h3 class="mincho">築90年の古民家</h3><p>鎌倉の路地に残る一軒家を、梁と土壁を活かして改装しました。18席の静かな空間で、ゆっくりお過ごしください。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="hr"></div>
+
+<section id="menu" data-sec="お品書き">
+  <div class="wrap">
+    <p class="eyebrow rv">MENU</p>
+    <h2 class="mincho rv">お品書き</h2>
+    <p class="lead rv">気になる品は右上のハートで保存できます（このブラウザに記録されます）。人気の傾向はお店の仕込みの参考にさせていただいています。</p>
+    <div class="grid" id="menugrid"></div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="hr"></div>
+
+<section id="faq" data-sec="よくあるご質問">
+  <div class="wrap">
+    <p class="eyebrow rv">FAQ</p>
+    <h2 class="mincho rv">よくあるご質問</h2>
+    <div class="faq rv" id="faqlist"></div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="hr"></div>
+
+<section id="access" data-sec="アクセス">
+  <div class="wrap">
+    <p class="eyebrow rv">ACCESS</p>
+    <h2 class="mincho rv">アクセス</h2>
+    <div class="info">
+      <dl class="rv">
+        <dt>住所</dt>
+        <dd>〒248-0006</dd>
+        <dd>神奈川県鎌倉市小町2-11-7</dd>
+        <dd>小町通りから一本東の路地</dd>
+        <dt>電話</dt>
+        <dd>0467-00-1234</dd>
+        <dt>メール</dt>
+        <dd>hello@tsuki-to-kuri.jp</dd>
+      </dl>
+      <dl class="rv">
+        <dt>営業時間</dt>
+        <dd>11:00 - 18:00（L.O. 17:30）</dd>
+        <dt>定休日</dt>
+        <dd>火曜日</dd>
+        <dt>席数</dt>
+        <dd>18席（カウンター6席）</dd>
+        <dt>アクセス</dt>
+        <dd>JR鎌倉駅 東口から徒歩6分</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<div class="wrap"><hr class="hr"></div>
+
+<section id="contact" data-sec="ご予約・お問い合わせ">
+  <div class="wrap">
+    <p class="eyebrow rv">CONTACT</p>
+    <h2 class="mincho rv">ご予約・お問い合わせ</h2>
+    <p class="lead rv">1日80食かぎりのため、ご予約のお客様を優先してご案内しております。いただいた内容はお店の受付システムに届き、スタッフが確認のうえご返信します。</p>
+    <form id="form" class="rv" novalidate>
+      <div>
+        <label for="type">ご用件<span class="req">必須</span></label>
+        <select id="type"><option>ご予約リクエスト</option><option>お問い合わせ</option><option>貸切・お取り置きのご相談</option><option>取材・コラボのご相談</option></select>
+      </div>
+      <div class="f2">
+        <div><label for="name">お名前<span class="req">必須</span></label><input id="name" placeholder="鎌倉 花子"></div>
+        <div><label for="tel">お電話番号</label><input id="tel" placeholder="090-0000-0000"></div>
+      </div>
+      <div class="f2">
+        <div><label for="email">メールアドレス<span class="req">必須</span></label><input id="email" type="email" placeholder="hana@example.com"></div>
+        <div><label for="people">ご来店人数</label><select id="people"><option>1名</option><option selected>2名</option><option>3名</option><option>4名</option><option>5名以上</option></select></div>
+      </div>
+      <div class="f2">
+        <div><label for="date">ご希望日</label><input id="date" type="date"></div>
+        <div><label for="time">ご希望のお時間</label><select id="time"><option>11:00</option><option>12:00</option><option>13:00</option><option selected>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option></select></div>
+      </div>
+      <div><label for="msg">ご要望・ご質問</label><textarea id="msg" placeholder="アレルギーやお祝いのご利用など、ご遠慮なくお書きください。"></textarea></div>
+      <div class="err" id="err"></div>
+      <button class="send" type="submit">この内容で送信する</button>
+    </form>
+    <div class="thanks hidden" id="thanks">
+      <h3 class="mincho">ありがとうございます。承りました。</h3>
+      <p>いただいた内容はお店の受付システムに届きました。スタッフが確認のうえ、2営業日以内にご返信いたします。</p>
+      <p class="no" id="thanksno"></p>
+      <p style="margin-top:14px"><button class="iconbtn" id="again">もう一度送る</button></p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap frow">
+    <div>
+      <div class="mincho" style="font-size:19px;color:var(--ink)">月と栗</div>
+      <div>〒248-0006 神奈川県鎌倉市小町2-11-7</div>
+      <div>0467-00-1234 ／ hello@tsuki-to-kuri.jp</div>
+    </div>
+    <a class="admin" href="admin.html">🛠 スタッフの方はこちら（管理画面へ）</a>
+  </div>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const K={inbox:"tsukikuri.inbox.v1",fav:"tsukikuri.favorites.v1",theme:"tsukikuri.theme.v1"};
+const get=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
+const set=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ---- データ ---- */
+const MENU=[
+ {id:"m1",name:"搾りたて和栗モンブラン",price:"¥1,480",tag:"看板",desc:"ご注文後に搾る、香りがいちばん立つ状態でお出しします。土台は焙じ茶のメレンゲ。"},
+ {id:"m2",name:"和栗モンブラン 極",price:"¥2,200",tag:"1日20食",desc:"渋皮栗を丸ごと一粒。ペーストは二度搾りにして、口どけを軽く仕上げています。"},
+ {id:"m3",name:"季節の栗きんとんパフェ",price:"¥1,780",tag:"季節限定",desc:"栗きんとん、和栗アイス、丹波黒豆。下までスプーンが届くたび味が変わります。"},
+ {id:"m4",name:"焙じ茶と和栗のテリーヌ",price:"¥980",tag:"",desc:"低温でゆっくり焼いた濃厚なテリーヌ。焙じ茶の香りが後から追いかけてきます。"},
+ {id:"m5",name:"栗と黒糖のどら焼き",price:"¥520",tag:"お土産人気",desc:"お持ち帰り用。黒糖の皮で、和栗餡と刻んだ渋皮栗をはさみました。"},
+ {id:"m6",name:"月見ラテ（和栗ラテ）",price:"¥760",tag:"",desc:"和栗ペーストを溶かしたラテ。満月に見立てた栗のクリームをひとすくい浮かべて。"}
+];
+const FAQ=[
+ ["予約はできますか？","はい。こちらのページのフォームからご予約リクエストを承っております。1日80食かぎりのため、ご予約のお客様を優先してご案内しています。"],
+ ["待ち時間はどのくらいですか？","土日の12時から15時は30分ほどお待ちいただくことがあります。平日の11時台と16時以降は比較的ゆったりご案内できます。"],
+ ["テイクアウトはできますか？","どら焼きとテリーヌはお持ち帰りいただけます。搾りたてモンブランは香りが変わってしまうため、店内でのご提供のみとしております。"],
+ ["アレルギーの対応はしていますか？","小麦・卵・乳を使用しています。ご予約時にお書きいただければ、使用していない品をご案内いたします。"],
+ ["子ども連れでも大丈夫ですか？","はい。ベビーカーは入口でお預かりし、椅子をご用意します。お子さま用の取り皿もございます。"],
+ ["支払い方法は？","現金、各種クレジットカード、交通系IC、QRコード決済がご利用いただけます。"]
+];
+
+/* ---- メニュー描画（お気に入り） ---- */
+let favs=get(K.fav,["m1"]);
+function drawMenu(){
+  $("#menugrid").innerHTML=MENU.map(m=>`
+    <div class="card rv" data-item="${m.id}">
+      <button class="fav ${favs.includes(m.id)?"on":""}" data-fav="${m.id}" title="お気に入り">${favs.includes(m.id)?"❤️":"🤍"}</button>
+      ${m.tag?`<span class="tag">${esc(m.tag)}</span>`:""}
+      <h3 class="mincho">${esc(m.name)}</h3>
+      <div class="price">${esc(m.price)}</div>
+      <p>${esc(m.desc)}</p>
+    </div>`).join("");
+  $$("[data-fav]").forEach(b=>b.onclick=e=>{
+    e.stopPropagation();
+    const id=b.dataset.fav;
+    favs=favs.includes(id)?favs.filter(x=>x!==id):[...favs,id];
+    set(K.fav,favs); drawMenu(); reveal();
+    toast(favs.includes(id)?"お気に入りに保存しました":"お気に入りから外しました");
+  });
+  $("#favcount").textContent="お気に入り "+favs.length+"件";
+  $$("#menugrid .rv").forEach(el=>el.classList.add("in"));
+}
+
+/* ---- FAQ ---- */
+$("#faqlist").innerHTML=FAQ.map(([q,a])=>`<details><summary class="mincho">${esc(q)}</summary><div class="ans">${esc(a)}</div></details>`).join("");
+
+/* ---- スクロールで出現 ---- */
+function reveal(){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}}),{threshold:.12});
+  $$(".rv:not(.in)").forEach(el=>io.observe(el));
+}
+
+/* ---- ダークモード ---- */
+function applyTheme(t){document.documentElement.setAttribute("data-theme",t);$("#theme").textContent=t==="dark"?"☀️":"🌙";}
+applyTheme(get(K.theme,"light"));
+$("#theme").onclick=()=>{const t=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";set(K.theme,t);applyTheme(t);};
+
+/* ---- サイト内検索 ---- */
+const targets=()=>$$("section [data-item], section .card, section details, section dl, section h1, section h2, section p, section .facts");
+let originals=new Map();
+const editable=s=>!s.querySelector("form,#thanks"); // 入力中の内容を消さないため、フォームのある節は書き換えない
+function saveOriginals(){ originals=new Map(); $$("section").forEach(s=>{if(editable(s))originals.set(s,s.innerHTML);}); }
+function restore(){ originals.forEach((html,s)=>{s.innerHTML=html;}); bindDynamic(); }
+function highlight(node,re){
+  [...node.childNodes].forEach(n=>{
+    if(n.nodeType===3){
+      const t=n.nodeValue; if(!re.test(t))return; re.lastIndex=0;
+      const span=document.createElement("span");
+      span.innerHTML=esc(t).replace(re,m=>"<mark>"+m+"</mark>");
+      n.replaceWith(span);
+    } else if(n.nodeType===1&&!/^(SCRIPT|STYLE|MARK|INPUT|SELECT|TEXTAREA)$/.test(n.tagName)) highlight(n,re);
+  });
+}
+function search(qs){
+  restore();
+  const q=qs.trim();
+  if(!q){$("#hitbar").classList.remove("on");$$("section").forEach(s=>s.classList.remove("hidden"));$("#favcount").textContent="お気に入り "+favs.length+"件";return;}
+  const re=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi");
+  let hits=0, secHit=0;
+  $$("section").forEach(s=>{
+    const has=re.test(s.textContent); re.lastIndex=0;
+    s.classList.toggle("hidden",!has);
+    if(has){secHit++;
+      [...s.querySelectorAll(".card, details")].forEach(c=>{
+        const ok=re.test(c.textContent); re.lastIndex=0;
+        c.classList.toggle("hidden",!ok); if(ok&&c.tagName==="DETAILS")c.setAttribute("open","");
+      });
+      if(editable(s)) highlight(s,re);
+      hits+=(s.textContent.match(re)||[]).length; re.lastIndex=0;
+    }
+  });
+  $("#hitbar").classList.add("on");
+  $("#hittext").innerHTML=hits?`「${esc(q)}」の検索結果： <b>${secHit}セクション ／ ${hits}箇所</b> がヒットしました`:`「${esc(q)}」に一致する内容は見つかりませんでした`;
+}
+let timer=null;
+$("#q").addEventListener("input",e=>{clearTimeout(timer);const v=e.target.value;timer=setTimeout(()=>search(v),160);});
+$("#clearq").onclick=()=>{$("#q").value="";search("");};
+
+/* ---- お問い合わせフォーム（管理画面へ届く） ---- */
+function bindDynamic(){
+  drawMenu();
+  const f=$("#form"); if(!f)return;
+  f.onsubmit=ev=>{
+    ev.preventDefault();
+    const v=id=>($("#"+id)?$("#"+id).value.trim():"");
+    const name=v("name"), email=v("email");
+    if(!name){return fail("お名前をご記入ください");}
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){return fail("メールアドレスの形式をご確認ください");}
+    $("#err").textContent="";
+    const now=new Date();
+    const id="RQ-"+now.getFullYear()+String(now.getMonth()+1).padStart(2,"0")+String(now.getDate()).padStart(2,"0")+"-"+String(Date.now()).slice(-4);
+    const entry={id,ts:now.toISOString(),type:v("type"),name,tel:v("tel"),email,people:v("people"),
+      date:v("date"),time:v("time"),message:v("msg"),source:"ホームページ",status:"new",score:null,band:null,
+      favs:favs.slice()};
+    const inbox=get(K.inbox,[]); inbox.unshift(entry); set(K.inbox,inbox);
+    $("#thanksno").textContent="受付番号："+id+"（管理画面の受信トレイに届きました）";
+    f.classList.add("hidden"); $("#thanks").classList.remove("hidden");
+    toast("送信しました。受付番号 "+id);
+  };
+  const ag=$("#again"); if(ag)ag.onclick=()=>{$("#thanks").classList.add("hidden");$("#form").classList.remove("hidden");$("#form").reset();};
+}
+function fail(m){$("#err").textContent=m;toast(m);}
+
+/* ---- トースト ---- */
+let tt=null;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),2600);}
+
+/* ---- 起動 ---- */
+drawMenu(); saveOriginals(); bindDynamic(); reveal();
+</script>
+</body>
+</html>
