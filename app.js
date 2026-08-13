@@ -1,6 +1,13 @@
 const STORAGE_KEY = "tasks";
 const UNDO_TIMEOUT_MS = 6000;
 
+const ICON_GRIP =
+  '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="6" r="1.5" fill="currentColor"/><circle cx="15" cy="6" r="1.5" fill="currentColor"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><circle cx="9" cy="18" r="1.5" fill="currentColor"/><circle cx="15" cy="18" r="1.5" fill="currentColor"/></svg>';
+const ICON_EDIT =
+  '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 20H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.5 3.5C17.3 2.7 18.6 2.7 19.4 3.5C20.2 4.3 20.2 5.6 19.4 6.4L7.5 18.3L3 19.5L4.2 15L16.5 3.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+const ICON_TRASH =
+  '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 7H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 7V4.8C9 4.35817 9.35817 4 9.8 4H14.2C14.6418 4 15 4.35817 15 4.8V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 7L6.9 19.2C6.94 19.79 7.43 20.25 8.02 20.25H15.98C16.57 20.25 17.06 19.79 17.1 19.2L18 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11V16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14 11V16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+
 const form = document.getElementById("task-form");
 const input = document.getElementById("task-input");
 const priorityInput = document.getElementById("priority-input");
@@ -18,6 +25,7 @@ const categoryFilterSelect = document.getElementById("category-filter");
 const list = document.getElementById("task-list");
 const summary = document.getElementById("summary");
 const emptyState = document.getElementById("empty-state");
+const emptyStateText = document.getElementById("empty-state-text");
 const dragHint = document.getElementById("drag-hint");
 const clearDoneBtn = document.getElementById("clear-done");
 const filterBtns = document.querySelectorAll(".filter-btn");
@@ -185,21 +193,37 @@ function render() {
 
   emptyState.hidden = visible.length > 0;
   if (visible.length === 0) {
-    emptyState.textContent =
+    emptyStateText.textContent =
       tasks.length === 0
         ? "タスクはありません。上のフォームから追加してください。"
         : "条件に一致するタスクはありません。";
   }
 
+  renderStats();
+}
+
+function renderStats() {
   const doneCount = tasks.filter((t) => t.done).length;
   const overdueCount = tasks.filter((t) => isOverdue(t)).length;
-  summary.textContent =
-    `全 ${tasks.length} 件中 ${doneCount} 件完了` + (overdueCount > 0 ? ` ・ 期限超過 ${overdueCount} 件` : "");
+
+  summary.innerHTML = "";
+  summary.appendChild(makeStatChip(`全 ${tasks.length} 件`, "total"));
+  summary.appendChild(makeStatChip(`完了 ${doneCount} 件`, "done"));
+  if (overdueCount > 0) {
+    summary.appendChild(makeStatChip(`期限超過 ${overdueCount} 件`, "overdue"));
+  }
+}
+
+function makeStatChip(text, variant) {
+  const chip = document.createElement("span");
+  chip.className = `stat-chip stat-chip-${variant}`;
+  chip.textContent = text;
+  return chip;
 }
 
 function renderTaskItem(task, dragEnabled) {
   const li = document.createElement("li");
-  li.className = "task-item" + (task.done ? " done" : "");
+  li.className = `task-item priority-${task.priority}` + (task.done ? " done" : "");
   li.dataset.id = task.id;
   li.draggable = dragEnabled;
 
@@ -230,7 +254,7 @@ function renderTaskItem(task, dragEnabled) {
 
   const handle = document.createElement("span");
   handle.className = "drag-handle";
-  handle.textContent = dragEnabled ? "⋮⋮" : "";
+  handle.innerHTML = dragEnabled ? ICON_GRIP : "";
   handle.setAttribute("aria-hidden", "true");
 
   const checkbox = document.createElement("input");
@@ -325,18 +349,22 @@ function renderTaskItem(task, dragEnabled) {
   actions.className = "task-actions";
 
   const editBtn = document.createElement("button");
+  editBtn.type = "button";
   editBtn.className = "edit-btn";
-  editBtn.textContent = "編集";
+  editBtn.innerHTML = ICON_EDIT;
   editBtn.setAttribute("aria-label", "編集");
+  editBtn.title = "編集";
   editBtn.addEventListener("click", () => {
     editingId = task.id;
     render();
   });
 
   const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
   deleteBtn.className = "delete-btn";
-  deleteBtn.textContent = "✕";
+  deleteBtn.innerHTML = ICON_TRASH;
   deleteBtn.setAttribute("aria-label", "削除");
+  deleteBtn.title = "削除";
   deleteBtn.addEventListener("click", () => requestDelete(task.id));
 
   actions.appendChild(editBtn);
