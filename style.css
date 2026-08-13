@@ -29,7 +29,7 @@ body {
 
 .app {
   width: 100%;
-  max-width: 640px;
+  max-width: 680px;
 }
 
 header {
@@ -117,6 +117,34 @@ h1 {
   background: var(--accent-hover);
 }
 
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar input[type="search"] {
+  flex: 1 1 220px;
+}
+
+.toolbar input,
+.toolbar select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.drag-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: -4px 0 12px;
+}
+
 .filters {
   display: flex;
   gap: 8px;
@@ -165,13 +193,37 @@ h1 {
   border-radius: var(--radius);
   padding: 12px 14px;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .task-item.done .task-title {
   text-decoration: line-through;
   color: var(--muted);
+}
+
+.task-item.dragging {
+  opacity: 0.4;
+}
+
+.task-item.drag-over {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent) inset;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: var(--muted);
+  flex-shrink: 0;
+  padding: 4px 2px;
+  user-select: none;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.task-checkbox {
+  margin-top: 3px;
 }
 
 .task-checkbox {
@@ -186,10 +238,27 @@ h1 {
   min-width: 0;
 }
 
+.task-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .task-title {
   display: block;
   font-size: 15px;
   word-break: break-word;
+}
+
+.subtask-progress {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+  flex-shrink: 0;
 }
 
 .task-meta {
@@ -199,6 +268,14 @@ h1 {
   font-size: 12px;
   color: var(--muted);
   flex-wrap: wrap;
+}
+
+.category-badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .task-notes {
@@ -226,19 +303,176 @@ h1 {
   font-weight: 600;
 }
 
+.task-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.edit-btn,
 .delete-btn {
   border: none;
   background: none;
   color: var(--muted);
   cursor: pointer;
-  font-size: 18px;
   line-height: 1;
   padding: 4px;
   flex-shrink: 0;
 }
 
+.edit-btn {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.delete-btn {
+  font-size: 18px;
+}
+
+.edit-btn:hover {
+  color: var(--accent);
+}
+
 .delete-btn:hover {
   color: var(--danger);
+}
+
+.subtasks-toggle {
+  display: inline-block;
+  margin-top: 6px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
+
+.subtasks-panel {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+
+.subtask-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subtask-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.subtask-item input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.subtask-item .subtask-title {
+  flex: 1;
+  word-break: break-word;
+}
+
+.subtask-item.done .subtask-title {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.subtask-delete {
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.subtask-delete:hover {
+  color: var(--danger);
+}
+
+.subtask-form {
+  display: flex;
+  gap: 6px;
+}
+
+.subtask-form input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.subtask-form button {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edit-form-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.edit-form input,
+.edit-form select,
+.edit-form textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.edit-form-row input[type="text"] {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.edit-form > textarea {
+  resize: vertical;
+}
+
+.edit-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.edit-form-actions button {
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .empty-state {
@@ -300,6 +534,53 @@ h1 {
   background: var(--danger);
   color: #fff;
   border-color: var(--danger);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  max-width: 90vw;
+}
+
+.undo-toast[hidden] {
+  display: none;
+}
+
+.undo-toast #undo-message {
+  word-break: break-word;
+}
+
+.undo-toast button {
+  border: none;
+  background: none;
+  color: var(--accent-hover);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .undo-toast button {
+    color: #a5b4fc;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

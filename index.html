@@ -29,6 +29,12 @@
       </div>
 
       <div class="field">
+        <label for="category-input">カテゴリ</label>
+        <input type="text" id="category-input" list="category-list" placeholder="例: 仕事(任意)" autocomplete="off">
+        <datalist id="category-list"></datalist>
+      </div>
+
+      <div class="field">
         <label for="created-input">追加日</label>
         <input type="date" id="created-input">
       </div>
@@ -49,12 +55,28 @@
       <button type="submit" class="field-full">追加</button>
     </form>
 
+    <div class="toolbar">
+      <input type="search" id="search-input" placeholder="🔍 タスク名・備考・カテゴリで検索…">
+      <select id="sort-select">
+        <option value="manual">並び替え: 手動</option>
+        <option value="priority">並び替え: 優先度が高い順</option>
+        <option value="due">並び替え: 期限が近い順</option>
+        <option value="created-desc">並び替え: 追加日が新しい順</option>
+        <option value="created-asc">並び替え: 追加日が古い順</option>
+      </select>
+      <select id="category-filter">
+        <option value="">すべてのカテゴリ</option>
+      </select>
+    </div>
+
     <div class="filters">
       <button class="filter-btn active" data-filter="all">すべて</button>
       <button class="filter-btn" data-filter="active">未完了</button>
       <button class="filter-btn" data-filter="done">完了済み</button>
       <button id="clear-done" class="clear-btn">完了済みを削除</button>
     </div>
+
+    <p id="drag-hint" class="drag-hint" hidden>💡 手動並び替えモードです。カードをドラッグして順序を変更できます。</p>
 
     <ul id="task-list" class="task-list"></ul>
 
@@ -63,12 +85,17 @@
 
   <div id="confirm-modal" class="modal-overlay" hidden>
     <div class="modal">
-      <p>このタスクを削除しますか？この操作は元に戻せません。</p>
+      <p>このタスクを削除しますか？</p>
       <div class="modal-actions">
         <button id="confirm-cancel" class="btn-secondary">キャンセル</button>
         <button id="confirm-delete" class="btn-danger">削除する</button>
       </div>
     </div>
+  </div>
+
+  <div id="undo-toast" class="undo-toast" hidden>
+    <span id="undo-message"></span>
+    <button id="undo-btn">元に戻す</button>
   </div>
 
   <script src="app.js"></script>
