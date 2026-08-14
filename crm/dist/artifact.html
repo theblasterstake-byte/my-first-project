@@ -1,3 +1,1485 @@
+<title>Sales CRM</title>
+<style>
+:root {
+  --bg: #eef0f6;
+  --bg-glow: #e4e2ff;
+  --card-bg: #ffffff;
+  --text: #14162b;
+  --text-secondary: #4b4f68;
+  --muted: #888ca3;
+  --border: #e3e5f0;
+
+  --accent: #6152f2;
+  --accent-2: #9333ea;
+  --accent-soft: #efedff;
+  --accent-hover: #4d3fe0;
+
+  --danger: #e11d48;
+  --danger-soft: #fde4eb;
+  --success: #059669;
+  --success-soft: #d9f5ea;
+  --warn: #d97706;
+  --warn-soft: #fef3d9;
+  --info: #0284c7;
+  --info-soft: #dceffb;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+
+  --shadow-sm: 0 1px 2px rgba(20, 22, 41, 0.05);
+  --shadow-md: 0 10px 26px -12px rgba(20, 22, 41, 0.22);
+  --shadow-lg: 0 24px 56px -16px rgba(20, 22, 41, 0.32);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* display を持つ要素でも hidden 属性を優先させる */
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Helvetica Neue", Arial,
+    sans-serif;
+  color: var(--text);
+  background: radial-gradient(720px 420px at 12% -8%, var(--bg-glow), transparent 60%), var(--bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h2,
+h3 {
+  margin: 0;
+}
+
+/* ---------- レイアウト ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 26px 18px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.brand-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.brand-mark svg {
+  width: 21px;
+  height: 21px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.brand-text strong {
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+
+.brand-text span {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.nav-item:hover {
+  background: rgba(97, 82, 242, 0.07);
+  color: var(--text);
+}
+
+.nav-item.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.nav-count {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.sidebar-foot {
+  margin-top: auto;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.sidebar-foot p {
+  margin: 0;
+}
+
+.main {
+  padding: 26px 32px 64px;
+  min-width: 0;
+}
+
+/* ---------- トップバー ---------- */
+
+.topbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  position: relative;
+  flex: 1 1 280px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 17px;
+  height: 17px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-field input {
+  width: 100%;
+  padding: 11px 14px 11px 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ---------- ボタン ---------- */
+
+button,
+.file-btn {
+  font: inherit;
+  cursor: pointer;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.file-btn {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: transform 0.12s, background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary,
+.file-btn {
+  background: var(--card-bg);
+  border-color: var(--border);
+  color: var(--text-secondary);
+  display: inline-block;
+}
+
+.btn-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover,
+.file-btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn-secondary:hover,
+.file-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.icon-btn {
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.icon-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.icon-btn.danger:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* ---------- ビュー共通 ---------- */
+
+.view-title {
+  font-size: 21px;
+  letter-spacing: -0.02em;
+  margin-bottom: 18px;
+}
+
+.panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 18px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.panel-head h3 {
+  font-size: 15px;
+}
+
+.panel-sub,
+.panel-text,
+.hint {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.panel-text {
+  margin: 0 0 14px;
+  line-height: 1.7;
+}
+
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.panel-grid > .panel {
+  margin-bottom: 0;
+}
+
+.empty-state {
+  padding: 44px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---------- KPI ---------- */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.kpi {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.kpi-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.kpi-value {
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-top: 6px;
+}
+
+.kpi-value small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 2px;
+}
+
+.kpi-note {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.kpi.alert .kpi-value {
+  color: var(--danger);
+}
+
+/* ---------- パイプライン ---------- */
+
+.pipeline-row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+}
+
+.pipeline-row .stage-name {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.pipeline-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.pipeline-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  min-width: 2px;
+}
+
+.pipeline-amount {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* ---------- ToDo / タイムライン ---------- */
+
+.todo-list,
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.todo-item.overdue {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.todo-item.today {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+}
+
+.todo-date {
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.todo-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.todo-company {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.todo-company:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.todo-note {
+  color: var(--text-secondary);
+  font-size: 12.5px;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border);
+  font-size: 13px;
+}
+
+.timeline-item:last-child {
+  border-bottom: none;
+}
+
+.timeline-lg .timeline-item {
+  padding: 14px 0;
+}
+
+.timeline-date {
+  width: 88px;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.timeline-title {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.timeline-text {
+  color: var(--text-secondary);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---------- ツールバー / チップ ---------- */
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.chip-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+select,
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="date"],
+input[type="number"],
+textarea {
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  width: 100%;
+}
+
+textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.toolbar-right select {
+  width: auto;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.checkbox-label input {
+  width: auto;
+  accent-color: var(--accent);
+}
+
+/* ---------- 顧客カード ---------- */
+
+.customer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 14px;
+}
+
+.customer-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.15s, border-color 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.customer-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(97, 82, 242, 0.35);
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-company {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  word-break: break-word;
+}
+
+.card-person {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px dashed var(--border);
+  padding-top: 9px;
+  font-size: 12px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-lead {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.badge-negotiating {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.badge-won {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.badge-lost {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.badge-dormant {
+  background: #eceef5;
+  color: var(--muted);
+}
+
+.tag {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.next-action {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.next-action.overdue {
+  color: var(--danger);
+}
+
+.next-action.today {
+  color: var(--warn);
+}
+
+.amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* ---------- 商談ボード ---------- */
+
+.board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(210px, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.board-col {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  min-height: 140px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.board-col.drop-target {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  border-style: dashed;
+}
+
+.board-col-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.board-col-head span {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.deal-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 12px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.12s, border-color 0.15s;
+}
+
+.deal-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+}
+
+.deal-card.dragging {
+  opacity: 0.45;
+}
+
+.deal-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.deal-company {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin: 2px 0 6px;
+}
+
+.deal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ---------- ドロワー ---------- */
+
+.drawer-overlay,
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 22, 41, 0.42);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+}
+
+.drawer-overlay {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.drawer {
+  position: relative;
+  width: min(560px, 100%);
+  height: 100%;
+  background: var(--card-bg);
+  padding: 28px 28px 60px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: slide-in 0.2s ease;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0.4;
+  }
+}
+
+.drawer-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.drawer-close:hover {
+  color: var(--text);
+}
+
+.detail-head {
+  margin-bottom: 16px;
+  padding-right: 30px;
+}
+
+.detail-company {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  word-break: break-word;
+}
+
+.detail-person {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0 20px;
+}
+
+.detail-section {
+  margin-bottom: 22px;
+}
+
+.detail-section h4 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.detail-list {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 8px 12px;
+  font-size: 13.5px;
+}
+
+.detail-list dt {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.detail-list dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.detail-list a {
+  color: var(--accent);
+}
+
+.note-box {
+  background: #f7f8fc;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary);
+}
+
+.mini-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mini-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.mini-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ---------- モーダル ---------- */
+
+.modal-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px 26px;
+  width: min(460px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-lg {
+  width: min(680px, 100%);
+}
+
+.modal h3 {
+  font-size: 17px;
+  margin-bottom: 18px;
+}
+
+.modal p {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field-full {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.req {
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* ---------- トースト ---------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  transform: translateX(-50%);
+  background: #14162b;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13.5px;
+  z-index: 80;
+}
+
+.toast button {
+  background: transparent;
+  border: none;
+  color: #b6aeff;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ---------- レスポンシブ ---------- */
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    overflow-x: auto;
+    padding: 14px 16px;
+  }
+
+  .brand-text {
+    display: none;
+  }
+
+  .nav {
+    flex-direction: row;
+  }
+
+  .nav-item {
+    white-space: nowrap;
+  }
+
+  .sidebar-foot {
+    display: none;
+  }
+
+  .main {
+    padding: 20px 16px 60px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-list {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+}
+</style>
+
+<div class="layout">
+    <!-- ============ サイドバー ============ -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 18V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M10 18V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M16 18V4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M21 21H3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <strong>Sales CRM</strong>
+          <span>営業顧客管理</span>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <button class="nav-item active" data-view="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="12" width="7" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="16" width="7" height="5" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>
+          ダッシュボード
+        </button>
+        <button class="nav-item" data-view="customers">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M5 20C5 16.6863 8.13401 14 12 14C15.866 14 19 16.6863 19 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          顧客
+          <span class="nav-count" id="nav-count-customers"></span>
+        </button>
+        <button class="nav-item" data-view="deals">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M9 7V5.5C9 4.67157 9.67157 4 10.5 4H13.5C14.3284 4 15 4.67157 15 5.5V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          商談
+          <span class="nav-count" id="nav-count-deals"></span>
+        </button>
+        <button class="nav-item" data-view="activities">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 12C20 16.4183 16.4183 20 12 20C9.7 20 7.6 19 6.2 17.4L4 19V14H9L6.9 16.1C8 17.3 9.9 18.2 12 18.2C15.4 18.2 18.2 15.4 18.2 12C18.2 8.6 15.4 5.8 12 5.8C9.2 5.8 6.8 7.7 6.1 10.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          活動履歴
+        </button>
+        <button class="nav-item" data-view="data">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 6V18C5 19.6569 8.13401 21 12 21C15.866 21 19 19.6569 19 18V6" stroke="currentColor" stroke-width="1.8"/><path d="M5 12C5 13.6569 8.13401 15 12 15C15.866 15 19 13.6569 19 12" stroke="currentColor" stroke-width="1.8"/></svg>
+          データ
+        </button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <p>データはブラウザ内(localStorage)に保存されます。</p>
+      </div>
+    </aside>
+
+    <!-- ============ メイン ============ -->
+    <main class="main">
+      <header class="topbar">
+        <div class="search-field">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+            <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input type="search" id="global-search" placeholder="会社名・担当者・メール・電話・タグで検索…" autocomplete="off">
+        </div>
+        <div class="topbar-actions">
+          <button class="btn-primary" id="new-customer-btn">＋ 顧客を追加</button>
+          <button class="btn-secondary" id="new-deal-btn">＋ 商談</button>
+        </div>
+      </header>
+
+      <!-- ---- ダッシュボード ---- -->
+      <section class="view" id="view-dashboard">
+        <h2 class="view-title">ダッシュボード</h2>
+        <div class="kpi-grid" id="kpi-grid"></div>
+
+        <div class="panel-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <h3>パイプライン(進行中の商談)</h3>
+              <span class="panel-sub" id="pipeline-total"></span>
+            </div>
+            <div id="pipeline-chart" class="pipeline-chart"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h3>今日のやること</h3>
+              <span class="panel-sub" id="todo-count"></span>
+            </div>
+            <ul class="todo-list" id="todo-list"></ul>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h3>最近の活動</h3>
+          </div>
+          <ul class="timeline" id="recent-activities"></ul>
+        </section>
+      </section>
+
+      <!-- ---- 顧客一覧 ---- -->
+      <section class="view" id="view-customers" hidden>
+        <h2 class="view-title">顧客一覧</h2>
+        <div class="toolbar">
+          <div class="chip-row" id="status-filters"></div>
+          <div class="toolbar-right">
+            <select id="owner-filter" aria-label="担当者で絞り込み">
+              <option value="">すべての担当</option>
+            </select>
+            <select id="customer-sort" aria-label="並び替え">
+              <option value="updated">更新が新しい順</option>
+              <option value="name">会社名(あいうえお順)</option>
+              <option value="next">次回アクションが近い順</option>
+              <option value="amount">商談金額が大きい順</option>
+              <option value="created">登録が新しい順</option>
+            </select>
+          </div>
+        </div>
+        <div class="customer-grid" id="customer-grid"></div>
+        <div class="empty-state" id="customers-empty" hidden>
+          <p>該当する顧客がありません。</p>
+        </div>
+      </section>
+
+      <!-- ---- 商談 ---- -->
+      <section class="view" id="view-deals" hidden>
+        <h2 class="view-title">商談パイプライン</h2>
+        <div class="toolbar">
+          <div class="toolbar-right">
+            <select id="deal-owner-filter" aria-label="担当者で絞り込み">
+              <option value="">すべての担当</option>
+            </select>
+            <label class="checkbox-label"><input type="checkbox" id="deal-hide-closed"> 完了(受注・失注)の列を隠す</label>
+          </div>
+        </div>
+        <p class="hint">カードをドラッグして別のフェーズに移動できます。クリックで編集。</p>
+        <div class="board" id="deal-board"></div>
+      </section>
+
+      <!-- ---- 活動履歴 ---- -->
+      <section class="view" id="view-activities" hidden>
+        <h2 class="view-title">活動履歴</h2>
+        <div class="toolbar">
+          <div class="chip-row" id="activity-type-filters"></div>
+        </div>
+        <ul class="timeline timeline-lg" id="activity-timeline"></ul>
+        <div class="empty-state" id="activities-empty" hidden>
+          <p>活動履歴がありません。顧客カードの「活動を記録」から登録できます。</p>
+        </div>
+      </section>
+
+      <!-- ---- データ ---- -->
+      <section class="view" id="view-data" hidden>
+        <h2 class="view-title">データ管理</h2>
+        <div class="panel-grid">
+          <section class="panel">
+            <div class="panel-head"><h3>書き出し</h3></div>
+            <p class="panel-text">Excelやスプレッドシートで開けるCSV、まるごと復元できるJSONで保存できます。</p>
+            <div class="btn-row">
+              <button class="btn-secondary" id="export-customers-csv">顧客CSVを書き出す</button>
+              <button class="btn-secondary" id="export-deals-csv">商談CSVを書き出す</button>
+              <button class="btn-secondary" id="export-json">JSONバックアップ</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head"><h3>取り込み</h3></div>
+            <p class="panel-text">顧客CSV(会社名,担当者名,役職,電話,メール,ステータス,担当営業,タグ,次回アクション日,次回アクション,備考)、またはJSONバックアップを読み込めます。</p>
+            <div class="btn-row">
+              <label class="btn-secondary file-btn">顧客CSVを取り込む<input type="file" id="import-csv" accept=".csv,text/csv" hidden></label>
+              <label class="btn-secondary file-btn">JSONを復元<input type="file" id="import-json" accept=".json,application/json" hidden></label>
+            </div>
+            <p class="hint" id="import-result"></p>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-head"><h3>その他</h3></div>
+          <div class="btn-row">
+            <button class="btn-secondary" id="load-sample">サンプルデータを入れる</button>
+            <button class="btn-danger" id="reset-all">すべてのデータを削除</button>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============ 顧客詳細ドロワー ============ -->
+  <div class="drawer-overlay" id="detail-drawer" hidden>
+    <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="detail-name">
+      <button class="drawer-close" id="detail-close" aria-label="閉じる">×</button>
+      <div id="detail-body"></div>
+    </div>
+  </div>
+
+  <!-- ============ 顧客フォーム ============ -->
+  <div class="modal-overlay" id="customer-modal" hidden>
+    <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="customer-modal-title">
+      <h3 id="customer-modal-title">顧客を追加</h3>
+      <form id="customer-form" class="form-grid">
+        <div class="field field-full">
+          <label for="c-company">会社名 <span class="req">必須</span></label>
+          <input type="text" id="c-company" required autocomplete="off" placeholder="例: 株式会社サンプル">
+        </div>
+        <div class="field">
+          <label for="c-person">担当者名</label>
+          <input type="text" id="c-person" autocomplete="off" placeholder="例: 山田 太郎">
+        </div>
+        <div class="field">
+          <label for="c-title">部署・役職</label>
+          <input type="text" id="c-title" autocomplete="off" placeholder="例: 営業部 部長">
+        </div>
+        <div class="field">
+          <label for="c-phone">電話番号</label>
+          <input type="tel" id="c-phone" autocomplete="off" placeholder="03-1234-5678">
+        </div>
+        <div class="field">
+          <label for="c-email">メールアドレス</label>
+          <input type="email" id="c-email" autocomplete="off" placeholder="taro@example.co.jp">
+        </div>
+        <div class="field">
+          <label for="c-status">ステータス</label>
+          <select id="c-status"></select>
+        </div>
+        <div class="field">
+          <label for="c-owner">担当営業</label>
+          <input type="text" id="c-owner" list="owner-list" autocomplete="off" placeholder="自分の名前など">
+          <datalist id="owner-list"></datalist>
+        </div>
+        <div class="field field-full">
+          <label for="c-address">住所</label>
+          <input type="text" id="c-address" autocomplete="off" placeholder="東京都千代田区…">
+        </div>
+        <div class="field field-full">
+          <label for="c-tags">タグ(カンマ区切り)</label>
+          <input type="text" id="c-tags" autocomplete="off" placeholder="例: 製造業, 既存顧客, 紹介">
+        </div>
+        <div class="field">
+          <label for="c-next-date">次回アクション日</label>
+          <input type="date" id="c-next-date">
+        </div>
+        <div class="field">
+          <label for="c-next-note">次回アクション内容</label>
+          <input type="text" id="c-next-note" autocomplete="off" placeholder="例: 見積書を送付">
+        </div>
+        <div class="field field-full">
+          <label for="c-note">備考</label>
+          <textarea id="c-note" rows="3" placeholder="商談メモ、社内情報など"></textarea>
+        </div>
+        <div class="modal-actions field-full">
+          <button type="button" class="btn-secondary" data-close-modal>キャンセル</button>
+          <button type="submit" class="btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ 商談フォーム ============ -->
+  <div class="modal-overlay" id="deal-modal" hidden>
+    <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="deal-modal-title">
+      <h3 id="deal-modal-title">商談を追加</h3>
+      <form id="deal-form" class="form-grid">
+        <div class="field field-full">
+          <label for="d-customer">顧客 <span class="req">必須</span></label>
+          <select id="d-customer" required></select>
+        </div>
+        <div class="field field-full">
+          <label for="d-title">商談名 <span class="req">必須</span></label>
+          <input type="text" id="d-title" required autocomplete="off" placeholder="例: 基幹システム更改">
+        </div>
+        <div class="field">
+          <label for="d-amount">金額(円)</label>
+          <input type="number" id="d-amount" min="0" step="1000" placeholder="1000000">
+        </div>
+        <div class="field">
+          <label for="d-stage">フェーズ</label>
+          <select id="d-stage"></select>
+        </div>
+        <div class="field">
+          <label for="d-probability">確度(%)</label>
+          <input type="number" id="d-probability" min="0" max="100" step="5" placeholder="50">
+        </div>
+        <div class="field">
+          <label for="d-close">受注予定日</label>
+          <input type="date" id="d-close">
+        </div>
+        <div class="field field-full">
+          <label for="d-note">メモ</label>
+          <textarea id="d-note" rows="2" placeholder="競合、決裁者、課題など"></textarea>
+        </div>
+        <div class="modal-actions field-full">
+          <button type="button" class="btn-secondary" data-close-modal>キャンセル</button>
+          <button type="submit" class="btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ 活動フォーム ============ -->
+  <div class="modal-overlay" id="activity-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="activity-modal-title">
+      <h3 id="activity-modal-title">活動を記録</h3>
+      <form id="activity-form" class="form-grid">
+        <div class="field field-full">
+          <label for="a-customer">顧客 <span class="req">必須</span></label>
+          <select id="a-customer" required></select>
+        </div>
+        <div class="field">
+          <label for="a-type">種別</label>
+          <select id="a-type"></select>
+        </div>
+        <div class="field">
+          <label for="a-date">日付</label>
+          <input type="date" id="a-date">
+        </div>
+        <div class="field field-full">
+          <label for="a-summary">内容 <span class="req">必須</span></label>
+          <textarea id="a-summary" rows="3" required placeholder="例: 提案書を持参して訪問。予算感は500万円前後。"></textarea>
+        </div>
+        <div class="field field-full">
+          <label class="checkbox-label"><input type="checkbox" id="a-set-next"> 次回アクションも更新する</label>
+        </div>
+        <div class="field">
+          <label for="a-next-date">次回アクション日</label>
+          <input type="date" id="a-next-date" disabled>
+        </div>
+        <div class="field">
+          <label for="a-next-note">次回アクション内容</label>
+          <input type="text" id="a-next-note" disabled autocomplete="off">
+        </div>
+        <div class="modal-actions field-full">
+          <button type="button" class="btn-secondary" data-close-modal>キャンセル</button>
+          <button type="submit" class="btn-primary">記録する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ 確認ダイアログ ============ -->
+  <div class="modal-overlay" id="confirm-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <p id="confirm-text"></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="confirm-cancel">キャンセル</button>
+        <button class="btn-danger" id="confirm-ok">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden>
+    <span id="toast-message"></span>
+    <button id="toast-undo" hidden>元に戻す</button>
+  </div>
+
+<script>
 /* ==========================================================
    Sales CRM — 営業担当者向けの顧客管理ツール
    データはブラウザの localStorage に保存されます。
@@ -1430,3 +2912,4 @@ $("load-sample").addEventListener("click", async () => {
    ========================================================== */
 
 render();
+</script>

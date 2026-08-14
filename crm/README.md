@@ -42,3 +42,18 @@ crm/
 ├── style.css    デザイン
 └── app.js       ロジック（状態管理・描画・CSV/JSON入出力）
 ```
+
+## URLで使う / 単体ファイルで配る
+
+```bash
+node crm/build.js
+```
+
+3ファイルを1枚のHTMLにまとめて `crm/dist/` に書き出します。
+
+- `dist/sales-crm.html` — これ1つで動く完全なHTML。メールで送る、USBに入れる、そのままダブルクリックする、といった配り方ができます
+- `dist/artifact.html` — claude.ai のArtifactとして公開するための断片
+
+`crm/` をそのままGitHub Pagesなどの静的ホスティングに置けば、`https://<ドメイン>/crm/` でアクセスできます。
+`app.js` の `download()` は、直接ダウンロードできないホスティング環境では保存用APIに自動で切り替わるため、
+CSV／JSONの書き出しはどちらの環境でも動作します。
