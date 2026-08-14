@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>領収書 仕分けツール</title>
+<link rel="stylesheet" href="receipts.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 3.5H18V20.5L15 19L12 20.5L9 19L6 20.5V3.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M9.5 8.5H14.5M9.5 12.5H14.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h1>領収書 仕分けツール</h1>
+      </div>
+      <p class="subtitle">
+        領収書の画像をアップロードすると、日付・支払先・内容・勘定科目・金額・税区分を自動で読み取って表にまとめ、CSVで書き出せます。<br>
+        読み取り結果はすべて手で修正できます。処理はブラウザ内で完結し、画像はどこにも送信されません。
+      </p>
+      <a class="nav-link" href="index.html">← タスク管理に戻る</a>
+    </header>
+
+    <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="領収書画像を選択">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 16V4M12 4L8 8M12 4L16 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M4 15V18C4 19.1 4.9 20 6 20H18C19.1 20 20 19.1 20 18V15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <p class="dropzone-title">領収書の画像をドロップ、またはクリックして選択</p>
+      <p class="dropzone-hint">JPEG / PNG / WebP に対応・複数枚まとめて処理できます</p>
+      <input type="file" id="file-input" accept="image/*" multiple hidden>
+    </div>
+
+    <div id="status" class="status" hidden>
+      <span id="status-text"></span>
+      <div class="progress-bar"><span id="progress-fill"></span></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="summary" id="summary"></div>
+      <div class="spacer"></div>
+      <button type="button" id="add-row" class="btn-secondary">行を追加</button>
+      <button type="button" id="clear-all" class="btn-danger">すべて削除</button>
+      <button type="button" id="export-csv">CSVで書き出す</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="col-thumb">画像</th>
+            <th class="col-date">日付</th>
+            <th>支払先</th>
+            <th>内容</th>
+            <th class="col-category">勘定科目</th>
+            <th class="col-amount">金額（税込）</th>
+            <th class="col-category">税区分</th>
+            <th class="col-actions">操作</th>
+          </tr>
+        </thead>
+        <tbody id="receipt-body"></tbody>
+      </table>
+      <div id="empty-state" class="empty-state">
+        まだ領収書がありません。上のエリアに画像をドロップしてください。
+      </div>
+    </div>
+  </div>
+
+  <div id="preview-modal" class="modal-overlay" hidden>
+    <div class="modal">
+      <h2 id="preview-title">プレビュー</h2>
+      <div id="preview-body"></div>
+      <div class="modal-actions">
+        <button type="button" id="preview-close" class="btn-secondary">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+  <script src="receipts.js"></script>
+</body>
+</html>

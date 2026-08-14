@@ -981,3 +981,16 @@ h1 {
     padding: 12px;
   }
 }
+
+.tool-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.tool-link:hover {
+  text-decoration: underline;
+}
