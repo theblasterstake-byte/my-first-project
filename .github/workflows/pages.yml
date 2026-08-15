@@ -1,7 +1,8 @@
 name: Deploy to GitHub Pages
 
 # レシート家計簿（kakeibo/）を GitHub Pages に公開する。
-# configure-pages が Pages の有効化まで行うので、設定画面の操作は不要。
+# 事前にリポジトリ設定の Pages で Source を「GitHub Actions」にしておくこと
+# （Pages の新規作成は GITHUB_TOKEN の権限では行えないため、そこだけ手作業）。
 
 on:
   push:
@@ -31,8 +32,6 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
