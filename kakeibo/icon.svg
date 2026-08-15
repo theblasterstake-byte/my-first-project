@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="レシート家計簿">
+  <rect width="512" height="512" rx="112" fill="#2a78d6"/>
+  <path d="M160 96h192v304l-32-22-32 22-32-22-32 22-32-22-32 22V96Z" fill="#ffffff"/>
+  <path d="M200 160h112M200 216h112M200 272h72" stroke="#2a78d6" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="344" cy="352" r="72" fill="#eb6834"/>
+  <path d="M344 316v72M320 340h48M320 364h48" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/>
+</svg>

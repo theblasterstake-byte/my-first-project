@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2a78d6">
+<meta name="description" content="スマホでレシート・領収書を作成すると、そのまま家計簿に記録できるツール">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="レシート家計簿">
+<title>レシート家計簿</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ 作成 ============ -->
+  <section class="view" id="view-create" data-view="create">
+    <header class="view-header">
+      <h1>レシート作成</h1>
+      <p class="view-sub">入力して保存すると、そのまま家計簿に記録されます。</p>
+    </header>
+
+    <form id="receipt-form" novalidate>
+      <div class="card">
+        <div class="segmented" role="tablist" aria-label="伝票の種類">
+          <button type="button" class="seg-btn is-active" data-doctype="receipt" role="tab" aria-selected="true">レシート</button>
+          <button type="button" class="seg-btn" data-doctype="invoice" role="tab" aria-selected="false">領収書</button>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label for="f-date">日付</label>
+            <input type="date" id="f-date" required>
+          </div>
+          <div class="field">
+            <label for="f-store">店名 / 発行者</label>
+            <input type="text" id="f-store" placeholder="例: スーパーやまだ" autocomplete="off" list="store-list">
+            <datalist id="store-list"></datalist>
+          </div>
+
+          <div class="field only-invoice">
+            <label for="f-payee">宛名</label>
+            <div class="suffix-wrap">
+              <input type="text" id="f-payee" placeholder="例: 山田 太郎" autocomplete="off">
+              <span class="suffix">様</span>
+            </div>
+          </div>
+          <div class="field only-invoice">
+            <label for="f-note">但し書き</label>
+            <input type="text" id="f-note" placeholder="例: お品代として" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>明細</h2>
+          <button type="button" class="btn-ghost" id="add-item">＋ 行を追加</button>
+        </div>
+        <div class="items" id="items"></div>
+
+        <div class="tax-row">
+          <div class="field">
+            <label for="f-taxrate">税率</label>
+            <select id="f-taxrate">
+              <option value="10">10%</option>
+              <option value="8">8%（軽減）</option>
+              <option value="0">0%（非課税）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-taxmode">単価の扱い</label>
+            <select id="f-taxmode">
+              <option value="included">税込</option>
+              <option value="excluded">税抜</option>
+            </select>
+          </div>
+        </div>
+
+        <dl class="totals">
+          <div><dt>小計</dt><dd id="t-subtotal">¥0</dd></div>
+          <div><dt>消費税</dt><dd id="t-tax">¥0</dd></div>
+          <div class="total-grand"><dt>合計</dt><dd id="t-total">¥0</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>家計簿の設定</h2></div>
+        <div class="grid">
+          <div class="field">
+            <label for="f-category">カテゴリ</label>
+            <select id="f-category"></select>
+          </div>
+          <div class="field">
+            <label for="f-payment">支払方法</label>
+            <select id="f-payment">
+              <option value="cash">現金</option>
+              <option value="card">クレジットカード</option>
+              <option value="emoney">電子マネー / QR</option>
+              <option value="transfer">口座振替 / 振込</option>
+            </select>
+          </div>
+          <div class="field field-full">
+            <label for="f-memo">メモ</label>
+            <input type="text" id="f-memo" placeholder="任意" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="photo-field">
+          <label class="photo-pick" for="f-photo">
+            <span class="photo-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M3 8.5C3 7.4 3.9 6.5 5 6.5H7.2L8.4 4.6C8.6 4.2 9 4 9.4 4H14.6C15 4 15.4 4.2 15.6 4.6L16.8 6.5H19C20.1 6.5 21 7.4 21 8.5V17C21 18.1 20.1 19 19 19H5C3.9 19 3 18.1 3 17V8.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="12" cy="12.5" r="3.2" stroke="currentColor" stroke-width="1.7"/></svg>
+            </span>
+            <span>レシート写真を撮る / 選ぶ</span>
+          </label>
+          <input type="file" id="f-photo" accept="image/*" capture="environment" hidden>
+          <div class="photo-preview" id="photo-preview" hidden>
+            <img id="photo-img" alt="添付したレシートの写真">
+            <button type="button" class="btn-remove-photo" id="remove-photo">写真を削除</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-secondary" id="preview-btn">伝票を表示</button>
+        <button type="submit" class="btn btn-primary" id="save-btn">家計簿に記録</button>
+      </div>
+      <button type="button" class="btn-ghost btn-cancel-edit" id="cancel-edit" hidden>編集をやめる</button>
+    </form>
+  </section>
+
+  <!-- ============ 明細 ============ -->
+  <section class="view" id="view-list" data-view="list" hidden>
+    <header class="view-header">
+      <h1>明細</h1>
+      <div class="month-nav">
+        <button type="button" class="month-btn" data-month-step="-1" aria-label="前の月">‹</button>
+        <span class="month-label" id="list-month">—</span>
+        <button type="button" class="month-btn" data-month-step="1" aria-label="次の月">›</button>
+      </div>
+    </header>
+
+    <div class="card month-summary">
+      <div class="ms-main">
+        <span class="ms-label">今月の支出</span>
+        <strong class="ms-value" id="list-total">¥0</strong>
+      </div>
+      <span class="ms-count" id="list-count">0件</span>
+    </div>
+
+    <div class="filters">
+      <input type="search" id="search-input" placeholder="店名・メモで検索" autocomplete="off">
+      <select id="filter-category"></select>
+    </div>
+
+    <div id="record-list" class="record-list"></div>
+    <p class="empty" id="list-empty" hidden>この条件の記録はまだありません。</p>
+  </section>
+
+  <!-- ============ 集計 ============ -->
+  <section class="view" id="view-report" data-view="report" hidden>
+    <header class="view-header">
+      <h1>集計</h1>
+      <div class="month-nav">
+        <button type="button" class="month-btn" data-month-step="-1" aria-label="前の月">‹</button>
+        <span class="month-label" id="report-month">—</span>
+        <button type="button" class="month-btn" data-month-step="1" aria-label="次の月">›</button>
+      </div>
+    </header>
+
+    <div class="card hero">
+      <span class="hero-label">支出合計</span>
+      <strong class="hero-value" id="hero-total">¥0</strong>
+      <span class="hero-delta" id="hero-delta"></span>
+      <div class="budget" id="budget-block" hidden>
+        <div class="budget-bar"><span id="budget-fill"></span></div>
+        <div class="budget-text"><span id="budget-text"></span></div>
+      </div>
+    </div>
+
+    <div class="card viz-root">
+      <div class="card-head"><h2>カテゴリ別</h2></div>
+      <div class="donut-wrap">
+        <svg id="donut" viewBox="0 0 200 200" role="img" aria-labelledby="donut-title">
+          <title id="donut-title">カテゴリ別の支出割合</title>
+        </svg>
+        <div class="donut-center">
+          <span class="dc-label">合計</span>
+          <strong class="dc-value" id="donut-total">¥0</strong>
+        </div>
+      </div>
+      <ul class="cat-list" id="cat-list"></ul>
+      <p class="empty" id="report-empty" hidden>この月の記録はまだありません。</p>
+    </div>
+
+    <div class="card viz-root">
+      <div class="card-head"><h2>日別の支出</h2></div>
+      <div class="daily" id="daily"></div>
+    </div>
+  </section>
+
+  <!-- ============ 設定 ============ -->
+  <section class="view" id="view-settings" data-view="settings" hidden>
+    <header class="view-header">
+      <h1>設定</h1>
+      <p class="view-sub">データはこの端末のブラウザ内にだけ保存されます。</p>
+    </header>
+
+    <div class="card">
+      <div class="card-head"><h2>予算</h2></div>
+      <div class="field">
+        <label for="s-budget">1か月の予算（円）</label>
+        <input type="number" id="s-budget" inputmode="numeric" min="0" step="1000" placeholder="例: 80000">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>領収書の既定値</h2></div>
+      <div class="grid">
+        <div class="field field-full">
+          <label for="s-issuer">発行者名</label>
+          <input type="text" id="s-issuer" placeholder="例: 山田商店" autocomplete="off">
+        </div>
+        <div class="field field-full">
+          <label for="s-issuer-detail">発行者の住所・連絡先</label>
+          <input type="text" id="s-issuer-detail" placeholder="例: 東京都〇〇区1-2-3 / 03-0000-0000" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="s-taxrate">既定の税率</label>
+          <select id="s-taxrate">
+            <option value="10">10%</option>
+            <option value="8">8%（軽減）</option>
+            <option value="0">0%（非課税）</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>データ</h2></div>
+      <div class="stack">
+        <button type="button" class="btn btn-secondary" id="export-csv">CSVで書き出す</button>
+        <button type="button" class="btn btn-secondary" id="export-json">バックアップ（JSON）</button>
+        <label class="btn btn-secondary" for="import-json">バックアップから復元</label>
+        <input type="file" id="import-json" accept="application/json,.json" hidden>
+        <button type="button" class="btn btn-danger" id="reset-all">すべてのデータを削除</button>
+      </div>
+      <p class="storage-note" id="storage-note"></p>
+    </div>
+  </section>
+
+  <!-- ============ タブバー ============ -->
+  <nav class="tabbar" aria-label="メニュー">
+    <button type="button" class="tab is-active" data-tab="create">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3.5h12v17l-2-1.4-2 1.4-2-1.4-2 1.4-2-1.4-2 1.4v-17Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6M9 12h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>作成</span>
+    </button>
+    <button type="button" class="tab" data-tab="list">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>明細</span>
+    </button>
+    <button type="button" class="tab" data-tab="report">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V11M12 19V5M19 19v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>集計</span>
+    </button>
+    <button type="button" class="tab" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M12 3.5v2M12 18.5v2M20.5 12h-2M5.5 12h-2M18 6l-1.4 1.4M7.4 16.6 6 18M18 18l-1.4-1.4M7.4 7.4 6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span>設定</span>
+    </button>
+  </nav>
+</div>
+
+<!-- 明細の詳細シート -->
+<div class="sheet-backdrop" id="detail-sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <h2 id="detail-title">記録の詳細</h2>
+    <div id="detail-body"></div>
+    <div class="sheet-actions">
+      <button type="button" class="btn btn-secondary" id="detail-show">伝票を表示</button>
+      <button type="button" class="btn btn-secondary" id="detail-edit">編集</button>
+      <button type="button" class="btn btn-danger" id="detail-delete">削除</button>
+    </div>
+    <button type="button" class="btn-ghost" id="detail-close">閉じる</button>
+  </div>
+</div>
+
+<!-- 伝票プレビュー -->
+<div class="sheet-backdrop" id="doc-sheet" hidden>
+  <div class="sheet sheet-doc" role="dialog" aria-modal="true" aria-label="伝票のプレビュー">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div id="doc-paper" class="paper"></div>
+    <div class="sheet-actions">
+      <button type="button" class="btn btn-primary" id="doc-print">印刷 / PDF保存</button>
+      <button type="button" class="btn btn-secondary" id="doc-close">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="viz-tooltip" id="viz-tooltip" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
