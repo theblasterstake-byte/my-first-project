@@ -119,6 +119,18 @@ function toHalfWidth(text) {
     .replace(/　/g, " ");
 }
 
+/* OCRは日本語の文字間に空白を入れがち（「合 計」「セブ ン - イ レブ ン」）。
+ * 全角文字どうしに挟まれた空白と、数字の桁区切り直後の空白だけを取り除く。
+ * 英数字の間の空白は語の区切りなので残す。 */
+function collapseOcrSpaces(text) {
+  return text
+    .replace(/([^\x00-\x7F])[ \t]+(?=[^\x00-\x7F])/g, "$1")
+    .replace(/([^\x00-\x7F])[ \t]*([-ー–])[ \t]*(?=[^\x00-\x7F])/g, "$1$2")
+    .replace(/(\d),[ \t]+(?=\d{3}\b)/g, "$1,")
+    .replace(/([^\x00-\x7F])[ \t]+(?=[\d¥\\])/g, "$1 ")
+    .replace(/[ \t]{2,}/g, " ");
+}
+
 function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
@@ -379,7 +391,7 @@ function extractFields(rawText) {
   const text = toHalfWidth(rawText);
   const lines = text
     .split(/\r?\n/)
-    .map((line) => line.replace(/\s+$/, "").trim())
+    .map((line) => collapseOcrSpaces(line).trim())
     .filter((line) => line.length > 0);
   const flat = lines.join("\n");
 

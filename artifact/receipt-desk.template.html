@@ -1,0 +1,1150 @@
+<title>領収書仕分けデスク</title>
+
+<style>
+  :root {
+    color-scheme: light dark;
+
+    --paper: #f7f4ee;
+    --surface: #ffffff;
+    --surface-2: #f1ede4;
+    --rule: #ded7ca;
+    --rule-strong: #c6bdac;
+    --ink: #23272f;
+    --ink-2: #5f5c55;
+    --muted: #8b867c;
+
+    --accent: #1f4b6e;
+    --accent-soft: #e3eaf1;
+    --flag: #96601b;
+    --flag-soft: #f6ecd8;
+    --ok: #2f6e4f;
+    --ok-soft: #e1ede5;
+    --alert: #a8432f;
+    --alert-soft: #f6e3de;
+
+    --font-display: "Hiragino Mincho ProN", "Yu Mincho", YuMincho, "Noto Serif JP", "Times New Roman", serif;
+    --font-body: "Hiragino Sans", "Yu Gothic", YuGothic, "Noto Sans JP", system-ui, -apple-system, sans-serif;
+    --font-num: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+    --radius: 4px;
+    --gap: 20px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14161a;
+      --surface: #1b1e24;
+      --surface-2: #22262e;
+      --rule: #2f343d;
+      --rule-strong: #434a55;
+      --ink: #e9e5dc;
+      --ink-2: #b2ada3;
+      --muted: #857f75;
+
+      --accent: #86b4d4;
+      --accent-soft: #1e2a35;
+      --flag: #d9a24a;
+      --flag-soft: #2c2517;
+      --ok: #74b892;
+      --ok-soft: #16241c;
+      --alert: #dd8571;
+      --alert-soft: #2c1c18;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #14161a;
+    --surface: #1b1e24;
+    --surface-2: #22262e;
+    --rule: #2f343d;
+    --rule-strong: #434a55;
+    --ink: #e9e5dc;
+    --ink-2: #b2ada3;
+    --muted: #857f75;
+
+    --accent: #86b4d4;
+    --accent-soft: #1e2a35;
+    --flag: #d9a24a;
+    --flag-soft: #2c2517;
+    --ok: #74b892;
+    --ok-soft: #16241c;
+    --alert: #dd8571;
+    --alert-soft: #2c1c18;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sheet {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 40px 24px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+  }
+
+  /* ---------- 見出し ---------- */
+
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 2px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .lede {
+    margin: 6px 0 0;
+    color: var(--ink-2);
+    font-size: 0.9rem;
+    max-width: 60ch;
+  }
+
+  .engine-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.76rem;
+    color: var(--ink-2);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 5px 13px;
+    white-space: nowrap;
+  }
+
+  .engine-chip::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  .engine-chip[data-state="ready"]::before { background: var(--ok); }
+  .engine-chip[data-state="working"]::before { background: var(--flag); }
+  .engine-chip[data-state="failed"]::before { background: var(--alert); }
+
+  /* ---------- 投入口 ---------- */
+
+  .intake {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: var(--gap);
+    align-items: stretch;
+  }
+
+  @media (max-width: 800px) {
+    .intake { grid-template-columns: 1fr; }
+  }
+
+  .dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 190px;
+    padding: 28px 24px;
+    background: var(--surface);
+    border: 1px dashed var(--rule-strong);
+    border-radius: var(--radius);
+    color: var(--ink-2);
+    text-align: center;
+    cursor: pointer;
+    font: inherit;
+    width: 100%;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .dropzone:hover,
+  .dropzone:focus-visible {
+    border-color: var(--accent);
+    color: var(--ink);
+    outline: none;
+  }
+
+  .dropzone:focus-visible {
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .dropzone.is-over {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    border-style: solid;
+    color: var(--ink);
+  }
+
+  .dropzone-mark {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+  }
+
+  .dropzone-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .dropzone-note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .ledger-summary {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .totals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .total-cell .total-label {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .total-cell .total-value {
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.25rem;
+    color: var(--ink);
+  }
+
+  .total-cell[data-tone="flag"] .total-value { color: var(--flag); }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+  }
+
+  button {
+    font: inherit;
+    font-size: 0.83rem;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: var(--paper);
+    cursor: pointer;
+    transition: opacity 0.15s ease, background 0.15s ease;
+  }
+
+  button:hover:not(:disabled) { opacity: 0.86; }
+  button:disabled { opacity: 0.42; cursor: not-allowed; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .btn-quiet {
+    background: var(--surface);
+    color: var(--ink-2);
+    border-color: var(--rule-strong);
+  }
+
+  .btn-quiet:hover:not(:disabled) {
+    color: var(--ink);
+    opacity: 1;
+    background: var(--surface-2);
+  }
+
+  /* ---------- 進捗・通知 ---------- */
+
+  .notice {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 0.84rem;
+    color: var(--ink-2);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .notice[data-tone="error"] {
+    border-left-color: var(--alert);
+    background: var(--alert-soft);
+    color: var(--ink);
+  }
+
+  .notice[data-tone="flag"] {
+    border-left-color: var(--flag);
+    background: var(--flag-soft);
+    color: var(--ink);
+  }
+
+  .notice[hidden] { display: none; }
+
+  .meter {
+    height: 3px;
+    background: var(--rule);
+    overflow: hidden;
+  }
+
+  .meter span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width 0.25s ease;
+  }
+
+  /* ---------- 台帳 ---------- */
+
+  .ledger {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface-2);
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--rule-strong);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  tbody tr[data-flagged="true"] td:first-child {
+    box-shadow: inset 3px 0 0 var(--flag);
+  }
+
+  tbody tr[data-pending="true"] { opacity: 0.55; }
+
+  .slip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 190px;
+  }
+
+  .slip-thumb {
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    cursor: zoom-in;
+    background: var(--surface-2);
+    flex-shrink: 0;
+  }
+
+  .slip-thumb.is-blank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    color: var(--muted);
+    cursor: default;
+    font-size: 0.9rem;
+  }
+
+  .slip-meta { min-width: 0; }
+
+  .slip-name {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--ink-2);
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 1px 8px;
+    border-radius: 999px;
+    margin-top: 3px;
+  }
+
+  .tag[data-kind="ok"] { background: var(--ok-soft); color: var(--ok); }
+  .tag[data-kind="flag"] { background: var(--flag-soft); color: var(--flag); }
+  .tag[data-kind="pending"] { background: var(--accent-soft); color: var(--accent); }
+
+  input,
+  select {
+    font: inherit;
+    font-size: 0.85rem;
+    width: 100%;
+    padding: 6px 8px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+
+  input:focus,
+  select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+  }
+
+  input[data-uncertain="true"],
+  select[data-uncertain="true"] {
+    border-color: var(--flag);
+    background: var(--flag-soft);
+  }
+
+  input[type="number"] {
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .col-date { width: 148px; }
+  .col-account { width: 150px; }
+  .col-amount { width: 116px; }
+  .col-tax { width: 116px; }
+  .col-tools { width: 108px; }
+
+  .row-tools {
+    display: flex;
+    gap: 2px;
+    white-space: nowrap;
+  }
+
+  .tool-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    padding: 5px 7px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    border-radius: 2px;
+  }
+
+  .tool-btn:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--ink);
+    opacity: 1;
+  }
+
+  .tool-btn[data-act="delete"]:hover:not(:disabled) {
+    background: var(--alert-soft);
+    color: var(--alert);
+  }
+
+  .blank-ledger {
+    padding: 56px 24px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .blank-ledger[hidden] { display: none; }
+
+  .colophon {
+    font-size: 0.76rem;
+    color: var(--muted);
+    border-top: 1px solid var(--rule);
+    padding-top: 14px;
+    margin: 0;
+  }
+
+  /* ---------- モーダル ---------- */
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 14, 18, 0.62);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 20;
+  }
+
+  .overlay[hidden] { display: none; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius);
+    padding: 22px;
+    width: min(760px, 100%);
+    max-height: 84vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .panel h2 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.04em;
+  }
+
+  .panel img {
+    max-width: 100%;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+
+  .panel pre,
+  .panel textarea {
+    font-family: var(--font-num);
+    font-size: 0.76rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--surface-2);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 12px;
+    margin: 0;
+    color: var(--ink-2);
+    max-height: 46vh;
+    overflow: auto;
+    width: 100%;
+    resize: vertical;
+  }
+
+  .panel-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+
+<div class="sheet">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">経費精算</p>
+      <h1>領収書仕分けデスク</h1>
+      <p class="lede">
+        領収書の画像を入れると、日付・支払先・内容・勘定科目・金額・税区分を読み取って台帳に並べます。読み取りはこのページの中だけで行われ、画像が外部に送られることはありません。
+      </p>
+    </div>
+    <span class="engine-chip" id="engine-chip" data-state="idle">読み取りエンジン: 未起動</span>
+  </header>
+
+  <section class="intake">
+    <button type="button" class="dropzone" id="dropzone">
+      <span class="dropzone-mark" aria-hidden="true">領収</span>
+      <span class="dropzone-title">領収書の画像をここへ</span>
+      <p class="dropzone-note">ドロップするか、クリックして選択します。JPEG / PNG / WebP、複数枚まとめて可。</p>
+    </button>
+    <input type="file" id="file-input" accept="image/*" multiple hidden>
+
+    <div class="ledger-summary">
+      <div class="totals">
+        <div class="total-cell">
+          <span class="total-label">枚数</span>
+          <span class="total-value" id="count-value">0</span>
+        </div>
+        <div class="total-cell">
+          <span class="total-label">合計金額</span>
+          <span class="total-value" id="sum-value">¥0</span>
+        </div>
+        <div class="total-cell" data-tone="flag">
+          <span class="total-label">要確認</span>
+          <span class="total-value" id="flag-value">0</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" id="export-btn" disabled>CSVを書き出す</button>
+        <button type="button" id="add-btn" class="btn-quiet">行を足す</button>
+        <button type="button" id="clear-btn" class="btn-quiet">全部消す</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="notice" id="notice" hidden>
+    <span id="notice-text"></span>
+    <div class="meter" id="meter" hidden><span id="meter-fill"></span></div>
+  </div>
+
+  <div class="ledger">
+    <table>
+      <thead>
+        <tr>
+          <th>領収書</th>
+          <th class="col-date">日付</th>
+          <th>支払先</th>
+          <th>内容</th>
+          <th class="col-account">勘定科目</th>
+          <th class="col-amount">金額（税込）</th>
+          <th class="col-tax">税区分</th>
+          <th class="col-tools">操作</th>
+        </tr>
+      </thead>
+      <tbody id="ledger-body"></tbody>
+    </table>
+    <p class="blank-ledger" id="blank-ledger">まだ1枚も入っていません。上の枠に領収書の画像を落としてください。</p>
+  </div>
+
+  <p class="colophon">
+    自動で入れた値のうち確度が低いものは枠を黄色にし、「要確認」として数えています。中身はその場で直せます。読み取れなかった項目は空欄のままにし、推測では埋めません。
+  </p>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="panel">
+    <h2 id="panel-title">領収書</h2>
+    <div id="panel-body"></div>
+    <div class="panel-actions" id="panel-actions">
+      <button type="button" class="btn-quiet" id="panel-close">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script id="asset-core" type="text/plain">{{CORE_B64}}</script>
+<script id="asset-worker" type="text/plain">{{WORKER_B64}}</script>
+<script id="asset-jpn" type="text/plain">{{JPN_B64}}</script>
+
+<script>{{TESSERACT_JS}}</script>
+
+<script>
+/* ---------- 抽出ロジック（receipts.js と共通） ---------- */
+{{PARSER_JS}}
+
+/* ---------- 埋め込み素材 ---------- */
+
+function decodeAsset(id) {
+  const base64 = document.getElementById(id).textContent.trim();
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function scriptObjectURL(id) {
+  return URL.createObjectURL(new Blob([decodeAsset(id)], { type: "text/javascript" }));
+}
+
+/* ---------- 状態 ---------- */
+
+const DESK_STORAGE_KEY = "receipt-desk-v1";
+
+let rows = readStoredRows();
+let ocrWorker = null;
+let engineFailed = false;
+let busy = false;
+
+function readStoredRows() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(DESK_STORAGE_KEY));
+    return Array.isArray(saved) ? saved : [];
+  } catch {
+    return [];
+  }
+}
+
+function storeRows() {
+  try {
+    localStorage.setItem(DESK_STORAGE_KEY, JSON.stringify(rows));
+  } catch {
+    /* 保存できなくても操作は続けられる。CSVへの書き出しが控えになる。 */
+  }
+}
+
+function blankRow(extra = {}) {
+  return {
+    id: Math.random().toString(36).slice(2) + Date.now().toString(36),
+    fileName: "",
+    thumbnail: "",
+    ocrText: "",
+    date: "",
+    vendor: "",
+    content: "",
+    category: "",
+    amount: "",
+    taxType: "不明",
+    confidence: {},
+    pending: false,
+    ...extra,
+  };
+}
+
+/* 失敗の理由は Error・文字列・空のいずれでも来る。空なら括弧ごと出さない。 */
+function describeError(error) {
+  const reason = !error ? "" : typeof error === "string" ? error : error.message || "";
+  return reason ? `（${reason}）` : "";
+}
+
+const FIELD_LABELS = {
+  date: "日付",
+  vendor: "支払先",
+  content: "内容",
+  category: "勘定科目",
+  amount: "金額",
+  taxType: "税区分",
+};
+
+function uncertainFields(row) {
+  return Object.keys(FIELD_LABELS).filter((field) => {
+    const level = row.confidence && row.confidence[field];
+    return level === "low" || level === "none";
+  });
+}
+
+/* ---------- 描画 ---------- */
+
+const el = (id) => document.getElementById(id);
+
+function render() {
+  const body = el("ledger-body");
+  body.textContent = "";
+
+  rows.forEach((row) => {
+    const flagged = uncertainFields(row);
+    const tr = document.createElement("tr");
+    tr.dataset.id = row.id;
+    tr.dataset.pending = String(Boolean(row.pending));
+    tr.dataset.flagged = String(!row.pending && flagged.length > 0);
+
+    const tag = row.pending
+      ? '<span class="tag" data-kind="pending">読み取り中</span>'
+      : flagged.length
+      ? `<span class="tag" data-kind="flag" title="${escapeHtml(flagged.map((f) => FIELD_LABELS[f]).join("・"))}">要確認 ${flagged.length}</span>`
+      : row.ocrText
+      ? '<span class="tag" data-kind="ok">読み取り済み</span>'
+      : "";
+
+    tr.innerHTML = `
+      <td>
+        <div class="slip">
+          ${
+            row.thumbnail
+              ? `<img class="slip-thumb" src="${row.thumbnail}" alt="${escapeHtml(row.fileName)}">`
+              : '<span class="slip-thumb is-blank" aria-hidden="true">手</span>'
+          }
+          <span class="slip-meta">
+            <span class="slip-name" title="${escapeHtml(row.fileName)}">${escapeHtml(row.fileName || "手入力")}</span>
+            ${tag}
+          </span>
+        </div>
+      </td>
+      <td><input type="date" data-field="date" value="${escapeHtml(row.date)}" aria-label="日付"></td>
+      <td><input type="text" data-field="vendor" value="${escapeHtml(row.vendor)}" placeholder="店名・会社名" aria-label="支払先"></td>
+      <td><input type="text" data-field="content" value="${escapeHtml(row.content)}" maxlength="20" placeholder="但し書き" aria-label="内容"></td>
+      <td>
+        <select data-field="category" aria-label="勘定科目">
+          <option value="">未分類</option>
+          ${CATEGORIES.map((name) => `<option value="${name}"${row.category === name ? " selected" : ""}>${name}</option>`).join("")}
+        </select>
+      </td>
+      <td><input type="number" data-field="amount" value="${escapeHtml(row.amount)}" min="0" step="1" placeholder="0" aria-label="金額"></td>
+      <td>
+        <select data-field="taxType" aria-label="税区分">
+          ${TAX_TYPES.map((name) => `<option value="${name}"${row.taxType === name ? " selected" : ""}>${name}</option>`).join("")}
+        </select>
+      </td>
+      <td>
+        <div class="row-tools">
+          <button type="button" class="tool-btn" data-act="text" ${row.ocrText ? "" : "disabled"} title="読み取った文字を見る">文字</button>
+          <button type="button" class="tool-btn" data-act="delete" title="この行を消す">削除</button>
+        </div>
+      </td>
+    `;
+
+    flagged.forEach((field) => {
+      const input = tr.querySelector(`[data-field="${field}"]`);
+      if (!input) return;
+      input.dataset.uncertain = "true";
+      input.title = "自動判定の確度が低い項目です。確認してください。";
+    });
+
+    body.appendChild(tr);
+  });
+
+  el("blank-ledger").hidden = rows.length > 0;
+  renderTotals();
+}
+
+function renderTotals() {
+  const sum = rows.reduce((total, row) => total + (Number(row.amount) || 0), 0);
+  const flagged = rows.filter((row) => !row.pending && uncertainFields(row).length).length;
+  el("count-value").textContent = String(rows.length);
+  el("sum-value").textContent = "¥" + sum.toLocaleString("ja-JP");
+  el("flag-value").textContent = String(flagged);
+  el("export-btn").disabled = rows.length === 0;
+}
+
+function setNotice(text, tone = "info", progress = null) {
+  const notice = el("notice");
+  notice.hidden = false;
+  notice.dataset.tone = tone;
+  el("notice-text").textContent = text;
+  el("meter").hidden = progress === null;
+  if (progress !== null) el("meter-fill").style.width = `${Math.round(progress * 100)}%`;
+}
+
+function setEngine(state, text) {
+  const chip = el("engine-chip");
+  chip.dataset.state = state;
+  chip.textContent = `読み取りエンジン: ${text}`;
+}
+
+/* ---------- 読み取り ---------- */
+
+async function getWorker() {
+  if (ocrWorker) return ocrWorker;
+
+  setEngine("working", "起動中…");
+  setNotice("読み取りエンジンを起動しています…", "info", 0.08);
+
+  const worker = await Tesseract.createWorker(
+    [{ code: "jpn", data: decodeAsset("asset-jpn") }],
+    1,
+    {
+      workerPath: scriptObjectURL("asset-worker"),
+      // tesseract は corePath が "js" で終わらないとファイル名を継ぎ足すため、
+      // blob URL に無害なフラグメントを付けて単一ファイル指定と認識させる。
+      corePath: scriptObjectURL("asset-core") + "#core.js",
+      workerBlobURL: false,
+      cacheMethod: "none",
+      legacyCore: false,
+      logger: () => {},
+    }
+  );
+
+  ocrWorker = worker;
+  setEngine("ready", "準備完了");
+  return ocrWorker;
+}
+
+async function ingest(fileList) {
+  const files = Array.from(fileList).filter((file) => file.type.startsWith("image/"));
+  if (!files.length) return;
+  if (busy) {
+    setNotice("いま読み取り中です。終わるまで待ってください。", "flag");
+    return;
+  }
+  busy = true;
+
+  const queue = files.map((file) => {
+    const row = blankRow({ fileName: file.name, pending: true });
+    rows.push(row);
+    return { row, file };
+  });
+  render();
+
+  // 画像は先に台帳へ出す。エンジンが起動しない環境でも手入力とCSV出力は使える。
+  for (const { row, file } of queue) {
+    try {
+      const image = await loadImage(file);
+      row.thumbnail = makeThumbnail(image);
+    } catch {
+      /* サムネイルは無くても構わない。 */
+    }
+  }
+  render();
+
+  let worker;
+  try {
+    worker = await getWorker();
+  } catch (error) {
+    engineFailed = true;
+    queue.forEach(({ row }) => {
+      row.pending = false;
+    });
+    render();
+    storeRows();
+    setEngine("failed", "起動できません");
+    setNotice(
+      `この画面では読み取りエンジンを起動できませんでした${describeError(error)}。画像は台帳に残っているので、値を手で入れればCSVは書き出せます。`,
+      "error"
+    );
+    busy = false;
+    return;
+  }
+
+  for (let index = 0; index < queue.length; index += 1) {
+    const { row, file } = queue[index];
+    setNotice(`読み取り中 ${index + 1} / ${queue.length}：${file.name}`, "info", index / queue.length);
+    try {
+      const image = await loadImage(file);
+      const { data } = await worker.recognize(preprocess(image));
+      Object.assign(row, extractFields(data.text || ""), { ocrText: data.text || "", pending: false });
+    } catch (error) {
+      row.pending = false;
+      row.confidence = { date: "none", vendor: "none", content: "none", category: "none", amount: "none", taxType: "none" };
+      setNotice(`${file.name} を読み取れませんでした${describeError(error)}。手で入力してください。`, "error");
+    }
+    render();
+  }
+
+  storeRows();
+  const flagged = queue.filter(({ row }) => uncertainFields(row).length).length;
+  setNotice(
+    flagged
+      ? `${queue.length}枚を読み取りました。うち${flagged}枚は確度の低い項目があります（黄色の枠）。`
+      : `${queue.length}枚を読み取りました。`,
+    flagged ? "flag" : "info",
+    1
+  );
+  busy = false;
+}
+
+/* ---------- CSV ---------- */
+
+function csvCell(value) {
+  const text = value === null || value === undefined ? "" : String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function toSlashDate(iso) {
+  if (!iso) return "";
+  const [year, month, day] = iso.split("-");
+  return `${year}/${month}/${day}`;
+}
+
+function buildCsv() {
+  const header = ["日付", "支払先", "内容", "勘定科目", "金額", "税区分", "確度", "要確認項目", "ファイル名"];
+  const lines = [header.join(",")];
+  rows.forEach((row) => {
+    const flagged = uncertainFields(row).map((field) => FIELD_LABELS[field]);
+    lines.push(
+      [
+        toSlashDate(row.date),
+        row.vendor,
+        row.content,
+        row.category,
+        row.amount === "" ? "" : String(Number(row.amount)),
+        row.taxType || "不明",
+        flagged.length ? "low" : "ok",
+        flagged.join("・"),
+        row.fileName,
+      ]
+        .map(csvCell)
+        .join(",")
+    );
+  });
+  // Excelで開いても文字化けしないようUTF-8のBOMを付ける。
+  return "﻿" + lines.join("\r\n") + "\r\n";
+}
+
+function csvFileName(extension) {
+  const now = new Date();
+  const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
+  return `receipts_${stamp}.${extension}`;
+}
+
+async function exportCsv() {
+  const csv = buildCsv();
+  const downloads = await claude.use("downloads");
+
+  if (!downloads) {
+    showCsvText(csv, "この画面ではファイル保存が使えません。下の内容をコピーして、CSVとして保存してください。");
+    return;
+  }
+
+  try {
+    await downloads.save({ filename: csvFileName("csv"), data: csv });
+    setNotice("CSVを保存しました。", "info");
+    return;
+  } catch (error) {
+    const code = error && error.code;
+    if (code === "declined") {
+      setNotice("保存を取りやめました。", "info");
+      return;
+    }
+    if (code === "extension_not_enabled" || code === "rejected_extension") {
+      try {
+        await downloads.save({ filename: csvFileName("txt"), data: csv });
+        setNotice("この画面ではCSV形式で保存できないため、.txt として保存しました。拡張子を .csv に変えるとExcelでそのまま開けます。", "flag");
+        return;
+      } catch (fallbackError) {
+        if (fallbackError && fallbackError.code === "declined") {
+          setNotice("保存を取りやめました。", "info");
+          return;
+        }
+      }
+    }
+    showCsvText(csv, "ファイルとして保存できませんでした。下の内容をコピーして、CSVとして保存してください。");
+  }
+}
+
+function showCsvText(csv, message) {
+  el("panel-title").textContent = "CSVの中身";
+  el("panel-body").innerHTML = `<p style="margin:0;font-size:0.84rem;color:var(--ink-2)">${escapeHtml(message)}</p>`;
+  const area = document.createElement("textarea");
+  area.readOnly = true;
+  area.rows = 14;
+  area.value = csv;
+  el("panel-body").appendChild(area);
+  el("overlay").hidden = false;
+  area.focus();
+  area.select();
+}
+
+function showSlip(row) {
+  el("panel-title").textContent = row.fileName || "読み取り結果";
+  el("panel-body").innerHTML = `
+    ${row.thumbnail ? `<img src="${row.thumbnail}" alt="${escapeHtml(row.fileName)}">` : ""}
+    <pre>${escapeHtml(row.ocrText || "（読み取った文字はありません）")}</pre>
+  `;
+  el("overlay").hidden = false;
+}
+
+/* ---------- 操作 ---------- */
+
+const dropzone = el("dropzone");
+const fileInput = el("file-input");
+
+dropzone.addEventListener("click", () => fileInput.click());
+dropzone.addEventListener("dragover", (event) => {
+  event.preventDefault();
+  dropzone.classList.add("is-over");
+});
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-over"));
+dropzone.addEventListener("drop", (event) => {
+  event.preventDefault();
+  dropzone.classList.remove("is-over");
+  ingest(event.dataTransfer.files);
+});
+fileInput.addEventListener("change", () => {
+  ingest(fileInput.files);
+  fileInput.value = "";
+});
+
+el("ledger-body").addEventListener("input", (event) => {
+  const field = event.target.dataset.field;
+  if (!field) return;
+  const row = rows.find((item) => item.id === event.target.closest("tr").dataset.id);
+  if (!row) return;
+  row[field] = event.target.value;
+  // 手で直した項目は確認済みとして扱う。
+  if (row.confidence) row.confidence[field] = "ok";
+  event.target.dataset.uncertain = "false";
+  event.target.title = "";
+  const tr = event.target.closest("tr");
+  tr.dataset.flagged = String(uncertainFields(row).length > 0);
+  storeRows();
+  renderTotals();
+});
+
+el("ledger-body").addEventListener("click", (event) => {
+  const tr = event.target.closest("tr");
+  if (!tr) return;
+  const row = rows.find((item) => item.id === tr.dataset.id);
+  if (!row) return;
+
+  if (event.target.classList.contains("slip-thumb")) {
+    showSlip(row);
+    return;
+  }
+
+  const action = event.target.dataset.act;
+  if (action === "delete") {
+    rows = rows.filter((item) => item.id !== row.id);
+    storeRows();
+    render();
+  } else if (action === "text") {
+    showSlip(row);
+  }
+});
+
+el("add-btn").addEventListener("click", () => {
+  rows.push(blankRow());
+  storeRows();
+  render();
+});
+
+el("clear-btn").addEventListener("click", () => {
+  if (!rows.length) return;
+  if (!confirm("台帳の中身をすべて消します。よろしいですか。")) return;
+  rows = [];
+  storeRows();
+  render();
+  el("notice").hidden = true;
+});
+
+el("export-btn").addEventListener("click", exportCsv);
+el("panel-close").addEventListener("click", () => {
+  el("overlay").hidden = true;
+});
+el("overlay").addEventListener("click", (event) => {
+  if (event.target === el("overlay")) el("overlay").hidden = true;
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") el("overlay").hidden = true;
+});
+
+render();
+if (rows.length) setEngine("idle", "未起動");
+</script>
