@@ -31,9 +31,11 @@ const PHOTO_QUALITY = 0.65;
 
 /* ---------- 状態 ---------- */
 
+const DEFAULT_SETTINGS = { budget: 0, issuer: "", issuerDetail: "", taxRate: "10", autoOcr: true };
+
 let store = {
   records: [],
-  settings: { budget: 0, issuer: "", issuerDetail: "", taxRate: "10" },
+  settings: { ...DEFAULT_SETTINGS },
 };
 
 let ui = {
@@ -41,8 +43,10 @@ let ui = {
   month: monthKey(new Date()),
   editingId: null,
   photo: null,
+  photoSource: null,
   detailId: null,
   docId: null,
+  ocrBusy: false,
 };
 
 /* ---------- 汎用ヘルパー ---------- */
@@ -132,17 +136,18 @@ function save() {
 
 /* ---------- 金額の計算 ---------- */
 
+/* 消費税は日本の小売でよく使われる「切り捨て」で計算する */
 function computeTotals(items, taxRate, taxMode) {
   const rate = Number(taxRate) || 0;
   const sum = items.reduce((acc, it) => acc + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
   if (rate === 0) return { subtotal: Math.round(sum), tax: 0, total: Math.round(sum) };
   if (taxMode === "included") {
     const total = Math.round(sum);
-    const tax = Math.round((total * rate) / (100 + rate));
+    const tax = Math.floor((total * rate) / (100 + rate));
     return { subtotal: total - tax, tax, total };
   }
   const subtotal = Math.round(sum);
-  const tax = Math.round((subtotal * rate) / 100);
+  const tax = Math.floor((subtotal * rate) / 100);
   return { subtotal, tax, total: subtotal + tax };
 }
 
@@ -222,7 +227,10 @@ function setPhoto(dataUrl) {
   } else {
     $("photo-img").removeAttribute("src");
     wrap.hidden = true;
+    ui.photoSource = null;
     $("f-photo").value = "";
+    $("f-camera").value = "";
+    resetOcrPanel();
   }
 }
 
@@ -340,6 +348,167 @@ async function compressImage(file) {
   canvas.height = Math.round(img.height * scale);
   canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL("image/jpeg", PHOTO_QUALITY);
+}
+
+/* ============================================================
+   写真の受け取りと OCR
+   ============================================================ */
+
+/* カメラ・ファイル選択・共有・貼り付け・ドロップの共通入口 */
+async function handlePhotoFile(file, { autoRun = true } = {}) {
+  if (!file || !file.type.startsWith("image/")) {
+    toast("画像ファイルを選んでください。");
+    return;
+  }
+  ui.photoSource = file;
+  setTab("create");
+  try {
+    setPhoto(await compressImage(file));
+  } catch (err) {
+    console.warn(err);
+    toast("この画像は読み込めませんでした。");
+    return;
+  }
+  if (autoRun && store.settings.autoOcr) {
+    runOcr(file);
+  } else {
+    resetOcrPanel();
+  }
+}
+
+function resetOcrPanel() {
+  $("ocr-panel").hidden = true;
+  $("ocr-result").hidden = true;
+  $("ocr-chips").innerHTML = "";
+  $("ocr-text").textContent = "";
+  $("ocr-progress-fill").style.width = "0%";
+}
+
+const OCR_STATUS_LABELS = {
+  "loading tesseract core": "読み取りエンジンを準備中…",
+  "initializing tesseract": "読み取りエンジンを準備中…",
+  "loading language traineddata": "日本語データを読み込み中…",
+  "initializing api": "準備中…",
+  "recognizing text": "文字を読み取り中…",
+};
+
+async function runOcr(source) {
+  if (ui.ocrBusy) return;
+  if (typeof OCR === "undefined") {
+    toast("読み取り機能を読み込めませんでした。");
+    return;
+  }
+  ui.ocrBusy = true;
+
+  const panel = $("ocr-panel");
+  panel.hidden = false;
+  $("ocr-result").hidden = true;
+  $("ocr-spinner").hidden = false;
+  $("ocr-status-text").textContent = "読み取りエンジンを準備中…";
+  $("ocr-progress-fill").style.width = "3%";
+
+  try {
+    const { text, confidence } = await OCR.recognize(source, (message) => {
+      const label = OCR_STATUS_LABELS[message.status];
+      if (label) $("ocr-status-text").textContent = label;
+      if (typeof message.progress === "number") {
+        // エンジン準備までを 0-40%、文字認識を 40-100% として表示する
+        const base = message.status === "recognizing text" ? 40 : 0;
+        const span = message.status === "recognizing text" ? 60 : 40;
+        $("ocr-progress-fill").style.width = `${Math.round(base + message.progress * span)}%`;
+      }
+    });
+
+    $("ocr-progress-fill").style.width = "100%";
+    $("ocr-spinner").hidden = true;
+
+    const parsed = OCR.parse(text);
+    const applied = applyOcrResult(parsed);
+
+    $("ocr-status-text").textContent = applied.length
+      ? "読み取りました（内容を確認してください）"
+      : "うまく読み取れませんでした";
+    $("ocr-applied").innerHTML = applied.length
+      ? applied.join("<br>")
+      : "金額を読み取れませんでした。明るい場所で、レシート全体がまっすぐ写るように撮り直すか、手で入力してください。";
+
+    renderOcrChips(parsed);
+    $("ocr-text").textContent = text.trim() || "（文字を検出できませんでした）";
+    $("ocr-result").hidden = false;
+
+    if (applied.length && confidence && confidence < 60) {
+      toast("読み取りの確信度が低めです。金額を確認してください。");
+    }
+  } catch (err) {
+    console.warn(err);
+    $("ocr-spinner").hidden = true;
+    $("ocr-status-text").textContent = "読み取りに失敗しました";
+    $("ocr-applied").textContent =
+      "読み取り用のデータを読み込めませんでした。通信環境を確認して「もう一度読み取る」を押してください。";
+    $("ocr-chips").innerHTML = "";
+    $("ocr-text").textContent = "";
+    $("ocr-result").hidden = false;
+  } finally {
+    ui.ocrBusy = false;
+  }
+}
+
+/* 読み取り結果をフォームに反映する。入力済みの欄は上書きしない */
+function applyOcrResult(parsed) {
+  const applied = [];
+
+  if (parsed.date) {
+    $("f-date").value = parsed.date;
+    applied.push(`日付: <strong>${formatDate(parsed.date)}</strong>`);
+  }
+  if (parsed.store && !$("f-store").value.trim()) {
+    $("f-store").value = parsed.store;
+    applied.push(`店名: <strong>${escapeHtml(parsed.store)}</strong>`);
+  }
+  if (parsed.taxRate !== null && parsed.taxRate !== undefined) {
+    $("f-taxrate").value = String(parsed.taxRate);
+  }
+  if (parsed.taxMode) $("f-taxmode").value = parsed.taxMode;
+  if (parsed.category) $("f-category").value = parsed.category;
+
+  if (parsed.items.length) {
+    renderItems(parsed.items);
+    applied.push(`明細: <strong>${parsed.items.length}件</strong>`);
+  } else if (parsed.total) {
+    renderItems([{ name: parsed.store || "お買い上げ", qty: 1, price: parsed.total }]);
+  }
+
+  if (parsed.total) {
+    applied.unshift(
+      `合計: <strong>${yen(parsed.total)}</strong>${parsed.totalFromKeyword ? "" : "（推定）"}`
+    );
+  }
+
+  const totals = updateTotals();
+  if (parsed.total && totals.total !== parsed.total) {
+    applied.push(
+      `<span class="ocr-warn">明細から計算した合計は ${yen(totals.total)} です。レシートの ${yen(
+        parsed.total
+      )} と違う場合は明細を直してください。</span>`
+    );
+  }
+  return applied;
+}
+
+function renderOcrChips(parsed) {
+  const wrap = $("ocr-chips");
+  if (!parsed.candidates.length) {
+    wrap.innerHTML = "";
+    return;
+  }
+  wrap.innerHTML =
+    `<span class="ocr-chips-label">別の金額が正しい場合はタップしてください</span>` +
+    parsed.candidates
+      .map(
+        (value) =>
+          `<button type="button" class="ocr-chip${value === parsed.total ? " is-active" : ""}" data-amount="${value}">${yen(value)}</button>`
+      )
+      .join("");
 }
 
 /* ============================================================
@@ -721,6 +890,7 @@ function renderSettings() {
   $("s-issuer").value = store.settings.issuer || "";
   $("s-issuer-detail").value = store.settings.issuerDetail || "";
   $("s-taxrate").value = store.settings.taxRate || "10";
+  $("s-autoocr").checked = store.settings.autoOcr !== false;
 
   const bytes = new Blob([JSON.stringify(store)]).size;
   const photos = store.records.filter((r) => r.photo).length;
@@ -871,19 +1041,57 @@ function bindEvents() {
     toast("編集をやめました");
   });
 
-  $("f-photo").addEventListener("change", async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    toast("写真を処理しています…");
-    try {
-      setPhoto(await compressImage(file));
-      toast("写真を添付しました");
-    } catch (err) {
-      console.warn(err);
-      toast("この画像は読み込めませんでした。");
-    }
+  ["f-photo", "f-camera"].forEach((id) => {
+    $(id).addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      if (file) handlePhotoFile(file);
+    });
   });
   $("remove-photo").addEventListener("click", () => setPhoto(null));
+  $("rerun-ocr").addEventListener("click", () => {
+    const source = ui.photoSource || ui.photo;
+    if (source) runOcr(source);
+  });
+
+  $("ocr-chips").addEventListener("click", (event) => {
+    const chip = event.target.closest(".ocr-chip");
+    if (!chip) return;
+    const amount = Number(chip.dataset.amount);
+    renderItems([{ name: $("f-store").value.trim() || "お買い上げ", qty: 1, price: amount }]);
+    updateTotals();
+    $("ocr-chips")
+      .querySelectorAll(".ocr-chip")
+      .forEach((c) => c.classList.toggle("is-active", c === chip));
+    toast(`合計を ${yen(amount)} にしました`);
+  });
+
+  /* コピーした画像の貼り付け（PC・iPad など） */
+  document.addEventListener("paste", (event) => {
+    const item = [...(event.clipboardData?.items || [])].find((i) => i.type.startsWith("image/"));
+    if (!item) return;
+    event.preventDefault();
+    handlePhotoFile(item.getAsFile());
+  });
+
+  /* ドラッグ＆ドロップ */
+  const dropZone = $("drop-zone");
+  ["dragenter", "dragover"].forEach((type) =>
+    document.addEventListener(type, (event) => {
+      if (!event.dataTransfer?.types.includes("Files")) return;
+      event.preventDefault();
+      dropZone.classList.add("is-dragging");
+    })
+  );
+  ["dragleave", "dragend"].forEach((type) =>
+    document.addEventListener(type, () => dropZone.classList.remove("is-dragging"))
+  );
+  document.addEventListener("drop", (event) => {
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) return;
+    event.preventDefault();
+    dropZone.classList.remove("is-dragging");
+    handlePhotoFile(file);
+  });
 
   $("preview-btn").addEventListener("click", () => {
     ui.docId = null;
@@ -957,6 +1165,10 @@ function bindEvents() {
     store.settings.taxRate = $("s-taxrate").value;
     save();
   });
+  $("s-autoocr").addEventListener("change", () => {
+    store.settings.autoOcr = $("s-autoocr").checked;
+    save();
+  });
 
   $("export-csv").addEventListener("click", exportCsv);
   $("export-json").addEventListener("click", exportJson);
@@ -966,7 +1178,7 @@ function bindEvents() {
   });
   $("reset-all").addEventListener("click", () => {
     if (!confirm("すべての記録と設定を削除します。元に戻せません。よろしいですか？")) return;
-    store = { records: [], settings: { budget: 0, issuer: "", issuerDetail: "", taxRate: "10" } };
+    store = { records: [], settings: { ...DEFAULT_SETTINGS } };
     save();
     resetForm();
     renderSettings();
@@ -981,6 +1193,32 @@ function bindEvents() {
   });
 }
 
+/* 共有メニューから送られてきた画像を Service Worker 経由で受け取る */
+const SHARE_CACHE = "kakeibo-share";
+const SHARE_KEY = "shared-image";
+
+async function pickUpSharedImage() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has("shared")) return;
+  history.replaceState(null, "", location.pathname);
+
+  if (!("caches" in window)) return;
+  try {
+    const cache = await caches.open(SHARE_CACHE);
+    const key = new URL(SHARE_KEY, location.href).href;
+    const response = await cache.match(key);
+    if (!response) return;
+    await cache.delete(key);
+
+    const blob = await response.blob();
+    const name = response.headers.get("X-Share-Name") || "shared.jpg";
+    await handlePhotoFile(new File([blob], name, { type: blob.type || "image/jpeg" }));
+    toast("共有された写真を読み取ります");
+  } catch (err) {
+    console.warn("共有された画像を取得できませんでした", err);
+  }
+}
+
 function init() {
   load();
   renderCategoryOptions();
@@ -991,9 +1229,11 @@ function init() {
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {
-      /* オフライン対応は任意機能なので失敗しても続行する */
+      /* オフライン対応と共有受け取りは任意機能なので失敗しても続行する */
     });
   }
+
+  pickUpSharedImage();
 }
 
 init();

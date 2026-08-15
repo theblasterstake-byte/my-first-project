@@ -304,6 +304,20 @@ body:not(.is-invoice) .only-invoice { display: none; }
 
 /* 写真 */
 .photo-field { margin-top: 14px; }
+.photo-field.is-dragging { outline: 2px dashed var(--accent); outline-offset: 6px; border-radius: var(--radius-sm); }
+.photo-picks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.photo-hint {
+  margin: 8px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.photo-preview-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 .photo-pick {
   display: flex;
   align-items: center;
@@ -338,6 +352,143 @@ body:not(.is-invoice) .only-invoice { display: none; }
   cursor: pointer;
   padding: 6px 2px;
 }
+
+/* ---------- OCR パネル ---------- */
+.ocr-panel {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+}
+.ocr-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+.ocr-spinner {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+.ocr-spinner[hidden] { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.ocr-progress {
+  margin-top: 8px;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  overflow: hidden;
+}
+.ocr-progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+.ocr-applied {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.ocr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.ocr-chip {
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding: 6px 12px;
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.ocr-chip.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ocr-chips-label {
+  width: 100%;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: -2px;
+}
+.ocr-raw { margin-top: 10px; }
+.ocr-raw summary {
+  font-size: 0.76rem;
+  color: var(--accent-ink);
+  cursor: pointer;
+}
+.ocr-raw pre {
+  margin: 8px 0 0;
+  padding: 10px;
+  max-height: 200px;
+  overflow: auto;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  cursor: pointer;
+}
+.switch-row span { font-size: 0.88rem; }
+.switch-row small {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.switch-row input[type="checkbox"] {
+  flex: none;
+  appearance: none;
+  width: 46px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--border-strong);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.switch-row input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s ease;
+}
+.switch-row input[type="checkbox"]:checked { background: var(--accent); }
+.switch-row input[type="checkbox"]:checked::after { transform: translateX(18px); }
 
 /* ---------- ボタン ---------- */
 .btn {
@@ -820,3 +971,5 @@ body:not(.is-invoice) .only-invoice { display: none; }
 
 /* hidden 属性は display 指定より弱いので明示的に打ち消す */
 [hidden] { display: none !important; }
+
+.ocr-warn { color: var(--danger); font-weight: 600; }
