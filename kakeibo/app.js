@@ -444,7 +444,8 @@ async function runOcr(source) {
     $("ocr-spinner").hidden = true;
     $("ocr-status-text").textContent = "読み取りに失敗しました";
     $("ocr-applied").textContent =
-      "読み取り用のデータを読み込めませんでした。通信環境を確認して「もう一度読み取る」を押してください。";
+      "この端末・環境では読み取り機能を起動できませんでした。「もう一度読み取る」で再試行できます。" +
+      "写真は添付されているので、金額はそのまま手で入力できます。";
     $("ocr-chips").innerHTML = "";
     $("ocr-text").textContent = "";
     $("ocr-result").hidden = false;
@@ -899,7 +900,35 @@ function renderSettings() {
     "ブラウザのデータを消すと記録も消えるため、ときどきバックアップしてください。";
 }
 
-function download(filename, content, mime) {
+/* ファイルの受け渡し。claude.ai の Artifact として開かれているときは
+   ホスト側の保存機能を通す必要があるので、そちらを優先する。
+   戻り値: "saved" | "declined" | "failed" */
+async function offerFile(filename, content, mime) {
+  const host =
+    typeof claude !== "undefined" && typeof claude.use === "function"
+      ? await claude.use("downloads").catch(() => null)
+      : null;
+
+  if (host) {
+    try {
+      await host.save({ filename, data: content });
+      return "saved";
+    } catch (err) {
+      /* CSV が許可されていない環境では、同じ中身をテキストとして渡す */
+      if (err?.code === "extension_not_enabled" && filename.endsWith(".csv")) {
+        try {
+          await host.save({ filename: filename.replace(/\.csv$/, ".txt"), data: content });
+          return "saved";
+        } catch (retryErr) {
+          err = retryErr;
+        }
+      }
+      if (err?.code === "declined") return "declined";
+      console.warn(err);
+      return "failed";
+    }
+  }
+
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -909,6 +938,13 @@ function download(filename, content, mime) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return "saved";
+}
+
+async function download(filename, content, mime, successMessage) {
+  const result = await offerFile(filename, content, mime);
+  if (result === "saved") toast(successMessage);
+  else if (result === "failed") toast("この環境ではファイルを書き出せませんでした。");
 }
 
 function csvCell(value) {
@@ -947,13 +983,21 @@ function exportCsv() {
         .join(",")
     );
   // Excel が UTF-8 と判定できるよう BOM を付ける
-  download(`kakeibo-${todayISO()}.csv`, "﻿" + [header.join(","), ...rows].join("\r\n"), "text/csv");
-  toast("CSVを書き出しました");
+  download(
+    `kakeibo-${todayISO()}.csv`,
+    "﻿" + [header.join(","), ...rows].join("\r\n"),
+    "text/csv",
+    "CSVを書き出しました"
+  );
 }
 
 function exportJson() {
-  download(`kakeibo-backup-${todayISO()}.json`, JSON.stringify(store), "application/json");
-  toast("バックアップを書き出しました");
+  download(
+    `kakeibo-backup-${todayISO()}.json`,
+    JSON.stringify(store),
+    "application/json",
+    "バックアップを書き出しました"
+  );
 }
 
 async function importJson(file) {
@@ -1226,6 +1270,9 @@ function init() {
   bindEvents();
   resetForm();
   setTab("create");
+
+  /* 単一 HTML 版では Service Worker も共有受け取りも使えない */
+  if (window.__SINGLE_FILE__) return;
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {

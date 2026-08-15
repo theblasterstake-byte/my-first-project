@@ -7,7 +7,9 @@ const OCR = (() => {
   /* Worker は blob URL で動くため、パスは絶対 URL にしておく */
   const abs = (path) => new URL(path, document.baseURI).href;
 
-  const PATHS = {
+  /* 単一 HTML 版（Artifact）は、埋め込んだ資材の blob URL を
+     window.__OCR_PATHS__ で渡してくる */
+  const PATHS = window.__OCR_PATHS__ || {
     lib: abs("vendor/tesseract/tesseract.min.js"),
     worker: abs("vendor/tesseract/worker.min.js"),
     /* wasm を内蔵した単一ファイル版。Worker が blob URL で動いても
@@ -54,6 +56,7 @@ const OCR = (() => {
       .then((Tesseract) =>
         Tesseract.createWorker("jpn", 1, {
           workerPath: PATHS.worker,
+          workerBlobURL: false,
           corePath: hasSimd() ? PATHS.coreSimd : PATHS.core,
           langPath: PATHS.lang,
           gzip: true,
