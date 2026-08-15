@@ -25,8 +25,17 @@ const body = html
   .replace(/\s*<script src="app\.js"><\/script>/, "")
   .trim();
 
+// 単体ファイルでは外部ファイルを参照できないので、アイコンは data URI にして
+// マニフェストは取り除く（インストールは crm/ をホスティングした場合の機能）
+const iconDataUri = "data:image/svg+xml;base64," + Buffer.from(read("icon.svg")).toString("base64");
+const metaTags = html
+  .slice(html.indexOf("<meta name=\"description\""), html.indexOf('<link rel="stylesheet"'))
+  .replace(/^.*rel="manifest".*$\n?/m, "")
+  .replace(/href="icon\.svg"/g, `href="${iconDataUri}"`)
+  .trim();
+
 const title = "Sales CRM";
-const head = `<title>${title}</title>\n<style>\n${css}</style>`;
+const head = `<title>${title}</title>\n${metaTags}\n<style>\n${css}</style>`;
 
 const outDir = path.join(dir, "dist");
 fs.mkdirSync(outDir, { recursive: true });
@@ -38,7 +47,7 @@ fs.writeFileSync(
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 ${head}
 </head>
 <body>

@@ -552,6 +552,37 @@ document.addEventListener("keydown", (e) => {
 $("new-customer-btn").addEventListener("click", () => openCustomerModal());
 $("new-deal-btn").addEventListener("click", () => openDealModal());
 
+/* ---------- スマホ用のフローティング追加ボタン ---------- */
+
+const fabMenu = $("fab-menu");
+
+function toggleFabMenu(open) {
+  fabMenu.hidden = open === undefined ? !fabMenu.hidden : !open;
+  $("fab").textContent = fabMenu.hidden ? "＋" : "×";
+}
+
+$("fab").addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleFabMenu();
+});
+
+$("fab-customer").addEventListener("click", () => {
+  toggleFabMenu(false);
+  openCustomerModal();
+});
+$("fab-deal").addEventListener("click", () => {
+  toggleFabMenu(false);
+  openDealModal();
+});
+$("fab-activity").addEventListener("click", () => {
+  toggleFabMenu(false);
+  openActivityModal();
+});
+
+document.addEventListener("click", (e) => {
+  if (!fabMenu.hidden && !e.target.closest("#fab-menu") && !e.target.closest("#fab")) toggleFabMenu(false);
+});
+
 /* ==========================================================
    顧客詳細ドロワー
    ========================================================== */
@@ -968,10 +999,20 @@ function customerCard(c) {
       <span class="next-action ${nextCls}">${nextText}</span>
       <span class="amount">${amount ? yen(amount) : ""}</span>
     </div>
+
+    ${
+      c.phone || c.email
+        ? `<div class="quick-actions">
+            ${c.phone ? `<a href="tel:${esc(c.phone)}" data-quick>電話する</a>` : ""}
+            ${c.email ? `<a href="mailto:${esc(c.email)}" data-quick>メール</a>` : ""}
+          </div>`
+        : ""
+    }
   </article>`;
 }
 
 $("customer-grid").addEventListener("click", (e) => {
+  if (e.target.closest("[data-quick]")) return; // 電話・メールはカードを開かずに実行
   const card = e.target.closest("[data-customer-id]");
   if (card) openDetail(card.dataset.customerId);
 });
@@ -1018,6 +1059,11 @@ function renderDeals() {
                   <span>確度 ${d.probability}%</span>
                 </div>
                 ${d.closeDate ? `<div class="deal-row" style="margin-top:4px"><span>受注予定 ${formatDate(d.closeDate)}</span></div>` : ""}
+                <select class="deal-stage-select" data-stage-select="${d.id}" aria-label="フェーズを変更">
+                  ${STAGES.map(
+                    (s) => `<option value="${s.id}"${s.id === d.stage ? " selected" : ""}>${esc(s.label)}</option>`
+                  ).join("")}
+                </select>
               </article>`;
             })
             .join("") || `<p class="hint">なし</p>`
@@ -1028,9 +1074,38 @@ function renderDeals() {
 }
 
 $("deal-board").addEventListener("click", (e) => {
+  if (e.target.closest("[data-stage-select]")) return; // プルダウン操作でカードを開かない
   const id = e.target.closest("[data-deal-open]")?.dataset.dealOpen;
   if (id) openDealModal(id);
 });
+
+/* タッチ端末向け: プルダウンでフェーズを変更 */
+$("deal-board").addEventListener("change", (e) => {
+  const id = e.target.dataset.stageSelect;
+  if (id) moveDealToStage(id, e.target.value);
+});
+
+/** 商談のフェーズを変更し、確度と顧客ステータスを合わせる。 */
+function moveDealToStage(dealId, stage) {
+  const deal = state.deals.find((d) => d.id === dealId);
+  if (!deal || deal.stage === stage) return render();
+
+  const before = snapshot();
+  deal.stage = stage;
+  deal.probability = stageOf(stage).probability;
+  deal.updatedAt = new Date().toISOString();
+
+  // 受注・失注に動かしたら顧客ステータスも合わせる
+  const c = customerOf(deal.customerId);
+  if (c) {
+    if (stage === "won") c.status = "won";
+    else if (stage === "lost" && dealsOfCustomer(c.id).every((d) => d.stage === "lost")) c.status = "lost";
+    c.updatedAt = new Date().toISOString();
+  }
+
+  commit();
+  showToast(`「${deal.title}」を${stageOf(stage).label}に移動しました。`, before);
+}
 
 /* ドラッグ＆ドロップでフェーズを変更 */
 let draggingDealId = null;
@@ -1064,27 +1139,9 @@ board.addEventListener("drop", (e) => {
   const col = e.target.closest(".board-col");
   if (!col || !draggingDealId) return;
   e.preventDefault();
-
-  const deal = state.deals.find((d) => d.id === draggingDealId);
-  const stage = col.dataset.stage;
+  const id = draggingDealId;
   draggingDealId = null;
-  if (!deal || deal.stage === stage) return render();
-
-  const before = snapshot();
-  deal.stage = stage;
-  deal.probability = stageOf(stage).probability;
-  deal.updatedAt = new Date().toISOString();
-
-  // 受注・失注に動かしたら顧客ステータスも合わせる
-  const c = customerOf(deal.customerId);
-  if (c) {
-    if (stage === "won") c.status = "won";
-    else if (stage === "lost" && dealsOfCustomer(c.id).every((d) => d.stage === "lost")) c.status = "lost";
-    c.updatedAt = new Date().toISOString();
-  }
-
-  commit();
-  showToast(`「${deal.title}」を${stageOf(stage).label}に移動しました。`, before);
+  moveDealToStage(id, col.dataset.stage);
 });
 
 /* ---------- 活動履歴 ---------- */

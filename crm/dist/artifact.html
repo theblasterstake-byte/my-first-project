@@ -1,4 +1,12 @@
 <title>Sales CRM</title>
+<meta name="description" content="営業担当者のための顧客・商談・活動管理ツール">
+<meta name="theme-color" content="#6152f2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sales CRM">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIiB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNjE1MmYyIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzkzMzNlYSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0MiIgZmlsbD0idXJsKCNnKSIvPgogIDxnIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIj4KICAgIDxwYXRoIGQ9Ik01MCAxMzhWMTA2Ii8+CiAgICA8cGF0aCBkPSJNOTYgMTM4VjY2Ii8+CiAgICA8cGF0aCBkPSJNMTQyIDEzOFY1MCIvPgogIDwvZz4KPC9zdmc+Cg==" type="image/svg+xml">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIiB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjNjE1MmYyIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzkzMzNlYSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0MiIgZmlsbD0idXJsKCNnKSIvPgogIDxnIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIj4KICAgIDxwYXRoIGQ9Ik01MCAxMzhWMTA2Ii8+CiAgICA8cGF0aCBkPSJNOTYgMTM4VjY2Ii8+CiAgICA8cGF0aCBkPSJNMTQyIDEzOFY1MCIvPgogIDwvZz4KPC9zdmc+Cg==">
 <style>
 :root {
   --bg: #eef0f6;
@@ -162,6 +170,11 @@ h3 {
   font-size: 12px;
   font-weight: 700;
   color: var(--muted);
+}
+
+/* 幅の狭い下部タブでは短いラベルに切り替える */
+.label-narrow {
+  display: none;
 }
 
 .sidebar-foot {
@@ -1090,42 +1103,328 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
+  /* サイドバーを親指の届く下部タブに置き換える */
   .sidebar {
-    position: static;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
     height: auto;
+    z-index: 40;
     flex-direction: row;
-    align-items: center;
-    gap: 14px;
-    overflow-x: auto;
-    padding: 14px 16px;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    gap: 0;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 -6px 20px -14px rgba(20, 22, 41, 0.5);
   }
 
-  .brand-text {
+  .brand,
+  .sidebar-foot {
     display: none;
   }
 
   .nav {
     flex-direction: row;
+    flex: 1;
+    gap: 0;
   }
 
   .nav-item {
-    white-space: nowrap;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    padding: 7px 2px;
+    font-size: 10.5px;
+    justify-content: center;
+    text-align: center;
+    min-height: 52px;
   }
 
-  .sidebar-foot {
+  .nav-item svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  .nav-item.active {
+    background: transparent;
+  }
+
+  .label-wide {
     display: none;
   }
 
+  .label-narrow {
+    display: inline;
+  }
+
+  .nav-count {
+    position: absolute;
+    margin: 0;
+    transform: translate(15px, -13px);
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    line-height: 1;
+    padding: 3px 5px;
+    border-radius: 999px;
+  }
+
+  /* 検索と主要ボタンは画面上部に固定して常に押せるようにする */
   .main {
-    padding: 20px 16px 60px;
+    padding: 0 14px calc(76px + env(safe-area-inset-bottom));
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin: 0 -14px 16px;
+    padding: 10px 14px;
+    background: rgba(238, 240, 246, 0.93);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    gap: 8px;
+  }
+
+  .search-field {
+    flex: 1 1 100%;
+  }
+
+  .topbar-actions {
+    display: none; /* 追加操作は右下のフローティングボタンに集約 */
+  }
+
+  .view-title {
+    font-size: 19px;
+    margin: 14px 0 14px;
+  }
+
+  /* iOS で入力欄にフォーカスすると拡大されるのを防ぐ（16px 未満だと拡大される）。
+     基本のスタイルが input[type="..."] で指定されているため、同じ詳細度で上書きする。 */
+  select,
+  textarea,
+  input[type="text"],
+  input[type="tel"],
+  input[type="email"],
+  input[type="date"],
+  input[type="number"],
+  input[type="search"],
+  .search-field input {
+    font-size: 16px;
+  }
+
+  .search-field input {
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
 
   .form-grid {
     grid-template-columns: 1fr;
   }
 
+  .panel {
+    padding: 16px;
+    border-radius: var(--radius);
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .kpi {
+    padding: 13px 14px;
+  }
+
+  .kpi-value {
+    font-size: 21px;
+  }
+
+  .customer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ドロワーは全画面に。閉じるボタンも指で押せる大きさにする */
+  .drawer {
+    width: 100%;
+    padding: 20px 18px calc(40px + env(safe-area-inset-bottom));
+    border-radius: 0;
+  }
+
+  .drawer-close {
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 26px;
+    border-radius: 999px;
+    background: #f2f3f8;
+  }
+
   .detail-list {
-    grid-template-columns: 80px minmax(0, 1fr);
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .detail-actions .btn-primary,
+  .detail-actions .btn-secondary,
+  .detail-actions .btn-danger {
+    flex: 1 1 44%;
+    padding: 12px 10px;
+  }
+
+  /* モーダルは下から出るシート型に */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
+    animation: sheet-up 0.22s ease;
+  }
+
+  .modal-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--card-bg);
+    padding-top: 10px;
+  }
+
+  .modal-actions button {
+    flex: 1;
+    padding: 13px 10px;
+  }
+
+  .board {
+    grid-auto-columns: 84%;
+    margin: 0 -14px;
+    padding: 0 14px 12px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .board-col {
+    scroll-snap-align: center;
+  }
+
+  .toast {
+    left: 14px;
+    right: 14px;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    transform: none;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(20px);
+  }
+}
+
+/* ---------- フローティング追加ボタン（スマホのみ） ---------- */
+
+.fab {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .fab {
+    display: flex;
+    position: fixed;
+    right: 16px;
+    bottom: calc(74px + env(safe-area-inset-bottom));
+    z-index: 45;
+    width: 54px;
+    height: 54px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    font-size: 28px;
+    line-height: 1;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .fab-menu {
+    position: fixed;
+    right: 16px;
+    bottom: calc(136px + env(safe-area-inset-bottom));
+    z-index: 45;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .fab-menu button {
+    padding: 12px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* モーダルや詳細パネルを開いている間は隠す */
+  body:has(.modal-overlay:not([hidden])) .fab,
+  body:has(.drawer-overlay:not([hidden])) .fab,
+  body:has(.modal-overlay:not([hidden])) .sidebar,
+  body:has(.drawer-overlay:not([hidden])) .sidebar {
+    display: none;
+  }
+}
+
+/* ---------- タッチ端末向けの操作 ---------- */
+
+/* ドラッグできない端末では、フェーズをプルダウンで変更する */
+.deal-stage-select {
+  display: none;
+  margin-top: 8px;
+  font-size: 12.5px;
+  padding: 7px 9px;
+}
+
+@media (hover: none), (pointer: coarse), (max-width: 860px) {
+  .deal-stage-select {
+    display: block;
+  }
+
+  .drag-hint {
+    display: none;
+  }
+}
+
+/* 顧客カードから直接電話・メールできるようにする */
+.quick-actions {
+  display: none;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.quick-actions a {
+  flex: 1;
+  text-align: center;
+  padding: 9px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (hover: none), (pointer: coarse), (max-width: 860px) {
+  .quick-actions {
+    display: flex;
   }
 }
 </style>
@@ -1151,7 +1450,7 @@ textarea:focus {
       <nav class="nav" id="nav">
         <button class="nav-item active" data-view="dashboard">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="12" width="7" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="16" width="7" height="5" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>
-          ダッシュボード
+          <span class="nav-label"><span class="label-wide">ダッシュボード</span><span class="label-narrow">ホーム</span></span>
         </button>
         <button class="nav-item" data-view="customers">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M5 20C5 16.6863 8.13401 14 12 14C15.866 14 19 16.6863 19 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -1165,7 +1464,7 @@ textarea:focus {
         </button>
         <button class="nav-item" data-view="activities">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 12C20 16.4183 16.4183 20 12 20C9.7 20 7.6 19 6.2 17.4L4 19V14H9L6.9 16.1C8 17.3 9.9 18.2 12 18.2C15.4 18.2 18.2 15.4 18.2 12C18.2 8.6 15.4 5.8 12 5.8C9.2 5.8 6.8 7.7 6.1 10.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          活動履歴
+          <span class="nav-label"><span class="label-wide">活動履歴</span><span class="label-narrow">活動</span></span>
         </button>
         <button class="nav-item" data-view="data">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 6V18C5 19.6569 8.13401 21 12 21C15.866 21 19 19.6569 19 18V6" stroke="currentColor" stroke-width="1.8"/><path d="M5 12C5 13.6569 8.13401 15 12 15C15.866 15 19 13.6569 19 12" stroke="currentColor" stroke-width="1.8"/></svg>
@@ -1260,7 +1559,7 @@ textarea:focus {
             <label class="checkbox-label"><input type="checkbox" id="deal-hide-closed"> 完了(受注・失注)の列を隠す</label>
           </div>
         </div>
-        <p class="hint">カードをドラッグして別のフェーズに移動できます。クリックで編集。</p>
+        <p class="hint drag-hint">カードをドラッグして別のフェーズに移動できます。クリックで編集。</p>
         <div class="board" id="deal-board"></div>
       </section>
 
@@ -1311,6 +1610,14 @@ textarea:focus {
       </section>
     </main>
   </div>
+
+  <!-- ============ スマホ用の追加ボタン ============ -->
+  <div class="fab-menu" id="fab-menu" hidden>
+    <button id="fab-activity">活動を記録</button>
+    <button id="fab-deal">商談を追加</button>
+    <button id="fab-customer">顧客を追加</button>
+  </div>
+  <button class="fab" id="fab" aria-label="追加">＋</button>
 
   <!-- ============ 顧客詳細ドロワー ============ -->
   <div class="drawer-overlay" id="detail-drawer" hidden>
@@ -2034,6 +2341,37 @@ document.addEventListener("keydown", (e) => {
 $("new-customer-btn").addEventListener("click", () => openCustomerModal());
 $("new-deal-btn").addEventListener("click", () => openDealModal());
 
+/* ---------- スマホ用のフローティング追加ボタン ---------- */
+
+const fabMenu = $("fab-menu");
+
+function toggleFabMenu(open) {
+  fabMenu.hidden = open === undefined ? !fabMenu.hidden : !open;
+  $("fab").textContent = fabMenu.hidden ? "＋" : "×";
+}
+
+$("fab").addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleFabMenu();
+});
+
+$("fab-customer").addEventListener("click", () => {
+  toggleFabMenu(false);
+  openCustomerModal();
+});
+$("fab-deal").addEventListener("click", () => {
+  toggleFabMenu(false);
+  openDealModal();
+});
+$("fab-activity").addEventListener("click", () => {
+  toggleFabMenu(false);
+  openActivityModal();
+});
+
+document.addEventListener("click", (e) => {
+  if (!fabMenu.hidden && !e.target.closest("#fab-menu") && !e.target.closest("#fab")) toggleFabMenu(false);
+});
+
 /* ==========================================================
    顧客詳細ドロワー
    ========================================================== */
@@ -2450,10 +2788,20 @@ function customerCard(c) {
       <span class="next-action ${nextCls}">${nextText}</span>
       <span class="amount">${amount ? yen(amount) : ""}</span>
     </div>
+
+    ${
+      c.phone || c.email
+        ? `<div class="quick-actions">
+            ${c.phone ? `<a href="tel:${esc(c.phone)}" data-quick>電話する</a>` : ""}
+            ${c.email ? `<a href="mailto:${esc(c.email)}" data-quick>メール</a>` : ""}
+          </div>`
+        : ""
+    }
   </article>`;
 }
 
 $("customer-grid").addEventListener("click", (e) => {
+  if (e.target.closest("[data-quick]")) return; // 電話・メールはカードを開かずに実行
   const card = e.target.closest("[data-customer-id]");
   if (card) openDetail(card.dataset.customerId);
 });
@@ -2500,6 +2848,11 @@ function renderDeals() {
                   <span>確度 ${d.probability}%</span>
                 </div>
                 ${d.closeDate ? `<div class="deal-row" style="margin-top:4px"><span>受注予定 ${formatDate(d.closeDate)}</span></div>` : ""}
+                <select class="deal-stage-select" data-stage-select="${d.id}" aria-label="フェーズを変更">
+                  ${STAGES.map(
+                    (s) => `<option value="${s.id}"${s.id === d.stage ? " selected" : ""}>${esc(s.label)}</option>`
+                  ).join("")}
+                </select>
               </article>`;
             })
             .join("") || `<p class="hint">なし</p>`
@@ -2510,9 +2863,38 @@ function renderDeals() {
 }
 
 $("deal-board").addEventListener("click", (e) => {
+  if (e.target.closest("[data-stage-select]")) return; // プルダウン操作でカードを開かない
   const id = e.target.closest("[data-deal-open]")?.dataset.dealOpen;
   if (id) openDealModal(id);
 });
+
+/* タッチ端末向け: プルダウンでフェーズを変更 */
+$("deal-board").addEventListener("change", (e) => {
+  const id = e.target.dataset.stageSelect;
+  if (id) moveDealToStage(id, e.target.value);
+});
+
+/** 商談のフェーズを変更し、確度と顧客ステータスを合わせる。 */
+function moveDealToStage(dealId, stage) {
+  const deal = state.deals.find((d) => d.id === dealId);
+  if (!deal || deal.stage === stage) return render();
+
+  const before = snapshot();
+  deal.stage = stage;
+  deal.probability = stageOf(stage).probability;
+  deal.updatedAt = new Date().toISOString();
+
+  // 受注・失注に動かしたら顧客ステータスも合わせる
+  const c = customerOf(deal.customerId);
+  if (c) {
+    if (stage === "won") c.status = "won";
+    else if (stage === "lost" && dealsOfCustomer(c.id).every((d) => d.stage === "lost")) c.status = "lost";
+    c.updatedAt = new Date().toISOString();
+  }
+
+  commit();
+  showToast(`「${deal.title}」を${stageOf(stage).label}に移動しました。`, before);
+}
 
 /* ドラッグ＆ドロップでフェーズを変更 */
 let draggingDealId = null;
@@ -2546,27 +2928,9 @@ board.addEventListener("drop", (e) => {
   const col = e.target.closest(".board-col");
   if (!col || !draggingDealId) return;
   e.preventDefault();
-
-  const deal = state.deals.find((d) => d.id === draggingDealId);
-  const stage = col.dataset.stage;
+  const id = draggingDealId;
   draggingDealId = null;
-  if (!deal || deal.stage === stage) return render();
-
-  const before = snapshot();
-  deal.stage = stage;
-  deal.probability = stageOf(stage).probability;
-  deal.updatedAt = new Date().toISOString();
-
-  // 受注・失注に動かしたら顧客ステータスも合わせる
-  const c = customerOf(deal.customerId);
-  if (c) {
-    if (stage === "won") c.status = "won";
-    else if (stage === "lost" && dealsOfCustomer(c.id).every((d) => d.stage === "lost")) c.status = "lost";
-    c.updatedAt = new Date().toISOString();
-  }
-
-  commit();
-  showToast(`「${deal.title}」を${stageOf(stage).label}に移動しました。`, before);
+  moveDealToStage(id, col.dataset.stage);
 });
 
 /* ---------- 活動履歴 ---------- */

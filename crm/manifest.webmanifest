@@ -1,0 +1,20 @@
+{
+  "name": "Sales CRM｜営業顧客管理",
+  "short_name": "Sales CRM",
+  "description": "営業担当者のための顧客・商談・活動管理ツール",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#eef0f6",
+  "theme_color": "#6152f2",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

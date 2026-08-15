@@ -2,8 +2,17 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Sales CRM｜営業顧客管理</title>
+<meta name="description" content="営業担当者のための顧客・商談・活動管理ツール">
+<meta name="theme-color" content="#6152f2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sales CRM">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,7 +37,7 @@
       <nav class="nav" id="nav">
         <button class="nav-item active" data-view="dashboard">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="5" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="12" width="7" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="16" width="7" height="5" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>
-          ダッシュボード
+          <span class="nav-label"><span class="label-wide">ダッシュボード</span><span class="label-narrow">ホーム</span></span>
         </button>
         <button class="nav-item" data-view="customers">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M5 20C5 16.6863 8.13401 14 12 14C15.866 14 19 16.6863 19 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
@@ -42,7 +51,7 @@
         </button>
         <button class="nav-item" data-view="activities">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 12C20 16.4183 16.4183 20 12 20C9.7 20 7.6 19 6.2 17.4L4 19V14H9L6.9 16.1C8 17.3 9.9 18.2 12 18.2C15.4 18.2 18.2 15.4 18.2 12C18.2 8.6 15.4 5.8 12 5.8C9.2 5.8 6.8 7.7 6.1 10.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          活動履歴
+          <span class="nav-label"><span class="label-wide">活動履歴</span><span class="label-narrow">活動</span></span>
         </button>
         <button class="nav-item" data-view="data">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 6V18C5 19.6569 8.13401 21 12 21C15.866 21 19 19.6569 19 18V6" stroke="currentColor" stroke-width="1.8"/><path d="M5 12C5 13.6569 8.13401 15 12 15C15.866 15 19 13.6569 19 12" stroke="currentColor" stroke-width="1.8"/></svg>
@@ -137,7 +146,7 @@
             <label class="checkbox-label"><input type="checkbox" id="deal-hide-closed"> 完了(受注・失注)の列を隠す</label>
           </div>
         </div>
-        <p class="hint">カードをドラッグして別のフェーズに移動できます。クリックで編集。</p>
+        <p class="hint drag-hint">カードをドラッグして別のフェーズに移動できます。クリックで編集。</p>
         <div class="board" id="deal-board"></div>
       </section>
 
@@ -188,6 +197,14 @@
       </section>
     </main>
   </div>
+
+  <!-- ============ スマホ用の追加ボタン ============ -->
+  <div class="fab-menu" id="fab-menu" hidden>
+    <button id="fab-activity">活動を記録</button>
+    <button id="fab-deal">商談を追加</button>
+    <button id="fab-customer">顧客を追加</button>
+  </div>
+  <button class="fab" id="fab" aria-label="追加">＋</button>
 
   <!-- ============ 顧客詳細ドロワー ============ -->
   <div class="drawer-overlay" id="detail-drawer" hidden>
