@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>議事録管理</title>
+<link rel="stylesheet" href="minutes.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="3" width="16" height="18" rx="4" stroke="currentColor" stroke-width="2"/>
+            <path d="M8.5 9H15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8.5 13H15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8.5 17H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h1>議事録管理</h1>
+        <a class="nav-link" href="index.html">タスク管理へ</a>
+      </div>
+      <div class="stats" id="summary"></div>
+    </header>
+
+    <form id="minute-form" class="minute-form">
+      <div class="form-head">
+        <h2 id="form-title">新規作成</h2>
+        <button type="button" id="cancel-edit" class="btn-text" hidden>編集をやめる</button>
+      </div>
+
+      <div class="field">
+        <label for="datetime-input">日時</label>
+        <input type="datetime-local" id="datetime-input" required>
+      </div>
+
+      <div class="field">
+        <label for="format-input">形式</label>
+        <div class="segmented" id="format-input">
+          <label>
+            <input type="radio" name="format" value="web" checked>
+            <span>WEB</span>
+          </label>
+          <label>
+            <input type="radio" name="format" value="onsite">
+            <span>対面</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="company-input">会社名</label>
+        <input type="text" id="company-input" list="company-list" placeholder="例: 株式会社サンプル" autocomplete="off" required>
+        <datalist id="company-list"></datalist>
+      </div>
+
+      <div class="field">
+        <label for="person-input">担当者名</label>
+        <input type="text" id="person-input" placeholder="例: 山田 太郎" autocomplete="off">
+      </div>
+
+      <div class="field field-full">
+        <label for="body-input">議事内容</label>
+        <textarea id="body-input" rows="16" placeholder="打ち合わせの内容、決定事項、次回までのアクションなど自由にご記入ください…"></textarea>
+        <p class="field-hint" id="body-count"></p>
+      </div>
+
+      <button type="submit" class="field-full" id="submit-btn">保存する</button>
+    </form>
+
+    <div class="toolbar">
+      <div class="search-field">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="search" id="search-input" placeholder="会社名・担当者名・内容で検索…">
+      </div>
+      <select id="sort-select">
+        <option value="date-desc">並び替え: 日時が新しい順</option>
+        <option value="date-asc">並び替え: 日時が古い順</option>
+        <option value="company">並び替え: 会社名順</option>
+      </select>
+      <select id="company-filter">
+        <option value="">すべての会社</option>
+      </select>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">すべて</button>
+      <button class="filter-btn" data-filter="web">WEB</button>
+      <button class="filter-btn" data-filter="onsite">対面</button>
+      <button id="export-btn" class="ghost-btn">テキスト書き出し</button>
+    </div>
+
+    <ul id="minute-list" class="minute-list"></ul>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M8 8H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M8 12H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M8 16H12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <p id="empty-state-text">議事録はまだありません。上のフォームから作成してください。</p>
+    </div>
+  </div>
+
+  <div id="confirm-modal" class="modal-overlay" hidden>
+    <div class="modal">
+      <p>この議事録を削除しますか？</p>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="btn-secondary">キャンセル</button>
+        <button id="confirm-delete" class="btn-danger">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="undo-toast" class="undo-toast" hidden>
+    <span id="undo-message"></span>
+    <button id="undo-btn">元に戻す</button>
+  </div>
+
+  <script src="minutes.js"></script>
+</body>
+</html>

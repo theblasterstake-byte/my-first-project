@@ -16,12 +16,10 @@
   --danger: #e11d48;
   --danger-soft: #fde4eb;
 
-  --high: #e11d48;
-  --high-soft: #fde4eb;
-  --medium: #d97706;
-  --medium-soft: #fef3d9;
-  --low: #059669;
-  --low-soft: #d9f5ea;
+  --web: #0284c7;
+  --web-soft: #dcf0fb;
+  --onsite: #059669;
+  --onsite-soft: #d9f5ea;
 
   --radius-sm: 8px;
   --radius: 14px;
@@ -51,7 +49,7 @@ body {
 
 .app {
   width: 100%;
-  max-width: 700px;
+  max-width: 760px;
 }
 
 /* ---------- Header ---------- */
@@ -109,15 +107,9 @@ h1 {
   box-shadow: var(--shadow-sm);
 }
 
-.stat-chip-overdue {
-  color: var(--danger);
-  background: var(--danger-soft);
-  border-color: transparent;
-}
+/* ---------- Form card ---------- */
 
-/* ---------- Add-task card ---------- */
-
-.task-form {
+.minute-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
@@ -127,6 +119,36 @@ h1 {
   border-radius: var(--radius-lg);
   padding: 22px;
   box-shadow: var(--shadow-md);
+}
+
+.form-head {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.form-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.btn-text {
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 4px;
+  font-family: inherit;
+}
+
+.btn-text:hover {
+  color: var(--danger);
+  text-decoration: underline;
 }
 
 .field {
@@ -145,26 +167,17 @@ h1 {
   color: var(--muted);
 }
 
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
+.field-hint {
+  margin: 0;
+  font-size: 11px;
   color: var(--muted);
-  cursor: pointer;
+  text-align: right;
 }
 
-.checkbox-label input {
-  width: 14px;
-  height: 14px;
-  accent-color: var(--accent);
-}
-
-.task-form input,
-.task-form select,
-.task-form textarea,
-.task-form button {
+.minute-form input,
+.minute-form select,
+.minute-form textarea,
+.minute-form button[type="submit"] {
   padding: 11px 13px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -175,31 +188,28 @@ h1 {
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-.task-form input:hover,
-.task-form select:hover,
-.task-form textarea:hover {
+.minute-form input:hover,
+.minute-form select:hover,
+.minute-form textarea:hover {
   border-color: #c7cbe0;
 }
 
-.task-form input:focus,
-.task-form select:focus,
-.task-form textarea:focus {
+.minute-form input:focus,
+.minute-form select:focus,
+.minute-form textarea:focus {
   outline: none;
   border-color: var(--accent);
   background: var(--card-bg);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.task-form textarea {
+.minute-form textarea {
   resize: vertical;
+  min-height: 200px;
+  line-height: 1.65;
 }
 
-.task-form input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.task-form button {
+.minute-form button[type="submit"] {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff;
   border: none;
@@ -210,14 +220,64 @@ h1 {
   transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
 }
 
-.task-form button:hover {
+.minute-form button[type="submit"]:hover {
   filter: brightness(1.06);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
-.task-form button:active {
+.minute-form button[type="submit"]:active {
   transform: translateY(0);
+}
+
+/* ---------- Segmented control (WEB / 対面) ---------- */
+
+.segmented {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+}
+
+.segmented label {
+  flex: 1;
+  position: relative;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.segmented span {
+  display: block;
+  text-align: center;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.segmented span:hover {
+  color: var(--text);
+}
+
+.segmented input:checked + span {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ---------- Toolbar ---------- */
@@ -274,17 +334,7 @@ h1 {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-.drag-hint {
-  font-size: 12px;
-  color: var(--accent);
-  background: var(--accent-soft);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  margin: -2px 0 12px;
-  font-weight: 600;
-}
-
-/* ---------- Status filters ---------- */
+/* ---------- Filters ---------- */
 
 .filters {
   display: flex;
@@ -310,6 +360,7 @@ h1 {
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
+  font-family: inherit;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -323,24 +374,25 @@ h1 {
   box-shadow: var(--shadow-sm);
 }
 
-.clear-btn {
+.ghost-btn {
   margin-left: 12px;
   border: none;
   background: none;
-  color: var(--danger);
+  color: var(--accent);
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
-  padding: 6px 4px;
+  font-family: inherit;
+  padding: 6px 8px;
 }
 
-.clear-btn:hover {
+.ghost-btn:hover {
   text-decoration: underline;
 }
 
-/* ---------- Task list ---------- */
+/* ---------- Minute list ---------- */
 
-.task-list {
+.minute-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -349,7 +401,7 @@ h1 {
   gap: 10px;
 }
 
-.task-item {
+.minute-item {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-left: 3px solid var(--border);
@@ -359,131 +411,59 @@ h1 {
   align-items: flex-start;
   gap: 10px;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.task-item:hover {
+.minute-item:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
-.task-item[draggable="true"]:hover {
-  cursor: default;
+.minute-item.format-web { border-left-color: var(--web); }
+.minute-item.format-onsite { border-left-color: var(--onsite); }
+
+.minute-item.editing {
+  border-left-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
-.task-item.priority-high { border-left-color: var(--high); }
-.task-item.priority-medium { border-left-color: var(--medium); }
-.task-item.priority-low { border-left-color: var(--low); }
-
-.task-item.done {
-  opacity: 0.62;
-}
-
-.task-item.done .task-title {
-  text-decoration: line-through;
-  color: var(--muted);
-}
-
-.task-item.dragging {
-  opacity: 0.35;
-}
-
-.task-item.drag-over {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent) inset;
-}
-
-.drag-handle {
-  cursor: grab;
-  color: var(--muted);
-  flex-shrink: 0;
-  padding: 2px;
-  user-select: none;
-  margin-top: 4px;
-}
-
-.drag-handle svg {
-  width: 14px;
-  height: 18px;
-  display: block;
-}
-
-.drag-handle:active {
-  cursor: grabbing;
-}
-
-/* Custom checkbox */
-
-.task-checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  margin-top: 1px;
-  border: 2px solid var(--border);
-  border-radius: 999px;
-  flex-shrink: 0;
-  cursor: pointer;
-  display: grid;
-  place-content: center;
-  background: var(--bg);
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.task-checkbox::after {
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  transform: scale(0);
-  transition: transform 0.12s ease;
-  background: #fff;
-  clip-path: polygon(15% 48%, 38% 70%, 85% 15%, 100% 28%, 40% 92%, 0% 55%);
-}
-
-.task-checkbox:hover {
-  border-color: var(--accent);
-}
-
-.task-checkbox:checked {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  border-color: transparent;
-}
-
-.task-checkbox:checked::after {
-  transform: scale(1.3);
-}
-
-.task-body {
+.minute-body {
   flex: 1;
   min-width: 0;
 }
 
-.task-header-row {
+.minute-header-row {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.task-title {
-  display: block;
+.minute-company {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   word-break: break-word;
 }
 
-.subtask-progress {
+.format-badge {
   font-size: 11px;
   font-weight: 700;
-  color: var(--accent);
-  background: var(--accent-soft);
   border-radius: 999px;
   padding: 2px 9px;
   flex-shrink: 0;
 }
 
-.task-meta {
+.format-badge.format-web {
+  color: var(--web);
+  background: var(--web-soft);
+}
+
+.format-badge.format-onsite {
+  color: var(--onsite);
+  background: var(--onsite-soft);
+}
+
+.minute-meta {
   display: flex;
   gap: 6px;
   margin-top: 7px;
@@ -492,54 +472,70 @@ h1 {
   flex-wrap: wrap;
 }
 
-.task-meta > span {
+.minute-meta > span {
   background: var(--bg);
   border-radius: 999px;
   padding: 2px 9px;
 }
 
-.category-badge {
+.person-badge {
   color: var(--accent);
   background: var(--accent-soft) !important;
   font-weight: 600;
 }
 
-.priority-badge {
-  font-weight: 700;
-  color: #fff !important;
-}
-
-.priority-badge.priority-high { background: var(--high) !important; }
-.priority-badge.priority-medium { background: var(--medium) !important; }
-.priority-badge.priority-low { background: var(--low) !important; }
-
-.due-overdue {
-  color: var(--danger) !important;
-  background: var(--danger-soft) !important;
-  font-weight: 700;
-}
-
-.task-notes {
+.minute-text {
   display: block;
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 13px;
   color: var(--text-secondary);
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.5;
+  line-height: 1.65;
+}
+
+.minute-text.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.toggle-body {
+  display: inline-block;
+  margin-top: 8px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 0;
+}
+
+.toggle-body:hover {
+  text-decoration: underline;
+}
+
+.no-body {
+  display: block;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
 }
 
 /* ---------- Actions ---------- */
 
-.task-actions {
+.minute-actions {
   display: flex;
   flex-direction: column;
   gap: 2px;
   flex-shrink: 0;
 }
 
-.edit-btn,
-.delete-btn {
+.icon-btn {
   border: none;
   background: none;
   color: var(--muted);
@@ -551,221 +547,21 @@ h1 {
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.edit-btn svg,
-.delete-btn svg {
+.icon-btn svg {
   width: 16px;
   height: 16px;
   display: block;
 }
 
-.edit-btn:hover {
+.icon-btn.edit-btn:hover,
+.icon-btn.copy-btn:hover {
   color: var(--accent);
   background: var(--accent-soft);
 }
 
-.delete-btn:hover {
+.icon-btn.delete-btn:hover {
   color: var(--danger);
   background: var(--danger-soft);
-}
-
-/* ---------- Subtasks ---------- */
-
-.subtasks-toggle {
-  display: inline-block;
-  margin-top: 9px;
-  border: none;
-  background: none;
-  color: var(--accent);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 0;
-}
-
-.subtasks-toggle:hover {
-  text-decoration: underline;
-}
-
-.subtasks-panel {
-  margin-top: 10px;
-  padding: 10px 12px;
-  background: var(--bg);
-  border-radius: var(--radius-sm);
-}
-
-.subtask-list {
-  list-style: none;
-  margin: 0 0 8px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.subtask-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-
-.subtask-item input[type="checkbox"] {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
-  border: 2px solid var(--border);
-  border-radius: 5px;
-  cursor: pointer;
-  display: grid;
-  place-content: center;
-  background: var(--card-bg);
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.subtask-item input[type="checkbox"]::after {
-  content: "";
-  width: 7px;
-  height: 7px;
-  transform: scale(0);
-  transition: transform 0.12s ease;
-  background: #fff;
-  clip-path: polygon(15% 48%, 38% 70%, 85% 15%, 100% 28%, 40% 92%, 0% 55%);
-}
-
-.subtask-item input[type="checkbox"]:checked {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.subtask-item input[type="checkbox"]:checked::after {
-  transform: scale(1.3);
-}
-
-.subtask-item .subtask-title {
-  flex: 1;
-  word-break: break-word;
-}
-
-.subtask-item.done .subtask-title {
-  text-decoration: line-through;
-  color: var(--muted);
-}
-
-.subtask-delete {
-  border: none;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 13px;
-  padding: 2px 5px;
-  flex-shrink: 0;
-  border-radius: var(--radius-sm);
-}
-
-.subtask-delete:hover {
-  color: var(--danger);
-  background: var(--danger-soft);
-}
-
-.subtask-form {
-  display: flex;
-  gap: 6px;
-}
-
-.subtask-form input {
-  flex: 1;
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  background: var(--card-bg);
-  color: var(--text);
-  font-family: inherit;
-}
-
-.subtask-form input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-.subtask-form button {
-  padding: 7px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--card-bg);
-  color: var(--accent);
-  font-weight: 700;
-  cursor: pointer;
-  font-size: 13px;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.subtask-form button:hover {
-  background: var(--accent-soft);
-}
-
-/* ---------- Inline edit form ---------- */
-
-.edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.edit-form-row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.edit-form input,
-.edit-form select,
-.edit-form textarea {
-  padding: 9px 11px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: inherit;
-}
-
-.edit-form input:focus,
-.edit-form select:focus,
-.edit-form textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-.edit-form-row input[type="text"] {
-  flex: 1 1 160px;
-  min-width: 0;
-}
-
-.edit-form > textarea {
-  resize: vertical;
-}
-
-.edit-form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.edit-form-actions button {
-  padding: 7px 16px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
 }
 
 /* ---------- Empty state ---------- */
@@ -838,11 +634,11 @@ h1 {
   cursor: pointer;
   font-size: 14px;
   font-weight: 700;
+  font-family: inherit;
   transition: filter 0.12s ease, transform 0.12s ease;
 }
 
-.modal-actions button:hover,
-.edit-form-actions button:hover {
+.modal-actions button:hover {
   filter: brightness(1.05);
   transform: translateY(-1px);
 }
@@ -856,12 +652,6 @@ h1 {
   background: var(--danger);
   color: #fff;
   border-color: var(--danger);
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
-  border-color: transparent;
 }
 
 /* ---------- Undo toast ---------- */
@@ -900,6 +690,7 @@ h1 {
   font-weight: 700;
   cursor: pointer;
   font-size: 13px;
+  font-family: inherit;
   flex-shrink: 0;
 }
 
@@ -943,12 +734,10 @@ h1 {
     --danger: #f87171;
     --danger-soft: rgba(248, 113, 113, 0.15);
 
-    --high: #f87171;
-    --high-soft: rgba(248, 113, 113, 0.15);
-    --medium: #fbbf24;
-    --medium-soft: rgba(251, 191, 36, 0.15);
-    --low: #34d399;
-    --low-soft: rgba(52, 211, 153, 0.15);
+    --web: #38bdf8;
+    --web-soft: rgba(56, 189, 248, 0.15);
+    --onsite: #34d399;
+    --onsite-soft: rgba(52, 211, 153, 0.15);
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 10px 26px -12px rgba(0, 0, 0, 0.55);
@@ -972,12 +761,12 @@ h1 {
     padding: 28px 12px;
   }
 
-  .task-form {
+  .minute-form {
     grid-template-columns: 1fr;
     padding: 16px;
   }
 
-  .task-item {
+  .minute-item {
     padding: 12px;
   }
 }
