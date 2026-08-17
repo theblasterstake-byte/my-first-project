@@ -31,8 +31,8 @@
         <path d="M4 15V18C4 19.1 4.9 20 6 20H18C19.1 20 20 19.1 20 18V15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
       </svg>
       <p class="dropzone-title">領収書の画像をドロップ、またはクリックして選択</p>
-      <p class="dropzone-hint">JPEG / PNG / WebP に対応・複数枚まとめて処理できます</p>
-      <input type="file" id="file-input" accept="image/*" multiple hidden>
+      <p class="dropzone-hint">JPEG / PNG / WebP と、PDFの電子領収書に対応・複数枚まとめて処理できます</p>
+      <input type="file" id="file-input" accept="image/*,application/pdf,.pdf,.heic,.heif" multiple hidden>
     </div>
 
     <div id="status" class="status" hidden>
@@ -81,6 +81,12 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+    }
+  </script>
   <script src="receipts.js"></script>
 </body>
 </html>

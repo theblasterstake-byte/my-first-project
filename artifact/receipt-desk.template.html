@@ -595,7 +595,7 @@
       <p class="eyebrow">経費精算</p>
       <h1>領収書仕分けデスク</h1>
       <p class="lede">
-        領収書の画像を入れると、日付・支払先・内容・勘定科目・金額・税区分を読み取って台帳に並べます。読み取りはこのページの中だけで行われ、画像が外部に送られることはありません。
+        領収書の画像やPDFを入れると、日付・支払先・内容・勘定科目・金額・税区分を読み取って台帳に並べます。読み取りはこのページの中だけで行われ、画像が外部に送られることはありません。
       </p>
     </div>
     <span class="engine-chip" id="engine-chip" data-state="idle">読み取りエンジン: 未起動</span>
@@ -605,9 +605,9 @@
     <button type="button" class="dropzone" id="dropzone">
       <span class="dropzone-mark" aria-hidden="true">領収</span>
       <span class="dropzone-title">領収書の画像をここへ</span>
-      <p class="dropzone-note">ドロップするか、クリックして選択します。JPEG / PNG / WebP、複数枚まとめて可。</p>
+      <p class="dropzone-note">ドロップするか、クリックして選択します。JPEG / PNG / WebP と、PDFの電子領収書に対応。複数枚まとめて可。</p>
     </button>
-    <input type="file" id="file-input" accept="image/*" multiple hidden>
+    <input type="file" id="file-input" accept="image/*,application/pdf,.pdf,.heic,.heif" multiple hidden>
 
     <div class="ledger-summary">
       <div class="totals">
@@ -657,7 +657,7 @@
   </div>
 
   <p class="colophon">
-    自動で入れた値のうち確度が低いものは枠を黄色にし、「要確認」として数えています。中身はその場で直せます。読み取れなかった項目は空欄のままにし、推測では埋めません。
+    金額と日付は条件を変えて二度読み、結果が食い違ったものは枠を黄色にして「要確認」に数えます。読み取れなかった項目は空欄のままにし、推測では埋めません。写真が傾いていたり横倒しでも、向きを変えて読み直します。PDFの電子領収書は文字をそのまま取り出すため、誤読が起きません。
   </p>
 </div>
 
@@ -674,8 +674,11 @@
 <script id="asset-core" type="text/plain">{{CORE_B64}}</script>
 <script id="asset-worker" type="text/plain">{{WORKER_B64}}</script>
 <script id="asset-jpn" type="text/plain">{{JPN_B64}}</script>
+<script id="asset-pdf-worker" type="text/plain">{{PDF_WORKER_B64}}</script>
 
 <script>{{TESSERACT_JS}}</script>
+
+<script>{{PDFJS_JS}}</script>
 
 <script>
 /* ---------- 抽出ロジック（receipts.js と共通） ---------- */
@@ -861,6 +864,20 @@ function setEngine(state, text) {
 
 /* ---------- 読み取り ---------- */
 
+let pdfLibPromise = null;
+
+/* PDFを開く部品も同梱してある。使うときに初めて組み立てる。 */
+async function getPdfLib() {
+  if (!pdfLibPromise) {
+    pdfLibPromise = (async () => {
+      if (typeof pdfjsLib === "undefined") return null;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = scriptObjectURL("asset-pdf-worker");
+      return pdfjsLib;
+    })();
+  }
+  return pdfLibPromise;
+}
+
 async function getWorker() {
   if (ocrWorker) return ocrWorker;
 
@@ -888,7 +905,7 @@ async function getWorker() {
 }
 
 async function ingest(fileList) {
-  const files = Array.from(fileList).filter((file) => file.type.startsWith("image/"));
+  const files = Array.from(fileList);
   if (!files.length) return;
   if (busy) {
     setNotice("いま読み取り中です。終わるまで待ってください。", "flag");
@@ -896,64 +913,95 @@ async function ingest(fileList) {
   }
   busy = true;
 
-  const queue = files.map((file) => {
-    const row = blankRow({ fileName: file.name, pending: true });
-    rows.push(row);
-    return { row, file };
-  });
-  render();
-
-  // 画像は先に台帳へ出す。エンジンが起動しない環境でも手入力とCSV出力は使える。
-  for (const { row, file } of queue) {
+  // まず1ファイルを面（PDFはページ）に開く。開けないものはその場で理由を出す。
+  const faces = [];
+  const rejected = [];
+  for (const file of files) {
     try {
-      const image = await loadImage(file);
-      row.thumbnail = makeThumbnail(image);
-    } catch {
-      /* サムネイルは無くても構わない。 */
+      const opened = await readReceiptFaces(file, { pdfjs: await getPdfLib() });
+      for (const face of opened) {
+        const row = blankRow({ fileName: face.label, pending: true });
+        rows.push(row);
+        faces.push({ row, face });
+      }
+    } catch (error) {
+      rejected.push(`${file.name}：${describeError(error).replace(/^（|）$/g, "") || "読み込めません"}`);
     }
   }
   render();
 
-  let worker;
-  try {
-    worker = await getWorker();
-  } catch (error) {
-    engineFailed = true;
-    queue.forEach(({ row }) => {
-      row.pending = false;
-    });
-    render();
-    storeRows();
-    setEngine("failed", "起動できません");
-    setNotice(
-      `この画面では読み取りエンジンを起動できませんでした${describeError(error)}。画像は台帳に残っているので、値を手で入れればCSVは書き出せます。`,
-      "error"
-    );
+  if (rejected.length) {
+    setNotice(`取り込めなかったファイルがあります。\n${rejected.join("\n")}`, "error");
+  }
+  if (!faces.length) {
     busy = false;
     return;
   }
 
-  for (let index = 0; index < queue.length; index += 1) {
-    const { row, file } = queue[index];
-    setNotice(`読み取り中 ${index + 1} / ${queue.length}：${file.name}`, "info", index / queue.length);
+  for (const { row, face } of faces) {
     try {
-      const image = await loadImage(file);
-      const { data } = await worker.recognize(preprocess(image));
-      Object.assign(row, extractFields(data.text || ""), { ocrText: data.text || "", pending: false });
+      row.thumbnail = makeThumbnail(face.image || face.canvas);
+    } catch {
+      /* サムネイルは無くても構わない */
+    }
+  }
+  render();
+
+  // PDFの文字層だけで済む面は、OCRエンジンを起動せずに処理できる
+  const needsOcr = faces.some(({ face }) => !(face.lines && face.lines.length));
+  let worker = null;
+  if (needsOcr) {
+    try {
+      worker = await getWorker();
+    } catch (error) {
+      engineFailed = true;
+      faces.forEach(({ row }) => {
+        row.pending = false;
+      });
+      render();
+      storeRows();
+      setEngine("failed", "起動できません");
+      setNotice(
+        `この画面では読み取りエンジンを起動できませんでした${describeError(error)}。画像は台帳に残っているので、値を手で入れればCSVは書き出せます。`,
+        "error"
+      );
+      busy = false;
+      return;
+    }
+  }
+
+  for (let index = 0; index < faces.length; index += 1) {
+    const { row, face } = faces[index];
+    setNotice(`読み取り中 ${index + 1} / ${faces.length}：${face.label}`, "info", index / faces.length);
+    try {
+      const result = await analyzeFace(worker, face, (attempt, order) => {
+        if (order > 0) {
+          setNotice(
+            `読み取り中 ${index + 1} / ${faces.length}：${face.label}（向きや明るさを変えて試しています）`,
+            "info",
+            index / faces.length
+          );
+        }
+      });
+      Object.assign(row, result.fields, {
+        ocrText: result.text,
+        source: result.source,
+        pending: false,
+      });
     } catch (error) {
       row.pending = false;
       row.confidence = { date: "none", vendor: "none", content: "none", category: "none", amount: "none", taxType: "none" };
-      setNotice(`${file.name} を読み取れませんでした${describeError(error)}。手で入力してください。`, "error");
+      setNotice(`${face.label} を読み取れませんでした${describeError(error)}。手で入力してください。`, "error");
     }
     render();
   }
 
   storeRows();
-  const flagged = queue.filter(({ row }) => uncertainFields(row).length).length;
+  const flagged = faces.filter(({ row }) => uncertainFields(row).length).length;
   setNotice(
     flagged
-      ? `${queue.length}枚を読み取りました。うち${flagged}枚は確度の低い項目があります（黄色の枠）。`
-      : `${queue.length}枚を読み取りました。`,
+      ? `${faces.length}件を読み取りました。うち${flagged}件は確度の低い項目があります（黄色の枠）。`
+      : `${faces.length}件を読み取りました。`,
     flagged ? "flag" : "info",
     1
   );

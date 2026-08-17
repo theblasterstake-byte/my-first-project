@@ -30,6 +30,21 @@ RECEIPT_ASSET_DIR=/tmp/receipt-assets node artifact/build.js /tmp/receipt-desk.h
 
 出力は7.9MB程度になる。生成物はリポジトリには含めない。
 
+## 読み取り精度の測り方
+
+`artifact/corpus.js` に、形式の違う領収書12種（コンビニ・タクシーの和暦・手書き・外税の飲食店・
+2桁年の書店・非課税の郵便局・ガソリン・ホテル・電気料金の期間表記・90度回転・薄暗くて傾いた
+写真・低解像度）を canvas で描く指定と正解を置いてある。実物の写真ではないので絶対値ではなく、
+ルールを直したときの増減を見るために使う。
+
+```bash
+node artifact/eval.js /path/to/receipt-desk.html      # 全件
+SHOW_OCR=1 node artifact/eval.js /path/to/desk.html 6 # 6番だけ、OCR本文つき
+```
+
+直近の結果（12件中）: 日付 11 / 支払先 12 / 勘定科目 12 / 金額 10 / 税区分 12、全項目一致 9。
+外した項目はすべて「要確認」の印が付く状態を確認している。
+
 ## 覚え書き
 
 - tesseract.js 5.1.1 は、言語を `{code, data}` で渡すと初期化時の言語名に `data`
@@ -37,5 +52,10 @@ RECEIPT_ASSET_DIR=/tmp/receipt-assets node artifact/build.js /tmp/receipt-desk.h
   ワーカーのその一箇所だけを `code` に差し替える。一致しなければビルドを止める。
 - `corePath` は末尾が `js` でないと tesseract がファイル名を継ぎ足すので、
   blob URL に `#core.js` を付けて単一ファイル指定と認識させている。
+- PDFは pdf.js を同梱し、まず文字層を読む。文字が入っていれば OCR を通さないので
+  誤読が起きない。文字の無いスキャンPDFはページを描画してOCRに回す。
+- 画像は `createImageBitmap` の `imageOrientation: "from-image"` で読み込み、EXIFの
+  向きを反映させる。HEIC は多くのブラウザで開けないため、変換を促す文言を返す。
+- 金額と日付は、前処理を変えた2回目の読み取りと突き合わせ、食い違えば確度を下げる。
 - CSVの保存は Artifact の `downloads` 機能を使う。`csv` が許可されない環境では
   `.txt` で保存し、それも駄目なら本文を表示して手でコピーできるようにしている。

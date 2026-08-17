@@ -26,6 +26,8 @@ const ASSETS = {
   worker: path.join(ASSET_DIR, "pkg/tjs/dist/worker.min.js"),
   core: path.join(ASSET_DIR, "pkg/tcore/tesseract-core-simd-lstm.wasm.js"),
   jpn: path.join(ASSET_DIR, "lang/jpn/4.0.0_best_int/jpn.traineddata.gz"),
+  pdf: path.join(ASSET_DIR, "pdf/pdfjs/build/pdf.min.js"),
+  pdfWorker: path.join(ASSET_DIR, "pdf/pdfjs/build/pdf.worker.min.js"),
 };
 
 /* tesseract.js 5.1.1 の worker は、言語をオブジェクト（{code, data}）で渡したとき
@@ -69,6 +71,8 @@ function build(outputPath) {
   const template = fs.readFileSync(path.join(__dirname, "receipt-desk.template.html"), "utf8");
   const mainJs = fs.readFileSync(ASSETS.main, "utf8");
   if (mainJs.includes("</script")) throw new Error("tesseract.min.js に </script が含まれるため直接埋め込めません。");
+  const pdfJs = fs.readFileSync(ASSETS.pdf, "utf8");
+  if (pdfJs.includes("</script")) throw new Error("pdf.min.js に </script が含まれるため直接埋め込めません。");
 
   const workerB64 = Buffer.from(patchWorker(fs.readFileSync(ASSETS.worker, "utf8")), "utf8").toString("base64");
 
@@ -77,7 +81,9 @@ function build(outputPath) {
     .replace("{{TESSERACT_JS}}", () => mainJs)
     .replace("{{WORKER_B64}}", () => workerB64)
     .replace("{{CORE_B64}}", () => base64(ASSETS.core))
-    .replace("{{JPN_B64}}", () => base64(ASSETS.jpn));
+    .replace("{{JPN_B64}}", () => base64(ASSETS.jpn))
+    .replace("{{PDFJS_JS}}", () => pdfJs)
+    .replace("{{PDF_WORKER_B64}}", () => base64(ASSETS.pdfWorker));
 
   const leftover = html.match(/\{\{[A-Z_]+\}\}/);
   if (leftover) throw new Error(`置換されていない箇所があります: ${leftover[0]}`);
