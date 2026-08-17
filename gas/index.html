@@ -57,12 +57,7 @@ body {
 
 header { margin-bottom: 22px; }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
+.brand { display: flex; align-items: center; gap: 10px; }
 
 .brand-mark {
   display: flex;
@@ -79,12 +74,7 @@ header { margin-bottom: 22px; }
 
 .brand-mark svg { width: 20px; height: 20px; }
 
-h1 {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
+h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
 
 .sync {
   margin-left: auto;
@@ -112,7 +102,58 @@ h1 {
 .sync-btn:hover { background: var(--accent-soft); }
 .sync-btn:disabled { opacity: 0.55; cursor: default; }
 
-.stats { display: flex; gap: 8px; flex-wrap: wrap; }
+/* ---------- View scaffolding ---------- */
+
+.view[hidden] { display: none; }
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 4px 2px;
+  margin-bottom: 12px;
+}
+
+.back-btn:hover { text-decoration: underline; }
+
+.view-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.view-head h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; word-break: break-word; }
+
+.view-sub { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+.primary-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.primary-btn:hover { filter: brightness(1.06); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 
 .stat-chip {
   font-size: 12px;
@@ -125,135 +166,9 @@ h1 {
   box-shadow: var(--shadow-sm);
 }
 
-/* ---------- Form card ---------- */
-
-.minute-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 20px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  box-shadow: var(--shadow-md);
-}
-
-.form-head {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.form-head h2 { margin: 0; font-size: 15px; font-weight: 700; }
-
-.btn-text {
-  border: none;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 2px 4px;
-  font-family: inherit;
-}
-
-.btn-text:hover { color: var(--danger); text-decoration: underline; }
-
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field-full { grid-column: 1 / -1; }
-
-.field label { font-size: 12px; font-weight: 600; color: var(--muted); }
-
-.field-hint { margin: 0; font-size: 11px; color: var(--muted); text-align: right; }
-
-.minute-form input,
-.minute-form textarea,
-.minute-form button[type="submit"] {
-  padding: 11px 13px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-
-.minute-form input:hover,
-.minute-form textarea:hover { border-color: #c7cbe0; }
-
-.minute-form input:focus,
-.minute-form textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: var(--card-bg);
-  box-shadow: 0 0 0 3px var(--accent-soft);
-}
-
-.minute-form textarea { resize: vertical; min-height: 200px; line-height: 1.65; }
-
-.minute-form button[type="submit"] {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
-}
-
-.minute-form button[type="submit"]:hover:not(:disabled) {
-  filter: brightness(1.06);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.minute-form button[type="submit"]:disabled { opacity: 0.6; cursor: default; }
-
-/* ---------- Segmented control ---------- */
-
-.segmented {
-  display: flex;
-  gap: 4px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 4px;
-}
-
-.segmented label { flex: 1; position: relative; }
-
-.segmented input { position: absolute; opacity: 0; width: 0; height: 0; }
-
-.segmented span {
-  display: block;
-  text-align: center;
-  padding: 7px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.segmented span:hover { color: var(--text); }
-
-.segmented input:checked + span {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
-  box-shadow: var(--shadow-sm);
-}
-
-.segmented input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
-
 /* ---------- Toolbar ---------- */
 
-.toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
 
 .search-field { position: relative; flex: 1 1 220px; display: flex; align-items: center; }
 
@@ -289,46 +204,117 @@ h1 {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-/* ---------- Filters ---------- */
+/* ---------- 画面1: 顧客一覧 ---------- */
 
-.filters {
+.customer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.customer-item {
   display: flex;
-  gap: 6px;
-  margin-bottom: 16px;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 999px;
-  padding: 5px;
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 16px;
   box-shadow: var(--shadow-sm);
-  width: fit-content;
-  max-width: 100%;
-}
-
-.filter-btn {
-  padding: 7px 16px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-secondary);
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
   font-family: inherit;
-  transition: background 0.15s ease, color 0.15s ease;
+  color: inherit;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.filter-btn:hover { color: var(--text); }
+.customer-item:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
 
-.filter-btn.active {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
+.customer-main { flex: 1; min-width: 0; }
+
+.customer-name { font-size: 16px; font-weight: 700; word-break: break-word; }
+
+.customer-meta {
+  display: flex;
+  gap: 6px;
+  margin-top: 7px;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.customer-meta > span { background: var(--bg); border-radius: 999px; padding: 2px 9px; }
+
+.customer-persons { color: var(--accent); background: var(--accent-soft) !important; font-weight: 600; }
+
+.customer-count {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+.chevron { flex-shrink: 0; width: 18px; height: 18px; color: var(--muted); }
+
+/* ---------- 画面2: 日付一覧 ---------- */
+
+.date-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.date-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
   box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
+
+.date-item:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.date-item.format-web { border-left-color: var(--web); }
+.date-item.format-onsite { border-left-color: var(--onsite); }
+
+.date-main { flex: 1; min-width: 0; }
+
+.date-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.date-label { font-size: 15px; font-weight: 700; }
+
+.date-preview {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.format-badge { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 9px; flex-shrink: 0; }
+.format-badge.format-web { color: var(--web); background: var(--web-soft); }
+.format-badge.format-onsite { color: var(--onsite); background: var(--onsite-soft); }
+
+.person-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.list-foot { margin-top: 14px; display: flex; justify-content: flex-end; }
 
 .ghost-btn {
-  margin-left: 12px;
   border: none;
   background: none;
   color: var(--accent);
@@ -341,121 +327,196 @@ h1 {
 
 .ghost-btn:hover { text-decoration: underline; }
 
-/* ---------- List ---------- */
+/* ---------- 画面3: 議事録 ---------- */
 
-.minute-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-
-.minute-item {
+.record {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-left: 3px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 14px 14px 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
 }
 
-.minute-item:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.record-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-.minute-item.format-web { border-left-color: var(--web); }
-.minute-item.format-onsite { border-left-color: var(--onsite); }
-.minute-item.editing { border-left-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.record-head h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
 
-.minute-body { flex: 1; min-width: 0; }
-
-.minute-header-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-.minute-company { font-size: 15px; font-weight: 700; word-break: break-word; }
-
-.format-badge { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 9px; flex-shrink: 0; }
-.format-badge.format-web { color: var(--web); background: var(--web-soft); }
-.format-badge.format-onsite { color: var(--onsite); background: var(--onsite-soft); }
-
-.minute-meta {
-  display: flex;
-  gap: 6px;
-  margin-top: 7px;
-  font-size: 12px;
-  color: var(--muted);
-  flex-wrap: wrap;
-}
-
-.minute-meta > span { background: var(--bg); border-radius: 999px; padding: 2px 9px; }
-
-.person-badge { color: var(--accent); background: var(--accent-soft) !important; font-weight: 600; }
-
-.minute-text {
-  display: block;
-  margin-top: 10px;
+.record-meta {
+  margin: 16px 0 0;
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 8px 14px;
   font-size: 13px;
+}
+
+.record-meta dt { color: var(--muted); font-weight: 600; }
+.record-meta dd { margin: 0; word-break: break-word; }
+
+.record-body {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.8;
   color: var(--text-secondary);
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.65;
 }
 
-.minute-text.clamped {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.record-body.empty { color: var(--muted); font-style: italic; }
+
+.record-actions {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.toggle-body {
-  display: inline-block;
-  margin-top: 8px;
-  border: none;
-  background: none;
-  color: var(--accent);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: inherit;
-  padding: 0;
-}
-
-.toggle-body:hover { text-decoration: underline; }
-
-.no-body { display: block; margin-top: 10px; font-size: 13px; color: var(--muted); font-style: italic; }
-
-/* ---------- Actions ---------- */
-
-.minute-actions { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
-
-.icon-btn {
-  border: none;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
-  line-height: 1;
-  padding: 6px;
-  flex-shrink: 0;
+.record-actions button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
   border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.12s ease;
+}
+
+.record-actions button:hover { filter: brightness(1.04); transform: translateY(-1px); }
+
+.record-actions .btn-edit {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  border-color: transparent;
+}
+
+.record-actions .btn-delete { margin-left: auto; color: var(--danger); border-color: var(--danger-soft); background: var(--danger-soft); }
+
+/* ---------- 画面3: 入力フォーム ---------- */
+
+.minute-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-md);
+}
+
+.form-head { grid-column: 1 / -1; }
+.form-head h2 { margin: 0; font-size: 17px; font-weight: 800; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-full { grid-column: 1 / -1; }
+.field label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.field-hint { margin: 0; font-size: 11px; color: var(--muted); text-align: right; }
+
+.minute-form input,
+.minute-form textarea {
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.minute-form input:hover,
+.minute-form textarea:hover { border-color: #c7cbe0; }
+
+.minute-form input:focus,
+.minute-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--card-bg);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.minute-form textarea { resize: vertical; min-height: 240px; line-height: 1.7; }
+
+.form-actions { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; }
+
+.form-actions button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.12s ease;
+}
+
+.form-actions button[type="submit"] {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+
+.form-actions button:hover:not(:disabled) { filter: brightness(1.05); transform: translateY(-1px); }
+.form-actions button:disabled { opacity: 0.6; cursor: default; }
+
+/* ---------- Segmented control ---------- */
+
+.segmented {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+}
+
+.segmented label { flex: 1; position: relative; }
+.segmented input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.segmented span {
+  display: block;
+  text-align: center;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.icon-btn svg { width: 16px; height: 16px; display: block; }
+.segmented span:hover { color: var(--text); }
 
-.icon-btn.edit-btn:hover,
-.icon-btn.copy-btn:hover { color: var(--accent); background: var(--accent-soft); }
+.segmented input:checked + span {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
 
-.icon-btn.delete-btn:hover { color: var(--danger); background: var(--danger-soft); }
+.segmented input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ---------- Empty / loading ---------- */
+/* ---------- Empty state ---------- */
 
 .empty-state {
   text-align: center;
   color: var(--muted);
-  margin-top: 32px;
+  margin-top: 24px;
   padding: 40px 20px;
   font-size: 14px;
   border: 1.5px dashed var(--border);
   border-radius: var(--radius-lg);
 }
 
+.empty-state[hidden] { display: none; }
 .empty-state svg { width: 40px; height: 40px; color: var(--muted); margin-bottom: 10px; }
 .empty-state p { margin: 0; }
 
@@ -471,6 +532,7 @@ h1 {
   justify-content: center;
   padding: 16px;
   animation: fade-in 0.15s ease;
+  z-index: 20;
 }
 
 .modal-overlay[hidden] { display: none; }
@@ -503,6 +565,7 @@ h1 {
 .modal-actions button:hover { filter: brightness(1.05); transform: translateY(-1px); }
 
 .btn-secondary { background: var(--bg); color: var(--text); }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
 
 .modal-wide { max-width: 560px; }
 
@@ -519,7 +582,6 @@ h1 {
   line-height: 1.6;
   resize: vertical;
 }
-.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
 
 /* ---------- Toast ---------- */
 
@@ -604,9 +666,13 @@ h1 {
 @media (max-width: 480px) {
   body { padding: 22px 12px; }
   .minute-form { grid-template-columns: 1fr; padding: 16px; }
-  .minute-item { padding: 12px; }
+  .record { padding: 18px; }
+  .record-meta { grid-template-columns: 68px 1fr; }
   .brand { flex-wrap: wrap; }
   .sync { width: 100%; margin-left: 0; justify-content: flex-end; }
+  .view-head { align-items: stretch; }
+  .primary-btn { width: 100%; }
+  .record-actions .btn-delete { margin-left: 0; }
 }
 </style>
 </head>
@@ -628,98 +694,157 @@ h1 {
           <button type="button" id="refresh-btn" class="sync-btn">最新に更新</button>
         </div>
       </div>
-      <div class="stats" id="summary"></div>
     </header>
 
-    <form id="minute-form" class="minute-form">
-      <div class="form-head">
-        <h2 id="form-title">新規作成</h2>
-        <button type="button" id="cancel-edit" class="btn-text" hidden>編集をやめる</button>
-      </div>
-
-      <div class="field">
-        <label for="datetime-input">日時</label>
-        <input type="datetime-local" id="datetime-input" required>
-      </div>
-
-      <div class="field">
-        <label for="format-input">形式</label>
-        <div class="segmented" id="format-input">
-          <label>
-            <input type="radio" name="format" value="web" checked>
-            <span>WEB</span>
-          </label>
-          <label>
-            <input type="radio" name="format" value="onsite">
-            <span>対面</span>
-          </label>
+    <!-- ===== 画面1: 顧客一覧 ===== -->
+    <section id="view-customers" class="view">
+      <div class="view-head">
+        <div>
+          <h2>顧客一覧</h2>
+          <p class="view-sub">顧客名をクリックすると、その顧客の議事録が一覧表示されます。</p>
         </div>
+        <button type="button" id="new-minute-btn" class="primary-btn">＋ 新しい議事録</button>
       </div>
 
-      <div class="field">
-        <label for="company-input">会社名</label>
-        <input type="text" id="company-input" list="company-list" placeholder="例: 株式会社サンプル" autocomplete="off" required>
-        <datalist id="company-list"></datalist>
+      <div class="stats" id="summary"></div>
+
+      <div class="toolbar">
+        <div class="search-field">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+            <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input type="search" id="search-input" placeholder="会社名・担当者名・内容で検索…">
+        </div>
+        <select id="customer-sort">
+          <option value="recent">並び替え: 最近の打ち合わせ順</option>
+          <option value="name">並び替え: 会社名順</option>
+          <option value="count">並び替え: 件数が多い順</option>
+        </select>
       </div>
 
-      <div class="field">
-        <label for="person-input">担当者名</label>
-        <input type="text" id="person-input" placeholder="例: 山田 太郎" autocomplete="off">
-      </div>
+      <ul id="customer-list" class="customer-list"></ul>
 
-      <div class="field field-full">
-        <label for="body-input">議事内容</label>
-        <textarea id="body-input" rows="16" placeholder="打ち合わせの内容、決定事項、次回までのアクションなど自由にご記入ください…"></textarea>
-        <p class="field-hint" id="body-count"></p>
-      </div>
-
-      <button type="submit" class="field-full" id="submit-btn">保存する</button>
-    </form>
-
-    <div class="toolbar">
-      <div class="search-field">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
-          <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <div id="customers-empty" class="empty-state" hidden>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M4.5 20C4.5 16.5 7.8 14.5 12 14.5C16.2 14.5 19.5 16.5 19.5 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         </svg>
-        <input type="search" id="search-input" placeholder="会社名・担当者名・内容で検索…">
+        <p id="customers-empty-text">読み込み中…</p>
       </div>
-      <select id="sort-select">
-        <option value="date-desc">並び替え: 日時が新しい順</option>
-        <option value="date-asc">並び替え: 日時が古い順</option>
-        <option value="company">並び替え: 会社名順</option>
-      </select>
-      <select id="company-filter">
-        <option value="">すべての会社</option>
-      </select>
-    </div>
+    </section>
 
-    <div class="filters">
-      <button class="filter-btn active" data-filter="all">すべて</button>
-      <button class="filter-btn" data-filter="web">WEB</button>
-      <button class="filter-btn" data-filter="onsite">対面</button>
-      <button id="export-btn" class="ghost-btn">テキスト書き出し</button>
-    </div>
+    <!-- ===== 画面2: 顧客ごとの議事録一覧 ===== -->
+    <section id="view-company" class="view" hidden>
+      <button type="button" class="back-btn" id="company-back">← 顧客一覧にもどる</button>
 
-    <ul id="minute-list" class="minute-list"></ul>
+      <div class="view-head">
+        <div>
+          <h2 id="company-title"></h2>
+          <p class="view-sub" id="company-sub"></p>
+        </div>
+        <button type="button" id="new-for-company-btn" class="primary-btn">＋ この顧客で新規作成</button>
+      </div>
 
-    <div id="empty-state" class="empty-state" hidden>
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.6"/>
-        <path d="M8 8H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M8 12H16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-        <path d="M8 16H12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      </svg>
-      <p id="empty-state-text">読み込み中…</p>
-    </div>
+      <ul id="date-list" class="date-list"></ul>
+
+      <div id="company-empty" class="empty-state" hidden>
+        <p>この顧客の議事録はありません。</p>
+      </div>
+
+      <div class="list-foot">
+        <button type="button" id="export-btn" class="ghost-btn">この顧客の議事録をテキスト書き出し</button>
+      </div>
+    </section>
+
+    <!-- ===== 画面3: 議事録（表示） ===== -->
+    <section id="view-detail" class="view" hidden>
+      <button type="button" class="back-btn" id="detail-back">← <span id="detail-back-label">もどる</span></button>
+
+      <article class="record">
+        <div class="record-head">
+          <h2 id="detail-datetime"></h2>
+          <span id="detail-format" class="format-badge"></span>
+        </div>
+
+        <dl class="record-meta">
+          <dt>会社名</dt>
+          <dd id="detail-company"></dd>
+          <dt>担当者名</dt>
+          <dd id="detail-person"></dd>
+          <dt>最終更新</dt>
+          <dd id="detail-updated"></dd>
+        </dl>
+
+        <div class="record-body" id="detail-body"></div>
+
+        <div class="record-actions">
+          <button type="button" class="btn-edit" id="detail-edit">編集する</button>
+          <button type="button" id="detail-copy">コピー</button>
+          <button type="button" class="btn-delete" id="detail-delete">削除</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===== 画面3: 議事録（入力・編集） ===== -->
+    <section id="view-edit" class="view" hidden>
+      <button type="button" class="back-btn" id="edit-back">← もどる</button>
+
+      <form id="minute-form" class="minute-form">
+        <div class="form-head">
+          <h2 id="form-title">新しい議事録</h2>
+        </div>
+
+        <div class="field">
+          <label for="datetime-input">日時</label>
+          <input type="datetime-local" id="datetime-input" required>
+        </div>
+
+        <div class="field">
+          <label for="format-input">形式</label>
+          <div class="segmented" id="format-input">
+            <label>
+              <input type="radio" name="format" value="web" checked>
+              <span>WEB</span>
+            </label>
+            <label>
+              <input type="radio" name="format" value="onsite">
+              <span>対面</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="company-input">会社名</label>
+          <input type="text" id="company-input" list="company-list" placeholder="例: 株式会社サンプル" autocomplete="off" required>
+          <datalist id="company-list"></datalist>
+        </div>
+
+        <div class="field">
+          <label for="person-input">担当者名</label>
+          <input type="text" id="person-input" placeholder="例: 山田 太郎" autocomplete="off">
+        </div>
+
+        <div class="field field-full">
+          <label for="body-input">議事内容</label>
+          <textarea id="body-input" rows="18" placeholder="打ち合わせの内容、決定事項、次回までのアクションなど自由にご記入ください…"></textarea>
+          <p class="field-hint" id="body-count"></p>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="form-cancel">キャンセル</button>
+          <button type="submit" id="submit-btn">保存する</button>
+        </div>
+      </form>
+    </section>
   </div>
 
   <div id="confirm-modal" class="modal-overlay" hidden>
     <div class="modal">
       <p>この議事録を削除しますか？</p>
       <div class="modal-actions">
-        <button id="confirm-cancel" class="btn-secondary">キャンセル</button>
-        <button id="confirm-delete" class="btn-danger">削除する</button>
+        <button type="button" id="confirm-cancel" class="btn-secondary">キャンセル</button>
+        <button type="button" id="confirm-delete" class="btn-danger">削除する</button>
       </div>
     </div>
   </div>
@@ -729,14 +854,14 @@ h1 {
       <p id="text-modal-title">下のテキストを選択してコピーしてください。</p>
       <textarea id="text-modal-area" rows="12" readonly></textarea>
       <div class="modal-actions">
-        <button id="text-modal-close" class="btn-secondary">閉じる</button>
+        <button type="button" id="text-modal-close" class="btn-secondary">閉じる</button>
       </div>
     </div>
   </div>
 
   <div id="undo-toast" class="undo-toast" hidden>
     <span id="undo-message"></span>
-    <button id="undo-btn">元に戻す</button>
+    <button type="button" id="undo-btn">元に戻す</button>
   </div>
 
 <script>
@@ -745,55 +870,84 @@ const AUTO_REFRESH_MS = 60000;
 
 const FORMAT_LABELS = { web: "WEB", onsite: "対面" };
 
-const ICON_EDIT =
-  '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 20H21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.5 3.5C17.3 2.7 18.6 2.7 19.4 3.5C20.2 4.3 20.2 5.6 19.4 6.4L7.5 18.3L3 19.5L4.2 15L16.5 3.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
-const ICON_COPY =
-  '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="9" width="11" height="11" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M15 5.5C15 4.67 14.33 4 13.5 4H6C4.9 4 4 4.9 4 6V13.5C4 14.33 4.67 15 5.5 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-const ICON_TRASH =
-  '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 7H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 7V4.8C9 4.35817 9.35817 4 9.8 4H14.2C14.6418 4 15 4.35817 15 4.8V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 7L6.9 19.2C6.94 19.79 7.43 20.25 8.02 20.25H15.98C16.57 20.25 17.06 19.79 17.1 19.2L18 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ICON_CHEVRON =
+  '<svg class="chevron" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 5L16 12L9 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+/* ---------- 要素 ---------- */
+
+const syncStatus = document.getElementById("sync-status");
+const refreshBtn = document.getElementById("refresh-btn");
+
+const views = {
+  customers: document.getElementById("view-customers"),
+  company: document.getElementById("view-company"),
+  detail: document.getElementById("view-detail"),
+  edit: document.getElementById("view-edit"),
+};
+
+const summary = document.getElementById("summary");
+const searchInput = document.getElementById("search-input");
+const customerSort = document.getElementById("customer-sort");
+const customerList = document.getElementById("customer-list");
+const customersEmpty = document.getElementById("customers-empty");
+const customersEmptyText = document.getElementById("customers-empty-text");
+const newMinuteBtn = document.getElementById("new-minute-btn");
+
+const companyBack = document.getElementById("company-back");
+const companyTitle = document.getElementById("company-title");
+const companySub = document.getElementById("company-sub");
+const newForCompanyBtn = document.getElementById("new-for-company-btn");
+const dateList = document.getElementById("date-list");
+const companyEmpty = document.getElementById("company-empty");
+const exportBtn = document.getElementById("export-btn");
+
+const detailBack = document.getElementById("detail-back");
+const detailBackLabel = document.getElementById("detail-back-label");
+const detailDatetime = document.getElementById("detail-datetime");
+const detailFormat = document.getElementById("detail-format");
+const detailCompany = document.getElementById("detail-company");
+const detailPerson = document.getElementById("detail-person");
+const detailUpdated = document.getElementById("detail-updated");
+const detailBody = document.getElementById("detail-body");
+const detailEditBtn = document.getElementById("detail-edit");
+const detailCopyBtn = document.getElementById("detail-copy");
+const detailDeleteBtn = document.getElementById("detail-delete");
+
+const editBack = document.getElementById("edit-back");
 const form = document.getElementById("minute-form");
 const formTitle = document.getElementById("form-title");
-const cancelEditBtn = document.getElementById("cancel-edit");
+const formCancel = document.getElementById("form-cancel");
 const submitBtn = document.getElementById("submit-btn");
-
 const datetimeInput = document.getElementById("datetime-input");
 const companyInput = document.getElementById("company-input");
-const companyList = document.getElementById("company-list");
+const companyDatalist = document.getElementById("company-list");
 const personInput = document.getElementById("person-input");
 const bodyInput = document.getElementById("body-input");
 const bodyCount = document.getElementById("body-count");
-
-const searchInput = document.getElementById("search-input");
-const sortSelect = document.getElementById("sort-select");
-const companyFilterSelect = document.getElementById("company-filter");
-const exportBtn = document.getElementById("export-btn");
-const refreshBtn = document.getElementById("refresh-btn");
-const syncStatus = document.getElementById("sync-status");
-
-const list = document.getElementById("minute-list");
-const summary = document.getElementById("summary");
-const emptyState = document.getElementById("empty-state");
-const emptyStateText = document.getElementById("empty-state-text");
-const filterBtns = document.querySelectorAll(".filter-btn");
 
 const confirmModal = document.getElementById("confirm-modal");
 const confirmCancelBtn = document.getElementById("confirm-cancel");
 const confirmDeleteBtn = document.getElementById("confirm-delete");
 
+const textModal = document.getElementById("text-modal");
+const textModalTitle = document.getElementById("text-modal-title");
+const textModalArea = document.getElementById("text-modal-area");
+const textModalClose = document.getElementById("text-modal-close");
+
 const undoToast = document.getElementById("undo-toast");
 const undoMessage = document.getElementById("undo-message");
 const undoBtn = document.getElementById("undo-btn");
 
+/* ---------- 状態 ---------- */
+
 let minutes = [];
 let loaded = false;
-let formatFilter = "all";
-let searchQuery = "";
-let sortMode = "date-desc";
-let companyFilter = "";
+let view = "customers";
+let currentCompany = "";
+let currentId = null;
 let editingId = null;
-const expandedIds = new Set();
-
+let searchQuery = "";
+let sortMode = "recent";
 let pendingDeleteId = null;
 let toastState = null;
 
@@ -807,8 +961,9 @@ function callApi(name, arg) {
   });
 }
 
-function setSyncStatus(text) {
-  syncStatus.textContent = text;
+function errorText(err) {
+  if (!err) return "不明なエラー";
+  return err.message || String(err);
 }
 
 function nowLabel() {
@@ -820,24 +975,19 @@ async function refresh(options) {
   const silent = options && options.silent;
   if (!silent) {
     refreshBtn.disabled = true;
-    setSyncStatus("読み込み中…");
+    syncStatus.textContent = "読み込み中…";
   }
   try {
     minutes = await callApi("listMinutes");
     loaded = true;
-    setSyncStatus("最終更新 " + nowLabel());
-    render();
+    syncStatus.textContent = "最終更新 " + nowLabel();
+    renderCurrentView();
   } catch (err) {
-    setSyncStatus("読み込めませんでした");
+    syncStatus.textContent = "読み込めませんでした";
     if (!silent) showToast("データを読み込めませんでした: " + errorText(err), null);
   } finally {
     refreshBtn.disabled = false;
   }
-}
-
-function errorText(err) {
-  if (!err) return "不明なエラー";
-  return err.message || String(err);
 }
 
 refreshBtn.addEventListener("click", function () {
@@ -845,14 +995,14 @@ refreshBtn.addEventListener("click", function () {
 });
 
 setInterval(function () {
-  if (!document.hidden && !editingId) refresh({ silent: true });
+  if (!document.hidden && view !== "edit") refresh({ silent: true });
 }, AUTO_REFRESH_MS);
 
 document.addEventListener("visibilitychange", function () {
-  if (!document.hidden && !editingId) refresh({ silent: true });
+  if (!document.hidden && view !== "edit") refresh({ silent: true });
 });
 
-/* ---------- 表示用ヘルパー ---------- */
+/* ---------- ヘルパー ---------- */
 
 function nowLocalInput() {
   const d = new Date();
@@ -870,20 +1020,22 @@ function formatDateTime(value) {
     pad(d.getHours()) + ":" + pad(d.getMinutes());
 }
 
+function formatDateOnly(value) {
+  if (!value) return "日付未設定";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  const pad = function (n) { return String(n).padStart(2, "0"); };
+  return d.getFullYear() + "/" + pad(d.getMonth() + 1) + "/" + pad(d.getDate());
+}
+
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, function (c) {
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
   });
 }
 
-function getFormatValue() {
-  const checked = form.querySelector('input[name="format"]:checked');
-  return checked ? checked.value : "web";
-}
-
-function setFormatValue(value) {
-  const target = form.querySelector('input[name="format"][value="' + value + '"]');
-  if (target) target.checked = true;
+function findMinute(id) {
+  return minutes.find(function (m) { return m.id === id; }) || null;
 }
 
 function minuteToText(m) {
@@ -896,9 +1048,292 @@ function minuteToText(m) {
   ].join("\n");
 }
 
-/* ---------- フォーム ---------- */
+function companyMinutes(company) {
+  return minutes
+    .filter(function (m) { return m.company === company; })
+    .sort(function (a, b) { return (b.datetime || "").localeCompare(a.datetime || ""); });
+}
 
-datetimeInput.value = nowLocalInput();
+/* ---------- 画面遷移 ---------- */
+
+function showView(name) {
+  view = name;
+  Object.keys(views).forEach(function (key) {
+    views[key].hidden = key !== name;
+  });
+  window.scrollTo(0, 0);
+}
+
+function goCustomers() {
+  currentCompany = "";
+  currentId = null;
+  showView("customers");
+  renderCustomers();
+}
+
+function goCompany(company) {
+  currentCompany = company;
+  currentId = null;
+  showView("company");
+  renderCompany();
+}
+
+function goDetail(id) {
+  const minute = findMinute(id);
+  if (!minute) {
+    showToast("この議事録は見つかりませんでした。削除された可能性があります。", null);
+    if (currentCompany) goCompany(currentCompany);
+    else goCustomers();
+    return;
+  }
+  currentId = id;
+  currentCompany = minute.company;
+  showView("detail");
+  renderDetail();
+}
+
+function goEdit(id, presetCompany) {
+  editingId = id || null;
+  const minute = id ? findMinute(id) : null;
+
+  renderCompanyDatalist();
+
+  if (minute) {
+    datetimeInput.value = minute.datetime;
+    companyInput.value = minute.company;
+    personInput.value = minute.person;
+    bodyInput.value = minute.body;
+    setFormatValue(minute.format);
+    formTitle.textContent = "議事録を編集";
+    submitBtn.textContent = "更新する";
+  } else {
+    form.reset();
+    datetimeInput.value = nowLocalInput();
+    companyInput.value = presetCompany || "";
+    setFormatValue("web");
+    formTitle.textContent = presetCompany ? presetCompany + " の新しい議事録" : "新しい議事録";
+    submitBtn.textContent = "保存する";
+  }
+
+  editBack.textContent = minute ? "← 議事録にもどる" : currentCompany ? "← " + currentCompany + " にもどる" : "← 顧客一覧にもどる";
+  updateBodyCount();
+  showView("edit");
+  if (!presetCompany && !minute) companyInput.focus();
+  else bodyInput.focus();
+}
+
+function leaveEdit() {
+  if (editingId && findMinute(editingId)) goDetail(editingId);
+  else if (currentCompany && companyMinutes(currentCompany).length) goCompany(currentCompany);
+  else goCustomers();
+  editingId = null;
+}
+
+newMinuteBtn.addEventListener("click", function () { goEdit(null, ""); });
+newForCompanyBtn.addEventListener("click", function () { goEdit(null, currentCompany); });
+companyBack.addEventListener("click", goCustomers);
+detailBack.addEventListener("click", function () { goCompany(currentCompany); });
+editBack.addEventListener("click", leaveEdit);
+formCancel.addEventListener("click", leaveEdit);
+detailEditBtn.addEventListener("click", function () { goEdit(currentId, null); });
+
+/* ---------- 画面1: 顧客一覧 ---------- */
+
+searchInput.addEventListener("input", function () {
+  searchQuery = searchInput.value.trim().toLowerCase();
+  renderCustomers();
+});
+
+customerSort.addEventListener("change", function () {
+  sortMode = customerSort.value;
+  renderCustomers();
+});
+
+function buildCustomers() {
+  const map = {};
+
+  minutes.forEach(function (m) {
+    const name = m.company || "（会社名なし）";
+    if (!map[name]) map[name] = { company: name, count: 0, latest: "", persons: [], items: [] };
+    const entry = map[name];
+    entry.count += 1;
+    entry.items.push(m);
+    if ((m.datetime || "") > entry.latest) entry.latest = m.datetime || "";
+    if (m.person && entry.persons.indexOf(m.person) === -1) entry.persons.push(m.person);
+  });
+
+  let customers = Object.keys(map).map(function (key) { return map[key]; });
+
+  if (searchQuery) {
+    customers = customers.filter(function (c) {
+      if (c.company.toLowerCase().indexOf(searchQuery) !== -1) return true;
+      return c.items.some(function (m) {
+        return (m.person + " " + m.body).toLowerCase().indexOf(searchQuery) !== -1;
+      });
+    });
+  }
+
+  customers.sort(function (a, b) {
+    if (sortMode === "name") return a.company.localeCompare(b.company, "ja");
+    if (sortMode === "count") {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.company.localeCompare(b.company, "ja");
+    }
+    return (b.latest || "").localeCompare(a.latest || "");
+  });
+
+  return customers;
+}
+
+function renderSummary() {
+  const total = minutes.length;
+  if (!total) {
+    summary.innerHTML = "";
+    return;
+  }
+  const web = minutes.filter(function (m) { return m.format === "web"; }).length;
+  const companies = buildCustomersCount();
+  summary.innerHTML = [
+    '<span class="stat-chip">顧客 ' + companies + " 社</span>",
+    '<span class="stat-chip">議事録 ' + total + " 件</span>",
+    '<span class="stat-chip">WEB ' + web + " 件</span>",
+    '<span class="stat-chip">対面 ' + (total - web) + " 件</span>",
+  ].join("");
+}
+
+function buildCustomersCount() {
+  const seen = {};
+  minutes.forEach(function (m) { seen[m.company || "（会社名なし）"] = true; });
+  return Object.keys(seen).length;
+}
+
+function renderCustomers() {
+  renderSummary();
+
+  const customers = buildCustomers();
+  customerList.innerHTML = "";
+
+  customers.forEach(function (c) {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "customer-item";
+
+    const persons = c.persons.slice(0, 3).join("、") + (c.persons.length > 3 ? " ほか" : "");
+
+    btn.innerHTML =
+      '<div class="customer-main">' +
+        '<div class="customer-name">' + escapeHtml(c.company) + "</div>" +
+        '<div class="customer-meta">' +
+          "<span>最終 " + escapeHtml(formatDateOnly(c.latest)) + "</span>" +
+          (persons ? '<span class="customer-persons">' + escapeHtml(persons) + "</span>" : "") +
+        "</div>" +
+      "</div>" +
+      '<span class="customer-count">' + c.count + " 件</span>" +
+      ICON_CHEVRON;
+
+    btn.addEventListener("click", function () { goCompany(c.company); });
+    li.appendChild(btn);
+    customerList.appendChild(li);
+  });
+
+  customersEmpty.hidden = customers.length > 0;
+  customersEmptyText.textContent = !loaded
+    ? "読み込み中…"
+    : minutes.length
+    ? "検索条件に一致する顧客がいません。"
+    : "議事録はまだありません。「＋ 新しい議事録」から作成してください。";
+}
+
+/* ---------- 画面2: 顧客ごとの議事録一覧 ---------- */
+
+function renderCompany() {
+  const items = companyMinutes(currentCompany);
+
+  companyTitle.textContent = currentCompany;
+  companySub.textContent = items.length
+    ? "議事録 " + items.length + " 件／日付をクリックすると内容が表示されます。"
+    : "議事録がありません。";
+
+  dateList.innerHTML = "";
+
+  items.forEach(function (m) {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "date-item format-" + m.format;
+
+    const preview = m.body ? m.body.replace(/\s+/g, " ").slice(0, 60) : "内容の記載はありません";
+
+    btn.innerHTML =
+      '<div class="date-main">' +
+        '<div class="date-row">' +
+          '<span class="date-label">' + escapeHtml(formatDateTime(m.datetime)) + "</span>" +
+          '<span class="format-badge format-' + m.format + '">' + FORMAT_LABELS[m.format] + "</span>" +
+          (m.person ? '<span class="person-badge">' + escapeHtml(m.person) + "</span>" : "") +
+        "</div>" +
+        '<div class="date-preview">' + escapeHtml(preview) + "</div>" +
+      "</div>" +
+      ICON_CHEVRON;
+
+    btn.addEventListener("click", function () { goDetail(m.id); });
+    li.appendChild(btn);
+    dateList.appendChild(li);
+  });
+
+  companyEmpty.hidden = items.length > 0;
+  exportBtn.hidden = items.length === 0;
+}
+
+/* ---------- 画面3: 議事録（表示） ---------- */
+
+function renderDetail() {
+  const m = findMinute(currentId);
+  if (!m) {
+    goCompany(currentCompany);
+    return;
+  }
+
+  detailBackLabel.textContent = m.company + " の一覧にもどる";
+  detailDatetime.textContent = formatDateTime(m.datetime);
+  detailFormat.textContent = FORMAT_LABELS[m.format];
+  detailFormat.className = "format-badge format-" + m.format;
+  detailCompany.textContent = m.company;
+  detailPerson.textContent = m.person || "—";
+  detailUpdated.textContent = m.updatedAt ? formatDateTime(m.updatedAt) : "—";
+
+  detailBody.textContent = m.body || "内容の記載はありません";
+  detailBody.className = m.body ? "record-body" : "record-body empty";
+}
+
+detailCopyBtn.addEventListener("click", async function () {
+  const m = findMinute(currentId);
+  if (!m) return;
+  const text = minuteToText(m);
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("議事録をコピーしました。", null);
+  } catch (err) {
+    showTextFallback("コピーできなかったため、テキストを表示しました。選択してコピーしてください。", text);
+  }
+});
+
+detailDeleteBtn.addEventListener("click", function () {
+  pendingDeleteId = currentId;
+  confirmModal.hidden = false;
+});
+
+/* ---------- 画面3: 入力・編集 ---------- */
+
+function getFormatValue() {
+  const checked = form.querySelector('input[name="format"]:checked');
+  return checked ? checked.value : "web";
+}
+
+function setFormatValue(value) {
+  const target = form.querySelector('input[name="format"][value="' + value + '"]');
+  if (target) target.checked = true;
+}
 
 function updateBodyCount() {
   const len = bodyInput.value.length;
@@ -907,39 +1342,20 @@ function updateBodyCount() {
 
 bodyInput.addEventListener("input", updateBodyCount);
 
-function startEdit(id) {
-  const minute = minutes.find(function (m) { return m.id === id; });
-  if (!minute) return;
-  editingId = id;
-  datetimeInput.value = minute.datetime;
-  companyInput.value = minute.company;
-  personInput.value = minute.person;
-  bodyInput.value = minute.body;
-  setFormatValue(minute.format);
-  formTitle.textContent = "議事録を編集";
-  submitBtn.textContent = "更新する";
-  cancelEditBtn.hidden = false;
-  updateBodyCount();
-  render();
-  form.scrollIntoView({ behavior: "smooth", block: "start" });
-  companyInput.focus();
+function renderCompanyDatalist() {
+  const seen = {};
+  const companies = [];
+  minutes.forEach(function (m) {
+    if (m.company && !seen[m.company]) {
+      seen[m.company] = true;
+      companies.push(m.company);
+    }
+  });
+  companies.sort(function (a, b) { return a.localeCompare(b, "ja"); });
+  companyDatalist.innerHTML = companies
+    .map(function (c) { return '<option value="' + escapeHtml(c) + '"></option>'; })
+    .join("");
 }
-
-function resetForm() {
-  editingId = null;
-  form.reset();
-  datetimeInput.value = nowLocalInput();
-  setFormatValue("web");
-  formTitle.textContent = "新規作成";
-  submitBtn.textContent = "保存する";
-  cancelEditBtn.hidden = true;
-  updateBodyCount();
-}
-
-cancelEditBtn.addEventListener("click", function () {
-  resetForm();
-  render();
-});
 
 form.addEventListener("submit", async function (e) {
   e.preventDefault();
@@ -963,78 +1379,23 @@ form.addEventListener("submit", async function (e) {
     const saved = await callApi("saveMinute", payload);
     const index = minutes.findIndex(function (m) { return m.id === saved.id; });
     if (index >= 0) minutes[index] = saved;
-    else {
-      minutes.push(saved);
-      expandedIds.add(saved.id);
-    }
-    setSyncStatus("最終更新 " + nowLabel());
-    resetForm();
-    render();
+    else minutes.push(saved);
+
+    syncStatus.textContent = "最終更新 " + nowLabel();
+    editingId = null;
+    currentCompany = saved.company;
+    goDetail(saved.id);
     showToast("保存しました。", null);
   } catch (err) {
-    submitBtn.textContent = originalLabel;
     showToast("保存できませんでした: " + errorText(err), null);
   } finally {
     submitBtn.disabled = false;
+    submitBtn.textContent = originalLabel;
   }
 });
 
-/* ---------- 絞り込み ---------- */
-
-searchInput.addEventListener("input", function () {
-  searchQuery = searchInput.value.trim().toLowerCase();
-  render();
-});
-
-sortSelect.addEventListener("change", function () {
-  sortMode = sortSelect.value;
-  render();
-});
-
-companyFilterSelect.addEventListener("change", function () {
-  companyFilter = companyFilterSelect.value;
-  render();
-});
-
-filterBtns.forEach(function (btn) {
-  btn.addEventListener("click", function () {
-    filterBtns.forEach(function (b) { b.classList.remove("active"); });
-    btn.classList.add("active");
-    formatFilter = btn.dataset.filter;
-    render();
-  });
-});
-
-function visibleMinutes() {
-  return minutes
-    .filter(function (m) {
-      if (formatFilter !== "all" && m.format !== formatFilter) return false;
-      if (companyFilter && m.company !== companyFilter) return false;
-      if (searchQuery) {
-        const haystack = (m.company + " " + m.person + " " + m.body).toLowerCase();
-        if (haystack.indexOf(searchQuery) === -1) return false;
-      }
-      return true;
-    })
-    .sort(function (a, b) {
-      if (sortMode === "company") {
-        const byCompany = a.company.localeCompare(b.company, "ja");
-        if (byCompany !== 0) return byCompany;
-        return (b.datetime || "").localeCompare(a.datetime || "");
-      }
-      const cmp = (a.datetime || "").localeCompare(b.datetime || "");
-      return sortMode === "date-asc" ? cmp : -cmp;
-    });
-}
-
 /* ---------- 書き出し・コピー ---------- */
 
-const textModal = document.getElementById("text-modal");
-const textModalTitle = document.getElementById("text-modal-title");
-const textModalArea = document.getElementById("text-modal-area");
-const textModalClose = document.getElementById("text-modal-close");
-
-/** クリップボードやダウンロードが使えない環境向けに、テキストを選択済みで表示する */
 function showTextFallback(title, text) {
   textModalTitle.textContent = title;
   textModalArea.value = text;
@@ -1043,16 +1404,14 @@ function showTextFallback(title, text) {
   textModalArea.select();
 }
 
-textModalClose.addEventListener("click", function () {
-  textModal.hidden = true;
-});
+textModalClose.addEventListener("click", function () { textModal.hidden = true; });
 
 textModal.addEventListener("click", function (e) {
   if (e.target === textModal) textModal.hidden = true;
 });
 
 exportBtn.addEventListener("click", function () {
-  const items = visibleMinutes();
+  const items = companyMinutes(currentCompany);
   if (!items.length) {
     showToast("書き出す議事録がありません。", null);
     return;
@@ -1064,7 +1423,7 @@ exportBtn.addEventListener("click", function () {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "議事録_" + new Date().toISOString().slice(0, 10) + ".txt";
+    a.download = "議事録_" + currentCompany + "_" + new Date().toISOString().slice(0, 10) + ".txt";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1074,24 +1433,7 @@ exportBtn.addEventListener("click", function () {
   }
 });
 
-async function copyMinute(id) {
-  const minute = minutes.find(function (m) { return m.id === id; });
-  if (!minute) return;
-  const text = minuteToText(minute);
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast("議事録をコピーしました。", null);
-  } catch (err) {
-    showTextFallback("コピーできなかったため、テキストを表示しました。選択してコピーしてください。", text);
-  }
-}
-
 /* ---------- 削除と取り消し ---------- */
-
-function requestDelete(id) {
-  pendingDeleteId = id;
-  confirmModal.hidden = false;
-}
 
 confirmCancelBtn.addEventListener("click", function () {
   pendingDeleteId = null;
@@ -1123,18 +1465,19 @@ confirmDeleteBtn.addEventListener("click", async function () {
   const index = minutes.findIndex(function (m) { return m.id === id; });
   if (index === -1) return;
   const removed = minutes[index];
+  const company = removed.company;
 
   minutes.splice(index, 1);
-  if (editingId === id) resetForm();
-  render();
+  if (companyMinutes(company).length) goCompany(company);
+  else goCustomers();
 
   try {
     await callApi("deleteMinute", id);
-    showToast("「" + removed.company + "」の議事録を削除しました。", async function () {
+    showToast("「" + company + "」の議事録（" + formatDateOnly(removed.datetime) + "）を削除しました。", async function () {
       try {
         const restored = await callApi("saveMinute", removed);
         minutes.push(restored);
-        render();
+        goDetail(restored.id);
       } catch (err) {
         showToast("元に戻せませんでした: " + errorText(err), null);
         refresh({ silent: true });
@@ -1142,10 +1485,12 @@ confirmDeleteBtn.addEventListener("click", async function () {
     });
   } catch (err) {
     minutes.splice(index, 0, removed);
-    render();
+    renderCurrentView();
     showToast("削除できませんでした: " + errorText(err), null);
   }
 });
+
+/* ---------- トースト ---------- */
 
 function showToast(message, onUndo) {
   if (toastState) clearTimeout(toastState.timer);
@@ -1170,120 +1515,39 @@ undoBtn.addEventListener("click", function () {
   onUndo();
 });
 
-/* ---------- 描画 ---------- */
+/* ---------- 再描画 ---------- */
 
-function renderCompanyOptions() {
-  const seen = {};
-  const companies = [];
-  minutes.forEach(function (m) {
-    if (m.company && !seen[m.company]) {
-      seen[m.company] = true;
-      companies.push(m.company);
+function renderCurrentView() {
+  if (view === "customers") {
+    renderCustomers();
+    return;
+  }
+
+  if (view === "company") {
+    // 他の端末で最後の1件が削除された場合は顧客一覧へ戻す
+    if (!companyMinutes(currentCompany).length) {
+      goCustomers();
+      return;
     }
-  });
-  companies.sort(function (a, b) { return a.localeCompare(b, "ja"); });
+    renderCompany();
+    return;
+  }
 
-  companyList.innerHTML = companies
-    .map(function (c) { return '<option value="' + escapeHtml(c) + '"></option>'; })
-    .join("");
+  if (view === "detail") {
+    if (!findMinute(currentId)) {
+      if (companyMinutes(currentCompany).length) goCompany(currentCompany);
+      else goCustomers();
+      return;
+    }
+    renderDetail();
+    return;
+  }
 
-  if (companyFilter && companies.indexOf(companyFilter) === -1) companyFilter = "";
-  companyFilterSelect.innerHTML =
-    '<option value="">すべての会社</option>' +
-    companies
-      .map(function (c) { return '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + "</option>"; })
-      .join("");
-  companyFilterSelect.value = companyFilter;
+  // 編集中は入力内容を保持するため、会社名の候補だけ更新する
+  renderCompanyDatalist();
 }
 
-function renderSummary() {
-  const total = minutes.length;
-  const web = minutes.filter(function (m) { return m.format === "web"; }).length;
-  const seen = {};
-  minutes.forEach(function (m) { if (m.company) seen[m.company] = true; });
-  const companies = Object.keys(seen).length;
-
-  summary.innerHTML = total
-    ? [
-        '<span class="stat-chip">全 ' + total + " 件</span>",
-        '<span class="stat-chip">WEB ' + web + " 件</span>",
-        '<span class="stat-chip">対面 ' + (total - web) + " 件</span>",
-        '<span class="stat-chip">顧客 ' + companies + " 社</span>",
-      ].join("")
-    : "";
-}
-
-function render() {
-  renderCompanyOptions();
-  renderSummary();
-
-  const items = visibleMinutes();
-  list.innerHTML = "";
-
-  items.forEach(function (m) {
-    const li = document.createElement("li");
-    li.className = "minute-item format-" + m.format;
-    if (editingId === m.id) li.classList.add("editing");
-
-    const expanded = expandedIds.has(m.id);
-    const isLong = m.body.length > 160 || m.body.split("\n").length > 4;
-
-    const bodyHtml = m.body
-      ? '<span class="minute-text' + (isLong && !expanded ? " clamped" : "") + '">' + escapeHtml(m.body) + "</span>" +
-        (isLong
-          ? '<button class="toggle-body" data-action="toggle">' + (expanded ? "折りたたむ" : "全文を表示") + "</button>"
-          : "")
-      : '<span class="no-body">内容の記載はありません</span>';
-
-    li.innerHTML =
-      '<div class="minute-body">' +
-        '<div class="minute-header-row">' +
-          '<span class="minute-company">' + escapeHtml(m.company) + "</span>" +
-          '<span class="format-badge format-' + m.format + '">' + FORMAT_LABELS[m.format] + "</span>" +
-        "</div>" +
-        '<div class="minute-meta">' +
-          "<span>" + escapeHtml(formatDateTime(m.datetime)) + "</span>" +
-          (m.person ? '<span class="person-badge">' + escapeHtml(m.person) + "</span>" : "") +
-          (m.updatedAt ? "<span>更新 " + escapeHtml(formatDateTime(m.updatedAt)) + "</span>" : "") +
-        "</div>" +
-        bodyHtml +
-      "</div>" +
-      '<div class="minute-actions">' +
-        '<button class="icon-btn edit-btn" data-action="edit" title="編集" aria-label="編集">' + ICON_EDIT + "</button>" +
-        '<button class="icon-btn copy-btn" data-action="copy" title="コピー" aria-label="コピー">' + ICON_COPY + "</button>" +
-        '<button class="icon-btn delete-btn" data-action="delete" title="削除" aria-label="削除">' + ICON_TRASH + "</button>" +
-      "</div>";
-
-    li.addEventListener("click", function (e) {
-      const btn = e.target.closest("[data-action]");
-      if (!btn) return;
-      const action = btn.dataset.action;
-      if (action === "edit") startEdit(m.id);
-      else if (action === "copy") copyMinute(m.id);
-      else if (action === "delete") requestDelete(m.id);
-      else if (action === "toggle") {
-        if (expandedIds.has(m.id)) expandedIds.delete(m.id);
-        else expandedIds.add(m.id);
-        render();
-      }
-    });
-
-    list.appendChild(li);
-  });
-
-  const hasFilters = Boolean(searchQuery || companyFilter || formatFilter !== "all");
-  emptyState.hidden = items.length > 0;
-  emptyStateText.textContent = !loaded
-    ? "読み込み中…"
-    : minutes.length
-    ? hasFilters
-      ? "条件に一致する議事録がありません。"
-      : "議事録はまだありません。"
-    : "議事録はまだありません。上のフォームから作成してください。";
-}
-
-updateBodyCount();
-render();
+renderCustomers();
 refresh();
 </script>
 </body>
