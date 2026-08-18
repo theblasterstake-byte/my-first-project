@@ -454,10 +454,32 @@ document.getElementById("print-btn").addEventListener("click", () => window.prin
 
 /* ---------------- import / export / sample ---------------- */
 
-document.getElementById("export-btn").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(departments, null, 2)], {
-    type: "application/json",
-  });
+async function getDownloads() {
+  // 公開ページ(Artifact)ではホスト経由でしか保存できないため、その窓口を取得する
+  if (!window.claude || typeof window.claude.use !== "function") return null;
+  try {
+    return await window.claude.use("downloads");
+  } catch {
+    return null;
+  }
+}
+
+document.getElementById("export-btn").addEventListener("click", async () => {
+  const json = JSON.stringify(departments, null, 2);
+  const downloads = await getDownloads();
+
+  if (downloads) {
+    try {
+      await downloads.save({ filename: "orgchart.json", data: json });
+    } catch (error) {
+      if (error && error.code !== "declined") {
+        window.alert("書き出しに失敗しました。もう一度お試しください。");
+      }
+    }
+    return;
+  }
+
+  const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
