@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>組織図メーカー</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="9" y="2.5" width="6" height="5" rx="1.6" stroke="currentColor" stroke-width="1.8"/>
+            <rect x="2.5" y="16.5" width="6" height="5" rx="1.6" stroke="currentColor" stroke-width="1.8"/>
+            <rect x="15.5" y="16.5" width="6" height="5" rx="1.6" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M12 7.5V11.5M5.5 16.5V13.5H18.5V16.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <div>
+          <h1>組織図メーカー</h1>
+          <p class="tagline">部門・責任者・メンバーを入力するだけで組織図ができます</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn ghost" id="sample-btn">サンプル読込</button>
+        <button type="button" class="btn ghost" id="export-btn">JSON書き出し</button>
+        <button type="button" class="btn ghost" id="import-btn">JSON読み込み</button>
+        <button type="button" class="btn ghost" id="print-btn">印刷 / PDF</button>
+        <button type="button" class="btn danger-ghost" id="reset-btn">全消去</button>
+        <input type="file" id="import-file" accept="application/json,.json" hidden>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel editor" aria-labelledby="editor-title">
+        <h2 id="editor-title" class="panel-title"><span id="form-mode">部門を追加</span></h2>
+
+        <form id="dept-form" class="dept-form" autocomplete="off">
+          <div class="field">
+            <label for="dept-name">部門名 <span class="req">必須</span></label>
+            <input type="text" id="dept-name" placeholder="例: 営業部" required>
+          </div>
+
+          <div class="field">
+            <label for="parent-select">上位部門</label>
+            <select id="parent-select">
+              <option value="">（最上位）</option>
+            </select>
+            <p class="hint">上位部門を選ぶと、その下にぶら下がります。</p>
+          </div>
+
+          <fieldset class="group">
+            <legend>責任者</legend>
+            <div class="row">
+              <div class="field">
+                <label for="leader-title">役職名</label>
+                <input type="text" id="leader-title" list="title-list" placeholder="例: 部長">
+                <datalist id="title-list"></datalist>
+              </div>
+              <div class="field">
+                <label for="leader-name">氏名</label>
+                <input type="text" id="leader-name" placeholder="例: 山田 太郎">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="group">
+            <legend>メンバー</legend>
+            <div class="field">
+              <label for="members-input">メンバーの氏名</label>
+              <textarea id="members-input" rows="4" placeholder="1行に1名、または読点・カンマ区切り&#10;例:&#10;佐藤 花子&#10;鈴木 一郎"></textarea>
+              <p class="hint">改行・読点(、)・カンマ(,)で区切って複数人まとめて入力できます。</p>
+            </div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit" class="btn primary" id="submit-btn">追加する</button>
+            <button type="button" class="btn ghost" id="cancel-edit" hidden>編集をやめる</button>
+          </div>
+        </form>
+
+        <div class="dept-index">
+          <h3>部門一覧 <span class="count" id="dept-count">0</span></h3>
+          <ul id="dept-list" class="dept-list"></ul>
+        </div>
+      </section>
+
+      <section class="panel chart-panel" aria-labelledby="chart-title">
+        <div class="chart-head">
+          <h2 id="chart-title" class="panel-title">組織図</h2>
+          <div class="chart-tools">
+            <label class="switch">
+              <input type="checkbox" id="toggle-members" checked>
+              メンバーを表示
+            </label>
+            <div class="zoom">
+              <button type="button" class="btn icon" id="zoom-out" aria-label="縮小">−</button>
+              <span id="zoom-level">100%</span>
+              <button type="button" class="btn icon" id="zoom-in" aria-label="拡大">＋</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-scroll">
+          <div class="chart" id="chart"></div>
+          <p class="empty" id="chart-empty">まだ部門がありません。左のフォームから部門を追加してください。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="confirm-modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <h3 id="confirm-title">確認</h3>
+      <p id="confirm-text"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="confirm-cancel">キャンセル</button>
+        <button type="button" class="btn danger" id="confirm-ok">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
