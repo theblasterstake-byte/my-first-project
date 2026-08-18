@@ -1,6 +1,7 @@
 const STORAGE_KEY = "orgchart.departments";
 
-/** @typedef {{id:string, name:string, parentId:string|null, leaderTitle:string, leaderName:string, members:string[]}} Department */
+/** @typedef {{title:string, name:string}} Leader */
+/** @typedef {{id:string, name:string, parentId:string|null, leaders:Leader[], members:string[]}} Department */
 
 /** @type {Department[]} */
 let departments = load();
@@ -12,8 +13,8 @@ let pendingDelete = null;
 const form = document.getElementById("dept-form");
 const nameInput = document.getElementById("dept-name");
 const parentSelect = document.getElementById("parent-select");
-const leaderTitleInput = document.getElementById("leader-title");
-const leaderNameInput = document.getElementById("leader-name");
+const leaderRows = document.getElementById("leader-rows");
+const addLeaderBtn = document.getElementById("add-leader");
 const membersInput = document.getElementById("members-input");
 const titleList = document.getElementById("title-list");
 
@@ -65,12 +66,30 @@ function normalize(raw) {
     id: String(raw.id || createId()),
     name,
     parentId: raw.parentId ? String(raw.parentId) : null,
-    leaderTitle: String(raw.leaderTitle ?? "").trim(),
-    leaderName: String(raw.leaderName ?? "").trim(),
+    leaders: normalizeLeaders(raw),
     members: Array.isArray(raw.members)
       ? raw.members.map((m) => String(m).trim()).filter(Boolean)
       : parseMembers(String(raw.members ?? "")),
   };
+}
+
+/** 旧形式(leaderTitle / leaderName)のデータも読めるようにする */
+function normalizeLeaders(raw) {
+  const list = Array.isArray(raw.leaders) ? raw.leaders : [];
+  const leaders = list
+    .map((leader) => ({
+      title: String(leader?.title ?? "").trim(),
+      name: String(leader?.name ?? "").trim(),
+    }))
+    .filter((leader) => leader.title || leader.name);
+
+  if (!leaders.length && (raw.leaderTitle || raw.leaderName)) {
+    leaders.push({
+      title: String(raw.leaderTitle ?? "").trim(),
+      name: String(raw.leaderName ?? "").trim(),
+    });
+  }
+  return leaders;
 }
 
 function createId() {
@@ -167,7 +186,9 @@ function renderParentOptions() {
 }
 
 function renderTitleSuggestions() {
-  const titles = [...new Set(departments.map((d) => d.leaderTitle).filter(Boolean))];
+  const titles = [
+    ...new Set(departments.flatMap((d) => d.leaders.map((l) => l.title)).filter(Boolean)),
+  ];
   const defaults = ["社長", "本部長", "部長", "次長", "課長", "係長", "マネージャー", "リーダー", "チーフ"];
   titleList.innerHTML = "";
   for (const t of [...new Set([...titles, ...defaults])]) {
@@ -177,9 +198,65 @@ function renderTitleSuggestions() {
   }
 }
 
+function addLeaderRow(title = "", name = "", focus = false) {
+  const row = document.createElement("div");
+  row.className = "leader-row";
+
+  const titleInput = document.createElement("input");
+  titleInput.type = "text";
+  titleInput.className = "leader-title";
+  titleInput.placeholder = "例: 部長";
+  titleInput.setAttribute("list", "title-list");
+  titleInput.setAttribute("aria-label", "役職名");
+  titleInput.value = title;
+
+  const nameField = document.createElement("input");
+  nameField.type = "text";
+  nameField.className = "leader-name";
+  nameField.placeholder = "例: 山田 太郎";
+  nameField.setAttribute("aria-label", "氏名");
+  nameField.value = name;
+
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "row-remove";
+  removeBtn.textContent = "×";
+  removeBtn.title = "この責任者を削除";
+  removeBtn.setAttribute("aria-label", "この責任者を削除");
+  removeBtn.addEventListener("click", () => {
+    row.remove();
+    if (!leaderRows.children.length) addLeaderRow();
+  });
+
+  row.append(titleInput, nameField, removeBtn);
+  leaderRows.appendChild(row);
+  if (focus) titleInput.focus();
+}
+
+function setLeaderRows(leaders) {
+  leaderRows.innerHTML = "";
+  if (leaders.length) {
+    for (const leader of leaders) addLeaderRow(leader.title, leader.name);
+  } else {
+    addLeaderRow();
+  }
+}
+
+function readLeaderRows() {
+  return [...leaderRows.querySelectorAll(".leader-row")]
+    .map((row) => ({
+      title: row.querySelector(".leader-title").value.trim(),
+      name: row.querySelector(".leader-name").value.trim(),
+    }))
+    .filter((leader) => leader.title || leader.name);
+}
+
+addLeaderBtn.addEventListener("click", () => addLeaderRow("", "", true));
+
 function resetForm() {
   editingId = null;
   form.reset();
+  setLeaderRows([]);
   formMode.textContent = "部門を追加";
   submitBtn.textContent = "追加する";
   cancelEditBtn.hidden = true;
@@ -199,8 +276,7 @@ function startEdit(id) {
   renderParentOptions();
   nameInput.value = dept.name;
   parentSelect.value = dept.parentId && byId(dept.parentId) ? dept.parentId : "";
-  leaderTitleInput.value = dept.leaderTitle;
-  leaderNameInput.value = dept.leaderName;
+  setLeaderRows(dept.leaders);
   membersInput.value = dept.members.join("\n");
 
   render();
@@ -216,8 +292,7 @@ form.addEventListener("submit", (event) => {
   const payload = {
     name,
     parentId: parentSelect.value || null,
-    leaderTitle: leaderTitleInput.value.trim(),
-    leaderName: leaderNameInput.value.trim(),
+    leaders: readLeaderRows(),
     members: parseMembers(membersInput.value),
   };
 
@@ -332,6 +407,23 @@ function renderList() {
   }
 }
 
+function buildLeaderRow(title, name) {
+  const row = document.createElement("div");
+  row.className = "leader";
+
+  const titleEl = document.createElement("span");
+  titleEl.className = "title";
+  titleEl.textContent = title || "責任者";
+
+  const nameEl = document.createElement("span");
+  nameEl.className = "name";
+  nameEl.textContent = name || "（未設定）";
+  if (!name) row.classList.add("vacant");
+
+  row.append(titleEl, nameEl);
+  return row;
+}
+
 function buildCard(dept) {
   const card = document.createElement("div");
   card.className = "card";
@@ -344,28 +436,22 @@ function buildCard(dept) {
   name.textContent = dept.name;
   card.appendChild(name);
 
-  const leader = document.createElement("div");
-  leader.className = "leader";
-  const title = document.createElement("span");
-  title.className = "title";
-  title.textContent = dept.leaderTitle || "責任者";
-  const leaderName = document.createElement("span");
-  leaderName.className = "name";
-  if (dept.leaderName) {
-    leaderName.textContent = dept.leaderName;
+  const leaders = document.createElement("div");
+  leaders.className = "leaders";
+  if (dept.leaders.length) {
+    for (const leader of dept.leaders) {
+      leaders.appendChild(buildLeaderRow(leader.title, leader.name));
+    }
   } else {
-    leaderName.textContent = "（未設定）";
-    leader.classList.add("vacant");
+    const vacant = buildLeaderRow("責任者", "（未設定）");
+    vacant.classList.add("vacant");
+    leaders.appendChild(vacant);
   }
-  leader.append(title, leaderName);
-  card.appendChild(leader);
+  card.appendChild(leaders);
 
   if (toggleMembers.checked) {
     const members = document.createElement("div");
     members.className = "members";
-    const head = document.createElement("div");
-    head.className = "members-head";
-    head.textContent = `メンバー ${dept.members.length}名`;
     const ul = document.createElement("ul");
     if (dept.members.length) {
       for (const member of dept.members) {
@@ -379,7 +465,7 @@ function buildCard(dept) {
       li.textContent = "メンバー未登録";
       ul.appendChild(li);
     }
-    members.append(head, ul);
+    members.appendChild(ul);
     card.appendChild(members);
   }
 
@@ -519,11 +605,11 @@ document.getElementById("reset-btn").addEventListener("click", () => {
 });
 
 document.getElementById("sample-btn").addEventListener("click", () => {
-  const company = { id: createId(), name: "株式会社サンプル", parentId: null, leaderTitle: "代表取締役社長", leaderName: "山田 太郎", members: [] };
-  const sales = { id: createId(), name: "営業部", parentId: company.id, leaderTitle: "部長", leaderName: "佐藤 花子", members: ["鈴木 一郎", "高橋 二郎"] };
-  const dev = { id: createId(), name: "開発部", parentId: company.id, leaderTitle: "部長", leaderName: "田中 三郎", members: ["伊藤 四郎", "渡辺 五郎", "中村 六郎"] };
-  const admin = { id: createId(), name: "管理部", parentId: company.id, leaderTitle: "部長", leaderName: "小林 七子", members: ["加藤 八郎"] };
-  const dev1 = { id: createId(), name: "第一開発課", parentId: dev.id, leaderTitle: "課長", leaderName: "山本 九郎", members: ["松本 十郎"] };
+  const company = { id: createId(), name: "株式会社サンプル", parentId: null, leaders: [{ title: "代表取締役社長", name: "山田 太郎" }], members: [] };
+  const sales = { id: createId(), name: "営業部", parentId: company.id, leaders: [{ title: "部長", name: "佐藤 花子" }, { title: "課長", name: "鈴木 一郎" }], members: ["高橋 二郎", "田村 涼子"] };
+  const dev = { id: createId(), name: "開発部", parentId: company.id, leaders: [{ title: "部長", name: "田中 三郎" }], members: ["伊藤 四郎", "渡辺 五郎", "中村 六郎"] };
+  const admin = { id: createId(), name: "管理部", parentId: company.id, leaders: [{ title: "部長", name: "小林 七子" }, { title: "係長", name: "森田 恵" }], members: ["加藤 八郎"] };
+  const dev1 = { id: createId(), name: "第一開発課", parentId: dev.id, leaders: [{ title: "課長", name: "山本 九郎" }], members: ["松本 十郎"] };
 
   departments = [company, sales, dev, admin, dev1];
   resetForm();

@@ -157,6 +157,40 @@ input[type="text"]:focus, select:focus, textarea:focus {
 
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
+/* 責任者の入力行 */
+.leader-head,
+.leader-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 28px;
+  gap: 8px;
+  align-items: center;
+}
+
+.leader-head {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: -4px;
+}
+
+.leader-rows { display: grid; gap: 8px; }
+
+.row-remove {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.row-remove:hover { background: var(--danger-soft); border-color: #fecaca; color: var(--danger); }
+
+.add-row { justify-self: start; padding: 6px 12px; font-size: .78rem; }
+
 .form-actions { display: flex; gap: 8px; }
 .form-actions .btn { flex: 1; }
 
@@ -323,16 +357,18 @@ input[type="text"]:focus, select:focus, textarea:focus {
   word-break: break-word;
 }
 
-.card .leader { padding: 10px 12px; border-bottom: 1px dashed var(--border); }
+.card .leaders { display: grid; }
+.card .leader { padding: 9px 12px; }
+.card .leader + .leader { border-top: 1px dashed var(--border); }
 .card .leader .title { display: block; font-size: .72rem; color: var(--muted); }
 .card .leader .name { font-size: .92rem; font-weight: 600; word-break: break-word; }
 .card .leader.vacant .name { color: var(--muted); font-weight: 500; }
 
-.card .members { padding: 10px 12px; display: grid; gap: 5px; }
-.card .members .members-head {
-  font-size: .7rem;
-  color: var(--muted);
-  letter-spacing: .04em;
+.card .members {
+  padding: 10px 12px;
+  display: grid;
+  gap: 5px;
+  border-top: 1px dashed var(--border);
 }
 .card .members ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .card .members li {

@@ -53,17 +53,15 @@
 
           <fieldset class="group">
             <legend>責任者</legend>
-            <div class="row">
-              <div class="field">
-                <label for="leader-title">役職名</label>
-                <input type="text" id="leader-title" list="title-list" placeholder="例: 部長">
-                <datalist id="title-list"></datalist>
-              </div>
-              <div class="field">
-                <label for="leader-name">氏名</label>
-                <input type="text" id="leader-name" placeholder="例: 山田 太郎">
-              </div>
+            <div class="leader-head" aria-hidden="true">
+              <span>役職名</span>
+              <span>氏名</span>
+              <span></span>
             </div>
+            <div id="leader-rows" class="leader-rows"></div>
+            <datalist id="title-list"></datalist>
+            <button type="button" class="btn ghost add-row" id="add-leader">＋ 責任者を追加</button>
+            <p class="hint">部長・課長など、複数の責任者を登録できます。上から順に表示されます。</p>
           </fieldset>
 
           <fieldset class="group">
