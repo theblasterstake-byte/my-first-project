@@ -378,7 +378,6 @@ input[type="text"]:focus, select:focus, textarea:focus {
   padding: 3px 8px;
   word-break: break-word;
 }
-.card .members.none li { color: var(--muted); }
 
 /* ---------- modal ---------- */
 .modal {

@@ -449,20 +449,13 @@ function buildCard(dept) {
   }
   card.appendChild(leaders);
 
-  if (toggleMembers.checked) {
+  if (toggleMembers.checked && dept.members.length) {
     const members = document.createElement("div");
     members.className = "members";
     const ul = document.createElement("ul");
-    if (dept.members.length) {
-      for (const member of dept.members) {
-        const li = document.createElement("li");
-        li.textContent = member;
-        ul.appendChild(li);
-      }
-    } else {
-      members.classList.add("none");
+    for (const member of dept.members) {
       const li = document.createElement("li");
-      li.textContent = "メンバー未登録";
+      li.textContent = member;
       ul.appendChild(li);
     }
     members.appendChild(ul);
