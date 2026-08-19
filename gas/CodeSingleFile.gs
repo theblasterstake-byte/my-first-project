@@ -1,0 +1,1723 @@
+/**
+ * 議事録管理 — 単一ファイル版（このファイルだけを Apps Script に貼り付ければ動きます）
+ *
+ * gas/build_single_file.py が gas/Code.gs と gas/index.html から生成しています。
+ * 直接編集せず、元のファイルを直してから再生成してください。
+ */
+
+const HTML_PAGE = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<base target="_top">
+<style>
+:root {
+  --bg: #eef0f6;
+  --bg-glow: #e4e2ff;
+  --card-bg: #ffffff;
+  --card-border: rgba(20, 22, 41, 0.07);
+  --text: #14162b;
+  --text-secondary: #4b4f68;
+  --muted: #888ca3;
+  --border: #e3e5f0;
+
+  --accent: #6152f2;
+  --accent-2: #9333ea;
+  --accent-soft: #efedff;
+  --accent-hover: #4d3fe0;
+
+  --danger: #e11d48;
+  --danger-soft: #fde4eb;
+
+  --web: #0284c7;
+  --web-soft: #dcf0fb;
+  --onsite: #059669;
+  --onsite-soft: #d9f5ea;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+
+  --shadow-sm: 0 1px 2px rgba(20, 22, 41, 0.05);
+  --shadow-md: 0 10px 26px -12px rgba(20, 22, 41, 0.22);
+  --shadow-lg: 0 24px 56px -16px rgba(20, 22, 41, 0.32);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Helvetica Neue", Arial,
+    sans-serif;
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px;
+  background: radial-gradient(720px 420px at 12% -8%, var(--bg-glow), transparent 60%), var(--bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app { width: 100%; max-width: 760px; }
+
+/* ---------- Header ---------- */
+
+header { margin-bottom: 22px; }
+
+.brand { display: flex; align-items: center; gap: 10px; }
+
+.brand-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.brand-mark svg { width: 20px; height: 20px; }
+
+h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
+
+.sync {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sync-btn {
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 6px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+}
+
+.sync-btn:hover { background: var(--accent-soft); }
+.sync-btn:disabled { opacity: 0.55; cursor: default; }
+
+/* ---------- View scaffolding ---------- */
+
+.view[hidden] { display: none; }
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 4px 2px;
+  margin-bottom: 12px;
+}
+
+.back-btn:hover { text-decoration: underline; }
+
+.view-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.view-head h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; word-break: break-word; }
+
+.view-sub { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+
+.primary-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.primary-btn:hover { filter: brightness(1.06); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.stats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+
+.stat-chip {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Toolbar ---------- */
+
+.toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+
+.search-field { position: relative; flex: 1 1 220px; display: flex; align-items: center; }
+
+.search-icon {
+  position: absolute;
+  left: 11px;
+  width: 15px;
+  height: 15px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-field input[type="search"] { width: 100%; padding-left: 34px; }
+.search-field input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+.toolbar input,
+.toolbar select {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-family: inherit;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.toolbar input:focus,
+.toolbar select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* ---------- 画面1: 顧客一覧 ---------- */
+
+.customer-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.customer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.customer-item:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.customer-main { flex: 1; min-width: 0; }
+
+.customer-name { font-size: 16px; font-weight: 700; word-break: break-word; }
+
+.customer-meta {
+  display: flex;
+  gap: 6px;
+  margin-top: 7px;
+  font-size: 12px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.customer-meta > span { background: var(--bg); border-radius: 999px; padding: 2px 9px; }
+
+.customer-persons { color: var(--accent); background: var(--accent-soft) !important; font-weight: 600; }
+
+.customer-count {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+.chevron { flex-shrink: 0; width: 18px; height: 18px; color: var(--muted); }
+
+/* ---------- 画面2: 日付一覧 ---------- */
+
+.date-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.date-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.date-item:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+
+.date-item.format-web { border-left-color: var(--web); }
+.date-item.format-onsite { border-left-color: var(--onsite); }
+
+.date-main { flex: 1; min-width: 0; }
+
+.date-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.date-label { font-size: 15px; font-weight: 700; }
+
+.date-preview {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.format-badge { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 9px; flex-shrink: 0; }
+.format-badge.format-web { color: var(--web); background: var(--web-soft); }
+.format-badge.format-onsite { color: var(--onsite); background: var(--onsite-soft); }
+
+.person-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.list-foot { margin-top: 14px; display: flex; justify-content: flex-end; }
+
+.ghost-btn {
+  border: none;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 6px 8px;
+}
+
+.ghost-btn:hover { text-decoration: underline; }
+
+/* ---------- 画面3: 議事録 ---------- */
+
+.record {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.record-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.record-head h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+
+.record-meta {
+  margin: 16px 0 0;
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 8px 14px;
+  font-size: 13px;
+}
+
+.record-meta dt { color: var(--muted); font-weight: 600; }
+.record-meta dd { margin: 0; word-break: break-word; }
+
+.record-body {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.record-body.empty { color: var(--muted); font-style: italic; }
+
+.record-actions {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.record-actions button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.12s ease;
+}
+
+.record-actions button:hover { filter: brightness(1.04); transform: translateY(-1px); }
+
+.record-actions .btn-edit {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  border-color: transparent;
+}
+
+.record-actions .btn-delete { margin-left: auto; color: var(--danger); border-color: var(--danger-soft); background: var(--danger-soft); }
+
+/* ---------- 画面3: 入力フォーム ---------- */
+
+.minute-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-md);
+}
+
+.form-head { grid-column: 1 / -1; }
+.form-head h2 { margin: 0; font-size: 17px; font-weight: 800; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-full { grid-column: 1 / -1; }
+.field label { font-size: 12px; font-weight: 600; color: var(--muted); }
+.field-hint { margin: 0; font-size: 11px; color: var(--muted); text-align: right; }
+
+.minute-form input,
+.minute-form textarea {
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.minute-form input:hover,
+.minute-form textarea:hover { border-color: #c7cbe0; }
+
+.minute-form input:focus,
+.minute-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--card-bg);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.minute-form textarea { resize: vertical; min-height: 240px; line-height: 1.7; }
+
+.form-actions { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; }
+
+.form-actions button {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 11px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 0.12s ease, transform 0.12s ease;
+}
+
+.form-actions button[type="submit"] {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+
+.form-actions button:hover:not(:disabled) { filter: brightness(1.05); transform: translateY(-1px); }
+.form-actions button:disabled { opacity: 0.6; cursor: default; }
+
+/* ---------- Segmented control ---------- */
+
+.segmented {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+}
+
+.segmented label { flex: 1; position: relative; }
+.segmented input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.segmented span {
+  display: block;
+  text-align: center;
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.segmented span:hover { color: var(--text); }
+
+.segmented input:checked + span {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.segmented input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Empty state ---------- */
+
+.empty-state {
+  text-align: center;
+  color: var(--muted);
+  margin-top: 24px;
+  padding: 40px 20px;
+  font-size: 14px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.empty-state[hidden] { display: none; }
+.empty-state svg { width: 40px; height: 40px; color: var(--muted); margin-bottom: 10px; }
+.empty-state p { margin: 0; }
+
+/* ---------- Modal ---------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 30, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fade-in 0.15s ease;
+  z-index: 20;
+}
+
+.modal-overlay[hidden] { display: none; }
+
+.modal {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: pop-in 0.16s ease;
+}
+
+.modal p { margin: 0 0 18px; font-size: 14px; font-weight: 600; }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.modal-actions button {
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  transition: filter 0.12s ease, transform 0.12s ease;
+}
+
+.modal-actions button:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+.btn-secondary { background: var(--bg); color: var(--text); }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+.modal-wide { max-width: 560px; }
+
+.modal-wide textarea {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+/* ---------- Toast ---------- */
+
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  padding: 13px 18px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  max-width: 90vw;
+  animation: slide-up 0.2s ease;
+  z-index: 10;
+}
+
+.undo-toast[hidden] { display: none; }
+.undo-toast #undo-message { word-break: break-word; }
+
+.undo-toast button {
+  border: none;
+  background: none;
+  color: #b3a6ff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.undo-toast button:hover { text-decoration: underline; }
+.undo-toast button[hidden] { display: none; }
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes slide-up { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* ---------- Dark mode ---------- */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1016;
+    --bg-glow: #241f4d;
+    --card-bg: #171a24;
+    --card-border: rgba(255, 255, 255, 0.07);
+    --text: #eef0fa;
+    --text-secondary: #b6bad0;
+    --muted: #7c8098;
+    --border: #2a2e3d;
+
+    --accent: #8b7bff;
+    --accent-2: #b06bff;
+    --accent-soft: rgba(139, 123, 255, 0.16);
+    --accent-hover: #a294ff;
+
+    --danger: #f87171;
+    --danger-soft: rgba(248, 113, 113, 0.15);
+
+    --web: #38bdf8;
+    --web-soft: rgba(56, 189, 248, 0.15);
+    --onsite: #34d399;
+    --onsite-soft: rgba(52, 211, 153, 0.15);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 26px -12px rgba(0, 0, 0, 0.55);
+    --shadow-lg: 0 24px 56px -16px rgba(0, 0, 0, 0.7);
+  }
+
+  .undo-toast { background: #f3f3fb; color: #14162b; }
+  .undo-toast button { color: var(--accent-hover); }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 480px) {
+  body { padding: 22px 12px; }
+  .minute-form { grid-template-columns: 1fr; padding: 16px; }
+  .record { padding: 18px; }
+  .record-meta { grid-template-columns: 68px 1fr; }
+  .brand { flex-wrap: wrap; }
+  .sync { width: 100%; margin-left: 0; justify-content: flex-end; }
+  .view-head { align-items: stretch; }
+  .primary-btn { width: 100%; }
+  .record-actions .btn-delete { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="3" width="16" height="18" rx="4" stroke="currentColor" stroke-width="2"/>
+            <path d="M8.5 9H15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8.5 13H15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8.5 17H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h1>議事録管理</h1>
+        <div class="sync">
+          <span id="sync-status">読み込み中…</span>
+          <button type="button" id="refresh-btn" class="sync-btn">最新に更新</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== 画面1: 顧客一覧 ===== -->
+    <section id="view-customers" class="view">
+      <div class="view-head">
+        <div>
+          <h2>顧客一覧</h2>
+          <p class="view-sub">顧客名をクリックすると、その顧客の議事録が一覧表示されます。</p>
+        </div>
+        <button type="button" id="new-minute-btn" class="primary-btn">＋ 新しい議事録</button>
+      </div>
+
+      <div class="stats" id="summary"></div>
+
+      <div class="toolbar">
+        <div class="search-field">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+            <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input type="search" id="search-input" placeholder="会社名・担当者名・内容で検索…">
+        </div>
+        <select id="customer-sort">
+          <option value="recent">並び替え: 最近の打ち合わせ順</option>
+          <option value="name">並び替え: 会社名順</option>
+          <option value="count">並び替え: 件数が多い順</option>
+        </select>
+      </div>
+
+      <ul id="customer-list" class="customer-list"></ul>
+
+      <div id="customers-empty" class="empty-state" hidden>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M4.5 20C4.5 16.5 7.8 14.5 12 14.5C16.2 14.5 19.5 16.5 19.5 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        <p id="customers-empty-text">読み込み中…</p>
+      </div>
+    </section>
+
+    <!-- ===== 画面2: 顧客ごとの議事録一覧 ===== -->
+    <section id="view-company" class="view" hidden>
+      <button type="button" class="back-btn" id="company-back">← 顧客一覧にもどる</button>
+
+      <div class="view-head">
+        <div>
+          <h2 id="company-title"></h2>
+          <p class="view-sub" id="company-sub"></p>
+        </div>
+        <button type="button" id="new-for-company-btn" class="primary-btn">＋ この顧客で新規作成</button>
+      </div>
+
+      <ul id="date-list" class="date-list"></ul>
+
+      <div id="company-empty" class="empty-state" hidden>
+        <p>この顧客の議事録はありません。</p>
+      </div>
+
+      <div class="list-foot">
+        <button type="button" id="export-btn" class="ghost-btn">この顧客の議事録をテキスト書き出し</button>
+      </div>
+    </section>
+
+    <!-- ===== 画面3: 議事録（表示） ===== -->
+    <section id="view-detail" class="view" hidden>
+      <button type="button" class="back-btn" id="detail-back">← <span id="detail-back-label">もどる</span></button>
+
+      <article class="record">
+        <div class="record-head">
+          <h2 id="detail-datetime"></h2>
+          <span id="detail-format" class="format-badge"></span>
+        </div>
+
+        <dl class="record-meta">
+          <dt>会社名</dt>
+          <dd id="detail-company"></dd>
+          <dt>担当者名</dt>
+          <dd id="detail-person"></dd>
+          <dt>最終更新</dt>
+          <dd id="detail-updated"></dd>
+        </dl>
+
+        <div class="record-body" id="detail-body"></div>
+
+        <div class="record-actions">
+          <button type="button" class="btn-edit" id="detail-edit">編集する</button>
+          <button type="button" id="detail-copy">コピー</button>
+          <button type="button" class="btn-delete" id="detail-delete">削除</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===== 画面3: 議事録（入力・編集） ===== -->
+    <section id="view-edit" class="view" hidden>
+      <button type="button" class="back-btn" id="edit-back">← もどる</button>
+
+      <form id="minute-form" class="minute-form">
+        <div class="form-head">
+          <h2 id="form-title">新しい議事録</h2>
+        </div>
+
+        <div class="field">
+          <label for="datetime-input">日時</label>
+          <input type="datetime-local" id="datetime-input" required>
+        </div>
+
+        <div class="field">
+          <label for="format-input">形式</label>
+          <div class="segmented" id="format-input">
+            <label>
+              <input type="radio" name="format" value="web" checked>
+              <span>WEB</span>
+            </label>
+            <label>
+              <input type="radio" name="format" value="onsite">
+              <span>対面</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="company-input">会社名</label>
+          <input type="text" id="company-input" list="company-list" placeholder="例: 株式会社サンプル" autocomplete="off" required>
+          <datalist id="company-list"></datalist>
+        </div>
+
+        <div class="field">
+          <label for="person-input">担当者名</label>
+          <input type="text" id="person-input" placeholder="例: 山田 太郎" autocomplete="off">
+        </div>
+
+        <div class="field field-full">
+          <label for="body-input">議事内容</label>
+          <textarea id="body-input" rows="18" placeholder="打ち合わせの内容、決定事項、次回までのアクションなど自由にご記入ください…"></textarea>
+          <p class="field-hint" id="body-count"></p>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="form-cancel">キャンセル</button>
+          <button type="submit" id="submit-btn">保存する</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div id="confirm-modal" class="modal-overlay" hidden>
+    <div class="modal">
+      <p>この議事録を削除しますか？</p>
+      <div class="modal-actions">
+        <button type="button" id="confirm-cancel" class="btn-secondary">キャンセル</button>
+        <button type="button" id="confirm-delete" class="btn-danger">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="text-modal" class="modal-overlay" hidden>
+    <div class="modal modal-wide">
+      <p id="text-modal-title">下のテキストを選択してコピーしてください。</p>
+      <textarea id="text-modal-area" rows="12" readonly></textarea>
+      <div class="modal-actions">
+        <button type="button" id="text-modal-close" class="btn-secondary">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="undo-toast" class="undo-toast" hidden>
+    <span id="undo-message"></span>
+    <button type="button" id="undo-btn">元に戻す</button>
+  </div>
+
+<script>
+const TOAST_TIMEOUT_MS = 6000;
+const AUTO_REFRESH_MS = 60000;
+
+const FORMAT_LABELS = { web: "WEB", onsite: "対面" };
+
+const ICON_CHEVRON =
+  '<svg class="chevron" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 5L16 12L9 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+/* ---------- 要素 ---------- */
+
+const syncStatus = document.getElementById("sync-status");
+const refreshBtn = document.getElementById("refresh-btn");
+
+const views = {
+  customers: document.getElementById("view-customers"),
+  company: document.getElementById("view-company"),
+  detail: document.getElementById("view-detail"),
+  edit: document.getElementById("view-edit"),
+};
+
+const summary = document.getElementById("summary");
+const searchInput = document.getElementById("search-input");
+const customerSort = document.getElementById("customer-sort");
+const customerList = document.getElementById("customer-list");
+const customersEmpty = document.getElementById("customers-empty");
+const customersEmptyText = document.getElementById("customers-empty-text");
+const newMinuteBtn = document.getElementById("new-minute-btn");
+
+const companyBack = document.getElementById("company-back");
+const companyTitle = document.getElementById("company-title");
+const companySub = document.getElementById("company-sub");
+const newForCompanyBtn = document.getElementById("new-for-company-btn");
+const dateList = document.getElementById("date-list");
+const companyEmpty = document.getElementById("company-empty");
+const exportBtn = document.getElementById("export-btn");
+
+const detailBack = document.getElementById("detail-back");
+const detailBackLabel = document.getElementById("detail-back-label");
+const detailDatetime = document.getElementById("detail-datetime");
+const detailFormat = document.getElementById("detail-format");
+const detailCompany = document.getElementById("detail-company");
+const detailPerson = document.getElementById("detail-person");
+const detailUpdated = document.getElementById("detail-updated");
+const detailBody = document.getElementById("detail-body");
+const detailEditBtn = document.getElementById("detail-edit");
+const detailCopyBtn = document.getElementById("detail-copy");
+const detailDeleteBtn = document.getElementById("detail-delete");
+
+const editBack = document.getElementById("edit-back");
+const form = document.getElementById("minute-form");
+const formTitle = document.getElementById("form-title");
+const formCancel = document.getElementById("form-cancel");
+const submitBtn = document.getElementById("submit-btn");
+const datetimeInput = document.getElementById("datetime-input");
+const companyInput = document.getElementById("company-input");
+const companyDatalist = document.getElementById("company-list");
+const personInput = document.getElementById("person-input");
+const bodyInput = document.getElementById("body-input");
+const bodyCount = document.getElementById("body-count");
+
+const confirmModal = document.getElementById("confirm-modal");
+const confirmCancelBtn = document.getElementById("confirm-cancel");
+const confirmDeleteBtn = document.getElementById("confirm-delete");
+
+const textModal = document.getElementById("text-modal");
+const textModalTitle = document.getElementById("text-modal-title");
+const textModalArea = document.getElementById("text-modal-area");
+const textModalClose = document.getElementById("text-modal-close");
+
+const undoToast = document.getElementById("undo-toast");
+const undoMessage = document.getElementById("undo-message");
+const undoBtn = document.getElementById("undo-btn");
+
+/* ---------- 状態 ---------- */
+
+let minutes = [];
+let loaded = false;
+let view = "customers";
+let currentCompany = "";
+let currentId = null;
+let editingId = null;
+let searchQuery = "";
+let sortMode = "recent";
+let pendingDeleteId = null;
+let toastState = null;
+
+/* ---------- サーバー呼び出し ---------- */
+
+function callApi(name, arg) {
+  return new Promise(function (resolve, reject) {
+    const runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+    if (arg === undefined) runner[name]();
+    else runner[name](arg);
+  });
+}
+
+function errorText(err) {
+  if (!err) return "不明なエラー";
+  return err.message || String(err);
+}
+
+function nowLabel() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+}
+
+async function refresh(options) {
+  const silent = options && options.silent;
+  if (!silent) {
+    refreshBtn.disabled = true;
+    syncStatus.textContent = "読み込み中…";
+  }
+  try {
+    minutes = await callApi("listMinutes");
+    loaded = true;
+    syncStatus.textContent = "最終更新 " + nowLabel();
+    renderCurrentView();
+  } catch (err) {
+    syncStatus.textContent = "読み込めませんでした";
+    if (!silent) showToast("データを読み込めませんでした: " + errorText(err), null);
+  } finally {
+    refreshBtn.disabled = false;
+  }
+}
+
+refreshBtn.addEventListener("click", function () {
+  refresh();
+});
+
+setInterval(function () {
+  if (!document.hidden && view !== "edit") refresh({ silent: true });
+}, AUTO_REFRESH_MS);
+
+document.addEventListener("visibilitychange", function () {
+  if (!document.hidden && view !== "edit") refresh({ silent: true });
+});
+
+/* ---------- ヘルパー ---------- */
+
+function nowLocalInput() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+
+function formatDateTime(value) {
+  if (!value) return "日時未設定";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  const week = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
+  const pad = function (n) { return String(n).padStart(2, "0"); };
+  return d.getFullYear() + "/" + pad(d.getMonth() + 1) + "/" + pad(d.getDate()) + "(" + week + ") " +
+    pad(d.getHours()) + ":" + pad(d.getMinutes());
+}
+
+function formatDateOnly(value) {
+  if (!value) return "日付未設定";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return value;
+  const pad = function (n) { return String(n).padStart(2, "0"); };
+  return d.getFullYear() + "/" + pad(d.getMonth() + 1) + "/" + pad(d.getDate());
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
+function findMinute(id) {
+  return minutes.find(function (m) { return m.id === id; }) || null;
+}
+
+function minuteToText(m) {
+  return [
+    "日時: " + formatDateTime(m.datetime),
+    "顧客: " + m.company + (m.person ? " / " + m.person : ""),
+    "形式: " + FORMAT_LABELS[m.format],
+    "",
+    m.body || "(内容の記載なし)",
+  ].join("\\n");
+}
+
+function companyMinutes(company) {
+  return minutes
+    .filter(function (m) { return m.company === company; })
+    .sort(function (a, b) { return (b.datetime || "").localeCompare(a.datetime || ""); });
+}
+
+/* ---------- 画面遷移 ---------- */
+
+function showView(name) {
+  view = name;
+  Object.keys(views).forEach(function (key) {
+    views[key].hidden = key !== name;
+  });
+  window.scrollTo(0, 0);
+}
+
+function goCustomers() {
+  currentCompany = "";
+  currentId = null;
+  showView("customers");
+  renderCustomers();
+}
+
+function goCompany(company) {
+  currentCompany = company;
+  currentId = null;
+  showView("company");
+  renderCompany();
+}
+
+function goDetail(id) {
+  const minute = findMinute(id);
+  if (!minute) {
+    showToast("この議事録は見つかりませんでした。削除された可能性があります。", null);
+    if (currentCompany) goCompany(currentCompany);
+    else goCustomers();
+    return;
+  }
+  currentId = id;
+  currentCompany = minute.company;
+  showView("detail");
+  renderDetail();
+}
+
+function goEdit(id, presetCompany) {
+  editingId = id || null;
+  const minute = id ? findMinute(id) : null;
+
+  renderCompanyDatalist();
+
+  if (minute) {
+    datetimeInput.value = minute.datetime;
+    companyInput.value = minute.company;
+    personInput.value = minute.person;
+    bodyInput.value = minute.body;
+    setFormatValue(minute.format);
+    formTitle.textContent = "議事録を編集";
+    submitBtn.textContent = "更新する";
+  } else {
+    form.reset();
+    datetimeInput.value = nowLocalInput();
+    companyInput.value = presetCompany || "";
+    setFormatValue("web");
+    formTitle.textContent = presetCompany ? presetCompany + " の新しい議事録" : "新しい議事録";
+    submitBtn.textContent = "保存する";
+  }
+
+  editBack.textContent = minute ? "← 議事録にもどる" : currentCompany ? "← " + currentCompany + " にもどる" : "← 顧客一覧にもどる";
+  updateBodyCount();
+  showView("edit");
+  if (!presetCompany && !minute) companyInput.focus();
+  else bodyInput.focus();
+}
+
+function leaveEdit() {
+  if (editingId && findMinute(editingId)) goDetail(editingId);
+  else if (currentCompany && companyMinutes(currentCompany).length) goCompany(currentCompany);
+  else goCustomers();
+  editingId = null;
+}
+
+newMinuteBtn.addEventListener("click", function () { goEdit(null, ""); });
+newForCompanyBtn.addEventListener("click", function () { goEdit(null, currentCompany); });
+companyBack.addEventListener("click", goCustomers);
+detailBack.addEventListener("click", function () { goCompany(currentCompany); });
+editBack.addEventListener("click", leaveEdit);
+formCancel.addEventListener("click", leaveEdit);
+detailEditBtn.addEventListener("click", function () { goEdit(currentId, null); });
+
+/* ---------- 画面1: 顧客一覧 ---------- */
+
+searchInput.addEventListener("input", function () {
+  searchQuery = searchInput.value.trim().toLowerCase();
+  renderCustomers();
+});
+
+customerSort.addEventListener("change", function () {
+  sortMode = customerSort.value;
+  renderCustomers();
+});
+
+function buildCustomers() {
+  const map = {};
+
+  minutes.forEach(function (m) {
+    const name = m.company || "（会社名なし）";
+    if (!map[name]) map[name] = { company: name, count: 0, latest: "", persons: [], items: [] };
+    const entry = map[name];
+    entry.count += 1;
+    entry.items.push(m);
+    if ((m.datetime || "") > entry.latest) entry.latest = m.datetime || "";
+    if (m.person && entry.persons.indexOf(m.person) === -1) entry.persons.push(m.person);
+  });
+
+  let customers = Object.keys(map).map(function (key) { return map[key]; });
+
+  if (searchQuery) {
+    customers = customers.filter(function (c) {
+      if (c.company.toLowerCase().indexOf(searchQuery) !== -1) return true;
+      return c.items.some(function (m) {
+        return (m.person + " " + m.body).toLowerCase().indexOf(searchQuery) !== -1;
+      });
+    });
+  }
+
+  customers.sort(function (a, b) {
+    if (sortMode === "name") return a.company.localeCompare(b.company, "ja");
+    if (sortMode === "count") {
+      if (b.count !== a.count) return b.count - a.count;
+      return a.company.localeCompare(b.company, "ja");
+    }
+    return (b.latest || "").localeCompare(a.latest || "");
+  });
+
+  return customers;
+}
+
+function renderSummary() {
+  const total = minutes.length;
+  if (!total) {
+    summary.innerHTML = "";
+    return;
+  }
+  const web = minutes.filter(function (m) { return m.format === "web"; }).length;
+  const companies = buildCustomersCount();
+  summary.innerHTML = [
+    '<span class="stat-chip">顧客 ' + companies + " 社</span>",
+    '<span class="stat-chip">議事録 ' + total + " 件</span>",
+    '<span class="stat-chip">WEB ' + web + " 件</span>",
+    '<span class="stat-chip">対面 ' + (total - web) + " 件</span>",
+  ].join("");
+}
+
+function buildCustomersCount() {
+  const seen = {};
+  minutes.forEach(function (m) { seen[m.company || "（会社名なし）"] = true; });
+  return Object.keys(seen).length;
+}
+
+function renderCustomers() {
+  renderSummary();
+
+  const customers = buildCustomers();
+  customerList.innerHTML = "";
+
+  customers.forEach(function (c) {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "customer-item";
+
+    const persons = c.persons.slice(0, 3).join("、") + (c.persons.length > 3 ? " ほか" : "");
+
+    btn.innerHTML =
+      '<div class="customer-main">' +
+        '<div class="customer-name">' + escapeHtml(c.company) + "</div>" +
+        '<div class="customer-meta">' +
+          "<span>最終 " + escapeHtml(formatDateOnly(c.latest)) + "</span>" +
+          (persons ? '<span class="customer-persons">' + escapeHtml(persons) + "</span>" : "") +
+        "</div>" +
+      "</div>" +
+      '<span class="customer-count">' + c.count + " 件</span>" +
+      ICON_CHEVRON;
+
+    btn.addEventListener("click", function () { goCompany(c.company); });
+    li.appendChild(btn);
+    customerList.appendChild(li);
+  });
+
+  customersEmpty.hidden = customers.length > 0;
+  customersEmptyText.textContent = !loaded
+    ? "読み込み中…"
+    : minutes.length
+    ? "検索条件に一致する顧客がいません。"
+    : "議事録はまだありません。「＋ 新しい議事録」から作成してください。";
+}
+
+/* ---------- 画面2: 顧客ごとの議事録一覧 ---------- */
+
+function renderCompany() {
+  const items = companyMinutes(currentCompany);
+
+  companyTitle.textContent = currentCompany;
+  companySub.textContent = items.length
+    ? "議事録 " + items.length + " 件／日付をクリックすると内容が表示されます。"
+    : "議事録がありません。";
+
+  dateList.innerHTML = "";
+
+  items.forEach(function (m) {
+    const li = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "date-item format-" + m.format;
+
+    const preview = m.body ? m.body.replace(/\\s+/g, " ").slice(0, 60) : "内容の記載はありません";
+
+    btn.innerHTML =
+      '<div class="date-main">' +
+        '<div class="date-row">' +
+          '<span class="date-label">' + escapeHtml(formatDateTime(m.datetime)) + "</span>" +
+          '<span class="format-badge format-' + m.format + '">' + FORMAT_LABELS[m.format] + "</span>" +
+          (m.person ? '<span class="person-badge">' + escapeHtml(m.person) + "</span>" : "") +
+        "</div>" +
+        '<div class="date-preview">' + escapeHtml(preview) + "</div>" +
+      "</div>" +
+      ICON_CHEVRON;
+
+    btn.addEventListener("click", function () { goDetail(m.id); });
+    li.appendChild(btn);
+    dateList.appendChild(li);
+  });
+
+  companyEmpty.hidden = items.length > 0;
+  exportBtn.hidden = items.length === 0;
+}
+
+/* ---------- 画面3: 議事録（表示） ---------- */
+
+function renderDetail() {
+  const m = findMinute(currentId);
+  if (!m) {
+    goCompany(currentCompany);
+    return;
+  }
+
+  detailBackLabel.textContent = m.company + " の一覧にもどる";
+  detailDatetime.textContent = formatDateTime(m.datetime);
+  detailFormat.textContent = FORMAT_LABELS[m.format];
+  detailFormat.className = "format-badge format-" + m.format;
+  detailCompany.textContent = m.company;
+  detailPerson.textContent = m.person || "—";
+  detailUpdated.textContent = m.updatedAt ? formatDateTime(m.updatedAt) : "—";
+
+  detailBody.textContent = m.body || "内容の記載はありません";
+  detailBody.className = m.body ? "record-body" : "record-body empty";
+}
+
+detailCopyBtn.addEventListener("click", async function () {
+  const m = findMinute(currentId);
+  if (!m) return;
+  const text = minuteToText(m);
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("議事録をコピーしました。", null);
+  } catch (err) {
+    showTextFallback("コピーできなかったため、テキストを表示しました。選択してコピーしてください。", text);
+  }
+});
+
+detailDeleteBtn.addEventListener("click", function () {
+  pendingDeleteId = currentId;
+  confirmModal.hidden = false;
+});
+
+/* ---------- 画面3: 入力・編集 ---------- */
+
+function getFormatValue() {
+  const checked = form.querySelector('input[name="format"]:checked');
+  return checked ? checked.value : "web";
+}
+
+function setFormatValue(value) {
+  const target = form.querySelector('input[name="format"][value="' + value + '"]');
+  if (target) target.checked = true;
+}
+
+function updateBodyCount() {
+  const len = bodyInput.value.length;
+  bodyCount.textContent = len ? len + "文字" : "";
+}
+
+bodyInput.addEventListener("input", updateBodyCount);
+
+function renderCompanyDatalist() {
+  const seen = {};
+  const companies = [];
+  minutes.forEach(function (m) {
+    if (m.company && !seen[m.company]) {
+      seen[m.company] = true;
+      companies.push(m.company);
+    }
+  });
+  companies.sort(function (a, b) { return a.localeCompare(b, "ja"); });
+  companyDatalist.innerHTML = companies
+    .map(function (c) { return '<option value="' + escapeHtml(c) + '"></option>'; })
+    .join("");
+}
+
+form.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const company = companyInput.value.trim();
+  if (!company) return;
+
+  const payload = {
+    id: editingId || "",
+    datetime: datetimeInput.value,
+    company: company,
+    person: personInput.value.trim(),
+    format: getFormatValue(),
+    body: bodyInput.value,
+  };
+
+  submitBtn.disabled = true;
+  const originalLabel = submitBtn.textContent;
+  submitBtn.textContent = "保存中…";
+
+  try {
+    const saved = await callApi("saveMinute", payload);
+    const index = minutes.findIndex(function (m) { return m.id === saved.id; });
+    if (index >= 0) minutes[index] = saved;
+    else minutes.push(saved);
+
+    syncStatus.textContent = "最終更新 " + nowLabel();
+    editingId = null;
+    currentCompany = saved.company;
+    goDetail(saved.id);
+    showToast("保存しました。", null);
+  } catch (err) {
+    showToast("保存できませんでした: " + errorText(err), null);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalLabel;
+  }
+});
+
+/* ---------- 書き出し・コピー ---------- */
+
+function showTextFallback(title, text) {
+  textModalTitle.textContent = title;
+  textModalArea.value = text;
+  textModal.hidden = false;
+  textModalArea.focus();
+  textModalArea.select();
+}
+
+textModalClose.addEventListener("click", function () { textModal.hidden = true; });
+
+textModal.addEventListener("click", function (e) {
+  if (e.target === textModal) textModal.hidden = true;
+});
+
+exportBtn.addEventListener("click", function () {
+  const items = companyMinutes(currentCompany);
+  if (!items.length) {
+    showToast("書き出す議事録がありません。", null);
+    return;
+  }
+  const text = items.map(minuteToText).join("\\n\\n" + new Array(33).join("-") + "\\n\\n");
+
+  try {
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "議事録_" + currentCompany + "_" + new Date().toISOString().slice(0, 10) + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    showTextFallback("ダウンロードできなかったため、テキストを表示しました。選択してコピーしてください。", text);
+  }
+});
+
+/* ---------- 削除と取り消し ---------- */
+
+confirmCancelBtn.addEventListener("click", function () {
+  pendingDeleteId = null;
+  confirmModal.hidden = true;
+});
+
+confirmModal.addEventListener("click", function (e) {
+  if (e.target === confirmModal) {
+    pendingDeleteId = null;
+    confirmModal.hidden = true;
+  }
+});
+
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Escape") return;
+  if (!confirmModal.hidden) {
+    pendingDeleteId = null;
+    confirmModal.hidden = true;
+  }
+  if (!textModal.hidden) textModal.hidden = true;
+});
+
+confirmDeleteBtn.addEventListener("click", async function () {
+  const id = pendingDeleteId;
+  pendingDeleteId = null;
+  confirmModal.hidden = true;
+  if (!id) return;
+
+  const index = minutes.findIndex(function (m) { return m.id === id; });
+  if (index === -1) return;
+  const removed = minutes[index];
+  const company = removed.company;
+
+  minutes.splice(index, 1);
+  if (companyMinutes(company).length) goCompany(company);
+  else goCustomers();
+
+  try {
+    await callApi("deleteMinute", id);
+    showToast("「" + company + "」の議事録（" + formatDateOnly(removed.datetime) + "）を削除しました。", async function () {
+      try {
+        const restored = await callApi("saveMinute", removed);
+        minutes.push(restored);
+        goDetail(restored.id);
+      } catch (err) {
+        showToast("元に戻せませんでした: " + errorText(err), null);
+        refresh({ silent: true });
+      }
+    });
+  } catch (err) {
+    minutes.splice(index, 0, removed);
+    renderCurrentView();
+    showToast("削除できませんでした: " + errorText(err), null);
+  }
+});
+
+/* ---------- トースト ---------- */
+
+function showToast(message, onUndo) {
+  if (toastState) clearTimeout(toastState.timer);
+  undoMessage.textContent = message;
+  undoBtn.hidden = !onUndo;
+  undoToast.hidden = false;
+  toastState = {
+    onUndo: onUndo,
+    timer: setTimeout(function () {
+      undoToast.hidden = true;
+      toastState = null;
+    }, TOAST_TIMEOUT_MS),
+  };
+}
+
+undoBtn.addEventListener("click", function () {
+  if (!toastState || !toastState.onUndo) return;
+  clearTimeout(toastState.timer);
+  const onUndo = toastState.onUndo;
+  toastState = null;
+  undoToast.hidden = true;
+  onUndo();
+});
+
+/* ---------- 再描画 ---------- */
+
+function renderCurrentView() {
+  if (view === "customers") {
+    renderCustomers();
+    return;
+  }
+
+  if (view === "company") {
+    // 他の端末で最後の1件が削除された場合は顧客一覧へ戻す
+    if (!companyMinutes(currentCompany).length) {
+      goCustomers();
+      return;
+    }
+    renderCompany();
+    return;
+  }
+
+  if (view === "detail") {
+    if (!findMinute(currentId)) {
+      if (companyMinutes(currentCompany).length) goCompany(currentCompany);
+      else goCustomers();
+      return;
+    }
+    renderDetail();
+    return;
+  }
+
+  // 編集中は入力内容を保持するため、会社名の候補だけ更新する
+  renderCompanyDatalist();
+}
+
+renderCustomers();
+refresh();
+</script>
+</body>
+</html>
+`;
+
+const SHEET_NAME = "議事録";
+const HEADERS = ["id", "日時", "会社名", "担当者名", "形式", "内容", "更新日時"];
+
+/* ---------- Web アプリ ---------- */
+
+function doGet() {
+  return HtmlService.createHtmlOutput(HTML_PAGE)
+    .setTitle("議事録管理")
+    .addMetaTag("viewport", "width=device-width, initial-scale=1");
+}
+
+/* ---------- シート ---------- */
+
+function getSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+  }
+
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(HEADERS);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
+    sheet.getRange("B:B").setNumberFormat("yyyy/mm/dd hh:mm");
+    sheet.getRange("G:G").setNumberFormat("yyyy/mm/dd hh:mm");
+    sheet.setColumnWidth(1, 140);
+    sheet.setColumnWidth(2, 140);
+    sheet.setColumnWidth(3, 180);
+    sheet.setColumnWidth(4, 120);
+    sheet.setColumnWidth(5, 70);
+    sheet.setColumnWidth(6, 460);
+    sheet.setColumnWidth(7, 140);
+    sheet.getRange("F:F").setWrap(true).setVerticalAlignment("top");
+  }
+
+  return sheet;
+}
+
+function findRow_(sheet, id) {
+  const last = sheet.getLastRow();
+  if (last < 2) return -1;
+  const ids = sheet.getRange(2, 1, last - 1, 1).getValues();
+  for (let i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === id) return i + 2;
+  }
+  return -1;
+}
+
+/* ---------- 日時の変換 ---------- */
+
+function timezone_() {
+  return Session.getScriptTimeZone();
+}
+
+/** シートの値 → <input type="datetime-local"> 用の文字列 */
+function toInputDate_(value) {
+  if (!value) return "";
+  if (Object.prototype.toString.call(value) === "[object Date]") {
+    return Utilities.formatDate(value, timezone_(), "yyyy-MM-dd'T'HH:mm");
+  }
+  return String(value).slice(0, 16);
+}
+
+/** <input type="datetime-local"> の文字列 → シートに書く Date */
+function fromInputDate_(text) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(text || ""));
+  if (!m) return "";
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]));
+}
+
+/* ---------- 行 ↔ オブジェクト ---------- */
+
+function rowToMinute_(row) {
+  return {
+    id: String(row[0]),
+    datetime: toInputDate_(row[1]),
+    company: String(row[2] == null ? "" : row[2]),
+    person: String(row[3] == null ? "" : row[3]),
+    format: String(row[4]) === "対面" ? "onsite" : "web",
+    body: String(row[5] == null ? "" : row[5]),
+    updatedAt: toInputDate_(row[6]),
+  };
+}
+
+function minuteToRow_(minute, updatedAt) {
+  return [
+    minute.id,
+    fromInputDate_(minute.datetime),
+    minute.company,
+    minute.person,
+    minute.format === "onsite" ? "対面" : "WEB",
+    minute.body,
+    updatedAt,
+  ];
+}
+
+/* ---------- API（画面から google.script.run で呼び出す） ---------- */
+
+function listMinutes() {
+  const sheet = getSheet_();
+  const last = sheet.getLastRow();
+  if (last < 2) return [];
+  return sheet
+    .getRange(2, 1, last - 1, HEADERS.length)
+    .getValues()
+    .filter(function (row) {
+      return row[0] !== "" && row[0] != null;
+    })
+    .map(rowToMinute_);
+}
+
+function saveMinute(input) {
+  const company = String((input && input.company) || "").trim();
+  if (!company) throw new Error("会社名を入力してください。");
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sheet = getSheet_();
+    const now = new Date();
+    const minute = {
+      id: input.id ? String(input.id) : "m" + Date.now() + Math.floor(Math.random() * 1000),
+      datetime: String(input.datetime || ""),
+      company: company,
+      person: String(input.person || "").trim(),
+      format: input.format === "onsite" ? "onsite" : "web",
+      body: String(input.body || "").trim(),
+      updatedAt: toInputDate_(now),
+    };
+
+    const row = minuteToRow_(minute, now);
+    const rowIndex = findRow_(sheet, minute.id);
+    if (rowIndex > 0) {
+      sheet.getRange(rowIndex, 1, 1, HEADERS.length).setValues([row]);
+    } else {
+      sheet.appendRow(row);
+    }
+
+    return minute;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function deleteMinute(id) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sheet = getSheet_();
+    const rowIndex = findRow_(sheet, String(id));
+    if (rowIndex < 0) return null;
+    const removed = rowToMinute_(sheet.getRange(rowIndex, 1, 1, HEADERS.length).getValues()[0]);
+    sheet.deleteRow(rowIndex);
+    return removed;
+  } finally {
+    lock.releaseLock();
+  }
+}
