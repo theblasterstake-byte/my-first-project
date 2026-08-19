@@ -411,16 +411,20 @@ function buildLeaderRow(title, name) {
   const row = document.createElement("div");
   row.className = "leader";
 
-  const titleEl = document.createElement("span");
-  titleEl.className = "title";
-  titleEl.textContent = title || "責任者";
+  if (title) {
+    const titleEl = document.createElement("span");
+    titleEl.className = "title";
+    titleEl.textContent = title;
+    row.appendChild(titleEl);
+  }
 
-  const nameEl = document.createElement("span");
-  nameEl.className = "name";
-  nameEl.textContent = name || "（未設定）";
-  if (!name) row.classList.add("vacant");
+  if (name) {
+    const nameEl = document.createElement("span");
+    nameEl.className = "name";
+    nameEl.textContent = name;
+    row.appendChild(nameEl);
+  }
 
-  row.append(titleEl, nameEl);
   return row;
 }
 
@@ -436,18 +440,14 @@ function buildCard(dept) {
   name.textContent = dept.name;
   card.appendChild(name);
 
-  const leaders = document.createElement("div");
-  leaders.className = "leaders";
   if (dept.leaders.length) {
+    const leaders = document.createElement("div");
+    leaders.className = "leaders";
     for (const leader of dept.leaders) {
       leaders.appendChild(buildLeaderRow(leader.title, leader.name));
     }
-  } else {
-    const vacant = buildLeaderRow("責任者", "（未設定）");
-    vacant.classList.add("vacant");
-    leaders.appendChild(vacant);
+    card.appendChild(leaders);
   }
-  card.appendChild(leaders);
 
   if (toggleMembers.checked && dept.members.length) {
     const members = document.createElement("div");
