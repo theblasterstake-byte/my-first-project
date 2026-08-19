@@ -90,7 +90,11 @@ function normalizeTask(t, i) {
 }
 
 function saveTasks() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  } catch (err) {
+    console.warn("タスクの保存に失敗しました:", err);
+  }
 }
 
 function priorityLabel(priority) {
@@ -558,7 +562,7 @@ function reorderTasks(draggedId, targetId) {
 }
 
 function addTask(title, priority, category, createdAt, due, notes) {
-  tasks.unshift({
+  const task = {
     id: crypto.randomUUID(),
     title,
     priority,
@@ -568,9 +572,32 @@ function addTask(title, priority, category, createdAt, due, notes) {
     notes: notes || "",
     done: false,
     subtasks: [],
-  });
+  };
+  tasks.unshift(task);
+  ensureTaskVisible(task);
   saveTasks();
   render();
+}
+
+// Reset any active filter that would hide a task the user just created,
+// so pressing 追加 always shows the new task instead of seeming to vanish.
+function ensureTaskVisible(task) {
+  if (statusFilter === "done") {
+    statusFilter = "all";
+    filterBtns.forEach((b) => b.classList.toggle("active", b.dataset.filter === "all"));
+  }
+  if (categoryFilter && categoryFilter !== task.category) {
+    categoryFilter = "";
+    categoryFilterSelect.value = "";
+  }
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    const haystack = `${task.title} ${task.notes} ${task.category}`.toLowerCase();
+    if (!haystack.includes(q)) {
+      searchQuery = "";
+      searchInput.value = "";
+    }
+  }
 }
 
 function toggleTask(id) {
