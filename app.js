@@ -351,7 +351,7 @@ function renderTaskItem(task, dragEnabled) {
   const editBtn = document.createElement("button");
   editBtn.type = "button";
   editBtn.className = "edit-btn";
-  editBtn.innerHTML = ICON_EDIT;
+  editBtn.innerHTML = `${ICON_EDIT}<span>編集</span>`;
   editBtn.setAttribute("aria-label", "編集");
   editBtn.title = "編集";
   editBtn.addEventListener("click", () => {
