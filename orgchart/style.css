@@ -89,10 +89,34 @@ h1 { font-size: 1.5rem; margin: 0; letter-spacing: .02em; }
 /* ---------- layout ---------- */
 .layout {
   display: grid;
-  grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: var(--side-width, 380px) 12px minmax(0, 1fr);
+  gap: 14px;
   align-items: start;
 }
+
+/* パネル幅を変えるつまみ */
+.splitter {
+  align-self: stretch;
+  min-height: 120px;
+  position: relative;
+  cursor: col-resize;
+  border-radius: 999px;
+  touch-action: none;
+}
+.splitter::before {
+  content: "";
+  position: absolute;
+  inset: 0 4px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  transition: background .15s;
+}
+.splitter:hover::before,
+.splitter:focus-visible::before,
+body.resizing .splitter::before { background: var(--accent); }
+.splitter:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+body.resizing { cursor: col-resize; user-select: none; }
 
 .panel {
   background: var(--surface);
@@ -277,17 +301,22 @@ input[type="text"]:focus, select:focus, textarea:focus {
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 12px;
-  min-height: 340px;
+  height: var(--chart-height, 64vh);
+  min-height: 240px;
+  /* 下端のつまみで高さを自由に変えられる */
+  resize: vertical;
 }
+
+/* 拡大縮小した組織図の実寸を保持し、スクロールできるようにする */
+.chart-stage { margin: 0 auto; }
 
 .chart {
   display: flex;
   justify-content: center;
   gap: 24px;
-  transform-origin: top center;
-  transition: transform .12s ease-out;
+  transform-origin: top left;
   min-width: max-content;
-  margin: 0 auto;
+  width: max-content;
 }
 
 .empty {
@@ -398,6 +427,24 @@ input[type="text"]:focus, select:focus, textarea:focus {
   word-break: break-word;
 }
 
+/* ---------- 全画面表示 ---------- */
+body.chart-full { overflow: hidden; }
+
+body.chart-full .chart-panel {
+  position: fixed;
+  inset: 12px;
+  z-index: 60;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+body.chart-full .chart-scroll {
+  flex: 1;
+  height: auto !important;
+  resize: none;
+}
+
 /* ---------- modal ---------- */
 .modal {
   position: fixed;
@@ -426,6 +473,7 @@ input[type="text"]:focus, select:focus, textarea:focus {
 @media (max-width: 900px) {
   .app { padding: 16px; }
   .layout { grid-template-columns: 1fr; }
+  .splitter { display: none; }
   .row { grid-template-columns: 1fr; }
 }
 
@@ -435,7 +483,8 @@ input[type="text"]:focus, select:focus, textarea:focus {
   .app-header, .editor, .chart-tools { display: none !important; }
   .layout { display: block; }
   .panel { border: none; box-shadow: none; padding: 0; }
-  .chart-scroll { border: none; background: #fff; overflow: visible; }
+  .chart-scroll { border: none; background: #fff; overflow: visible; height: auto !important; resize: none; }
+  .splitter { display: none; }
   .chart { transform: none !important; }
   .card { break-inside: avoid; }
 }

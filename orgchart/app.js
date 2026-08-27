@@ -25,6 +25,11 @@ const cancelEditBtn = document.getElementById("cancel-edit");
 const deptList = document.getElementById("dept-list");
 const deptCount = document.getElementById("dept-count");
 
+const layout = document.querySelector(".layout");
+const splitter = document.getElementById("splitter");
+const chartPanel = document.querySelector(".chart-panel");
+const chartScroll = document.getElementById("chart-scroll");
+const chartStage = document.getElementById("chart-stage");
 const chart = document.getElementById("chart");
 const chartEmpty = document.getElementById("chart-empty");
 const toggleMembers = document.getElementById("toggle-members");
@@ -512,8 +517,36 @@ function renderChart() {
   const visited = new Set(top.map((d) => d.id));
   for (const dept of top) chart.appendChild(buildNode(dept, visited, 0));
 
+  applyZoom();
+}
+
+/** 拡大率を反映し、スクロールできるよう土台の実寸も合わせる */
+function applyZoom() {
   chart.style.transform = `scale(${zoom})`;
+  chartStage.style.width = `${chart.offsetWidth * zoom}px`;
+  chartStage.style.height = `${chart.offsetHeight * zoom}px`;
   zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+}
+
+const MIN_ZOOM = 0.2;
+const MAX_ZOOM = 2;
+
+function setZoom(value) {
+  zoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round(value * 100) / 100));
+  applyZoom();
+}
+
+/** 組織図全体が表示領域に収まる拡大率にする */
+function fitChartToView() {
+  if (!chart.offsetWidth || !chart.offsetHeight) return;
+
+  const style = getComputedStyle(chartScroll);
+  const availableWidth =
+    chartScroll.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  const availableHeight =
+    chartScroll.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+
+  setZoom(Math.min(availableWidth / chart.offsetWidth, availableHeight / chart.offsetHeight, MAX_ZOOM));
 }
 
 function render() {
@@ -527,15 +560,110 @@ function render() {
 
 toggleMembers.addEventListener("change", renderChart);
 
-document.getElementById("zoom-in").addEventListener("click", () => {
-  zoom = Math.min(1.6, Math.round((zoom + 0.1) * 10) / 10);
-  renderChart();
+document.getElementById("zoom-in").addEventListener("click", () => setZoom(zoom + 0.1));
+document.getElementById("zoom-out").addEventListener("click", () => setZoom(zoom - 0.1));
+document.getElementById("fit-btn").addEventListener("click", fitChartToView);
+
+const fullBtn = document.getElementById("full-btn");
+
+function setFullScreen(on) {
+  document.body.classList.toggle("chart-full", on);
+  fullBtn.textContent = on ? "全画面を終了" : "全画面";
+  // レイアウトが変わってから収まる倍率を計算する
+  requestAnimationFrame(fitChartToView);
+}
+
+fullBtn.addEventListener("click", () => setFullScreen(!document.body.classList.contains("chart-full")));
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && document.body.classList.contains("chart-full")) setFullScreen(false);
 });
 
-document.getElementById("zoom-out").addEventListener("click", () => {
-  zoom = Math.max(0.5, Math.round((zoom - 0.1) * 10) / 10);
-  renderChart();
+/* ---------------- パネルの大きさ ---------------- */
+
+const UI_KEY = "orgchart.ui";
+const DEFAULT_SIDE_WIDTH = 380;
+const MIN_SIDE_WIDTH = 260;
+
+let ui = loadUi();
+
+function loadUi() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(UI_KEY) || "{}");
+    return {
+      sideWidth: Number(saved.sideWidth) || DEFAULT_SIDE_WIDTH,
+      chartHeight: Number(saved.chartHeight) || 0,
+    };
+  } catch {
+    return { sideWidth: DEFAULT_SIDE_WIDTH, chartHeight: 0 };
+  }
+}
+
+function saveUi() {
+  try {
+    localStorage.setItem(UI_KEY, JSON.stringify(ui));
+  } catch {
+    /* 保存できない環境でも操作は続行する */
+  }
+}
+
+function applyUi() {
+  document.documentElement.style.setProperty("--side-width", `${ui.sideWidth}px`);
+  if (ui.chartHeight) chartScroll.style.height = `${ui.chartHeight}px`;
+}
+
+function setSideWidth(width) {
+  const bounds = layout.getBoundingClientRect();
+  const max = Math.max(MIN_SIDE_WIDTH, bounds.width - 380);
+  ui.sideWidth = Math.round(Math.min(Math.max(width, MIN_SIDE_WIDTH), max));
+  applyUi();
+}
+
+let resizingPanels = false;
+
+splitter.addEventListener("pointerdown", (event) => {
+  resizingPanels = true;
+  splitter.setPointerCapture(event.pointerId);
+  document.body.classList.add("resizing");
 });
+
+splitter.addEventListener("pointermove", (event) => {
+  if (!resizingPanels) return;
+  setSideWidth(event.clientX - layout.getBoundingClientRect().left);
+});
+
+function endPanelResize() {
+  if (!resizingPanels) return;
+  resizingPanels = false;
+  document.body.classList.remove("resizing");
+  saveUi();
+}
+
+splitter.addEventListener("pointerup", endPanelResize);
+splitter.addEventListener("pointercancel", endPanelResize);
+
+splitter.addEventListener("dblclick", () => {
+  setSideWidth(DEFAULT_SIDE_WIDTH);
+  saveUi();
+});
+
+splitter.addEventListener("keydown", (event) => {
+  const step = event.shiftKey ? 40 : 12;
+  if (event.key === "ArrowLeft") setSideWidth(ui.sideWidth - step);
+  else if (event.key === "ArrowRight") setSideWidth(ui.sideWidth + step);
+  else return;
+  event.preventDefault();
+  saveUi();
+});
+
+// 高さのつまみで変えた値を覚えておく
+let heightSaveTimer = 0;
+new ResizeObserver(() => {
+  if (document.body.classList.contains("chart-full")) return;
+  ui.chartHeight = chartScroll.offsetHeight;
+  clearTimeout(heightSaveTimer);
+  heightSaveTimer = setTimeout(saveUi, 400);
+}).observe(chartScroll);
 
 document.getElementById("print-btn").addEventListener("click", () => window.print());
 
@@ -942,5 +1070,6 @@ document.getElementById("sample-btn").addEventListener("click", () => {
 
 /* ---------------- init ---------------- */
 
+applyUi();
 resetForm();
 render();
