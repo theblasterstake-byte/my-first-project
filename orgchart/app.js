@@ -538,6 +538,12 @@ document.getElementById("print-btn").addEventListener("click", () => window.prin
  * 描き直し、その画像を 1 ページの PDF に収めて保存する。
  */
 
+/** CSS の色トークンを読み、canvas 描画と配色を揃える */
+function token(name, fallback) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return value || fallback;
+}
+
 function roundRectPath(ctx, x, y, w, h, radius) {
   const r = Math.min(radius, w / 2, h / 2);
   ctx.beginPath();
@@ -599,25 +605,28 @@ function drawCardToCanvas(ctx, card, rectOf) {
   // 部門名の帯と上端のアクセント
   const dept = card.querySelector(".dept");
   const deptRect = rectOf(dept);
-  ctx.fillStyle = "#eef2ff";
+  ctx.fillStyle = token("--accent-soft", "#e0e7ff");
   ctx.fillRect(r.x, r.y, r.w, deptRect.y + deptRect.h - r.y);
-  ctx.fillStyle = "#4f46e5";
+  ctx.fillStyle = token("--accent", "#4338ca");
   ctx.fillRect(r.x, r.y, r.w, 3);
-  ctx.fillStyle = "#e2e8f0";
+  ctx.fillStyle = token("--border", "#cbd5e1");
   ctx.fillRect(r.x, deptRect.y + deptRect.h - 1, r.w, 1);
 
   // メンバーの背景
   const memberItems = [...card.querySelectorAll(".members li")];
-  ctx.fillStyle = "#f8fafc";
   for (const li of memberItems) {
     const lr = rectOf(li);
     roundRectPath(ctx, lr.x, lr.y, lr.w, lr.h, 7);
+    ctx.fillStyle = token("--surface-2", "#f1f5f9");
     ctx.fill();
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }
 
   // 責任者どうし・責任者とメンバーの区切り線
   ctx.save();
-  ctx.strokeStyle = "#e2e8f0";
+  ctx.strokeStyle = "#b6c2d2";
   ctx.lineWidth = 1;
   ctx.setLineDash([3, 3]);
   const leaderRows = [...card.querySelectorAll(".leader")];
@@ -634,7 +643,7 @@ function drawCardToCanvas(ctx, card, rectOf) {
   ctx.restore();
 
   roundRectPath(ctx, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, 12);
-  ctx.strokeStyle = "#e2e8f0";
+  ctx.strokeStyle = token("--border", "#cbd5e1");
   ctx.lineWidth = 1;
   ctx.stroke();
 
@@ -658,7 +667,7 @@ function drawCardToCanvas(ctx, card, rectOf) {
 }
 
 function drawConnectorsToCanvas(ctx, rectOf) {
-  ctx.strokeStyle = "#cbd5e1";
+  ctx.strokeStyle = token("--line", "#94a3b8");
   ctx.lineWidth = 2;
 
   for (const node of chart.querySelectorAll(".node")) {
