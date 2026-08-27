@@ -379,7 +379,12 @@ function renderList() {
 
   for (const { dept, depth } of flattenTree()) {
     const li = document.createElement("li");
+    li.dataset.level = String(depth % LEVEL_COLORS);
     if (dept.id === editingId) li.classList.add("editing");
+
+    const dot = document.createElement("span");
+    dot.className = "level-dot";
+    dot.title = `第${depth + 1}階層`;
 
     const name = document.createElement("span");
     name.className = "name";
@@ -402,7 +407,7 @@ function renderList() {
     delBtn.textContent = "削除";
     delBtn.addEventListener("click", () => askDelete(dept.id));
 
-    li.append(name, meta, editBtn, delBtn);
+    li.append(dot, name, meta, editBtn, delBtn);
     deptList.appendChild(li);
   }
 }
@@ -428,9 +433,12 @@ function buildLeaderRow(title, name) {
   return row;
 }
 
-function buildCard(dept) {
+const LEVEL_COLORS = 6;
+
+function buildCard(dept, level) {
   const card = document.createElement("div");
   card.className = "card";
+  card.dataset.level = String(level % LEVEL_COLORS);
   if (dept.id === selectedId) card.classList.add("selected");
   card.tabIndex = 0;
   card.title = "クリックすると編集できます";
@@ -474,10 +482,10 @@ function buildCard(dept) {
   return card;
 }
 
-function buildNode(dept, visited) {
+function buildNode(dept, visited, level = 0) {
   const node = document.createElement("div");
   node.className = "node";
-  node.appendChild(buildCard(dept));
+  node.appendChild(buildCard(dept, level));
 
   const kids = childrenOf(dept.id).filter((c) => !visited.has(c.id));
   if (kids.length) {
@@ -487,7 +495,7 @@ function buildNode(dept, visited) {
       visited.add(child.id);
       const branch = document.createElement("div");
       branch.className = "branch";
-      branch.appendChild(buildNode(child, visited));
+      branch.appendChild(buildNode(child, visited, level + 1));
       children.appendChild(branch);
     }
     node.appendChild(children);
@@ -502,7 +510,7 @@ function renderChart() {
   chartEmpty.hidden = departments.length > 0;
 
   const visited = new Set(top.map((d) => d.id));
-  for (const dept of top) chart.appendChild(buildNode(dept, visited));
+  for (const dept of top) chart.appendChild(buildNode(dept, visited, 0));
 
   chart.style.transform = `scale(${zoom})`;
   zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
@@ -605,10 +613,11 @@ function drawCardToCanvas(ctx, card, rectOf) {
   // 部門名の帯と上端のアクセント
   const dept = card.querySelector(".dept");
   const deptRect = rectOf(dept);
-  ctx.fillStyle = token("--accent-soft", "#e0e7ff");
+  const cardStyle = getComputedStyle(card);
+  ctx.fillStyle = cardStyle.getPropertyValue("--card-band").trim() || "#e0e7ff";
   ctx.fillRect(r.x, r.y, r.w, deptRect.y + deptRect.h - r.y);
-  ctx.fillStyle = token("--accent", "#4338ca");
-  ctx.fillRect(r.x, r.y, r.w, 3);
+  ctx.fillStyle = cardStyle.getPropertyValue("--card-bar").trim() || "#4338ca";
+  ctx.fillRect(r.x, r.y, r.w, 4);
   ctx.fillStyle = token("--border", "#cbd5e1");
   ctx.fillRect(r.x, deptRect.y + deptRect.h - 1, r.w, 1);
 

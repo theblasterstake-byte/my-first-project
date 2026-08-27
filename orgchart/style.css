@@ -228,6 +228,14 @@ input[type="text"]:focus, select:focus, textarea:focus {
 }
 .dept-list li.editing { border-color: var(--accent); background: var(--accent-soft); }
 
+.dept-list .level-dot {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--card-bar);
+}
+
 .dept-list .name { flex: 1; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dept-list .depth { color: var(--muted); font-size: .84rem; font-weight: 600; }
 .dept-list .mini {
@@ -336,12 +344,20 @@ input[type="text"]:focus, select:focus, textarea:focus {
 .branch:last-child::after { right: 50%; }
 .branch:only-child::after { display: none; }
 
+/* 階層ごとの配色（同じ段＝同じ色、6段で一巡） */
+[data-level] { --card-bar: #4338ca; --card-band: #e0e7ff; --card-ink: #312e81; }
+[data-level="1"] { --card-bar: #0d9488; --card-band: #cdfaf2; --card-ink: #115e59; }
+[data-level="2"] { --card-bar: #c2410c; --card-band: #ffedd5; --card-ink: #7c2d12; }
+[data-level="3"] { --card-bar: #be185d; --card-band: #fce7f3; --card-ink: #9d174d; }
+[data-level="4"] { --card-bar: #7e22ce; --card-band: #f3e8ff; --card-ink: #6b21a8; }
+[data-level="5"] { --card-bar: #15803d; --card-band: #dcfce7; --card-ink: #14532d; }
+
 /* card */
 .card {
   width: 252px;
   background: #fff;
   border: 1px solid var(--border);
-  border-top: 3px solid var(--accent);
+  border-top: 4px solid var(--card-bar);
   border-radius: 12px;
   box-shadow: var(--shadow);
   overflow: hidden;
@@ -350,14 +366,14 @@ input[type="text"]:focus, select:focus, textarea:focus {
   transition: box-shadow .15s, border-color .15s, transform .1s;
 }
 .card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(15, 23, 42, .12); }
-.card.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 70, 229, .16); }
+.card.selected { border-color: var(--card-bar); box-shadow: 0 0 0 3px rgba(67, 56, 202, .22); }
 
 .card .dept {
   font-weight: 700;
   font-size: 1.12rem;
   padding: 11px 12px;
-  background: var(--accent-soft);
-  color: var(--accent-ink);
+  background: var(--card-band);
+  color: var(--card-ink);
   border-bottom: 1px solid var(--border);
   word-break: break-word;
 }
