@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>請求書メーカー | AI Consultant</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar no-print">
+  <h1>請求書メーカー</h1>
+  <div class="topbar-actions">
+    <button type="button" id="btn-reset" class="btn btn-ghost">入力クリア</button>
+    <button type="button" id="btn-pdf" class="btn btn-primary">PDFで発行</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- ============ 入力フォーム ============ -->
+  <section class="panel no-print" aria-label="入力フォーム">
+
+    <div class="card">
+      <h2>基本情報</h2>
+      <div class="grid2">
+        <label>発行日
+          <input type="date" id="issueDate">
+        </label>
+        <label>支払期限（自動）
+          <input type="text" id="dueDateView" readonly class="readonly">
+        </label>
+      </div>
+      <div class="grid2">
+        <label>請求書番号
+          <input type="text" id="invoiceNo" placeholder="IAI-2026-001">
+        </label>
+        <label>件名
+          <input type="text" id="subject" placeholder="AIコンサルティング業務">
+        </label>
+      </div>
+      <label>宛先会社名
+        <input type="text" id="clientName" placeholder="株式会社〇〇">
+      </label>
+      <label class="inline-check">
+        <input type="checkbox" id="clientHonorific" checked>
+        <span>「御中」を付ける</span>
+      </label>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>明細</h2>
+        <button type="button" id="btn-add" class="btn btn-small">＋ 行を追加</button>
+      </div>
+      <div class="items-head">
+        <span>品目</span><span>数量</span><span>単位</span><span>単価</span><span></span>
+      </div>
+      <div id="items"></div>
+    </div>
+
+    <div class="card">
+      <h2>備考</h2>
+      <textarea id="notes" rows="4" placeholder="お振込手数料は貴社にてご負担願います。"></textarea>
+    </div>
+
+    <div class="card fixed-info">
+      <h2>固定情報（変更不要）</h2>
+      <ul>
+        <li><b>発行者</b>　AI Consultant ／ 伊藤 剛</li>
+        <li><b>住所</b>　〒603-8312 京都市北区紫野中柏野町12-22</li>
+        <li><b>TEL</b>　080-1431-0069</li>
+        <li><b>振込先</b>　京都銀行 河原町支店 普通 3869768 イトウタケシ</li>
+        <li><b>消費税</b>　10%（固定）</li>
+        <li><b>支払期限</b>　発行日と同じ月の25日（自動計算）</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ プレビュー（そのまま印刷される） ============ -->
+  <section class="preview-wrap" aria-label="プレビュー">
+    <div class="sheet" id="sheet">
+
+      <h1 class="doc-title">請 求 書</h1>
+
+      <div class="meta-row">
+        <div class="meta-left">
+          <div class="client" id="pvClient">株式会社〇〇 御中</div>
+          <table class="meta-table">
+            <tr><th>件　名</th><td id="pvSubject">—</td></tr>
+            <tr><th>発行日</th><td id="pvIssue">—</td></tr>
+            <tr><th>支払期限</th><td id="pvDue">—</td></tr>
+            <tr><th>請求書番号</th><td id="pvNo">—</td></tr>
+          </table>
+        </div>
+
+        <div class="meta-right">
+          <div class="issuer">
+            <div class="issuer-name">AI Consultant</div>
+            <div class="issuer-person">伊藤 剛</div>
+            <div class="issuer-line">〒603-8312</div>
+            <div class="issuer-line">京都市北区紫野中柏野町12-22</div>
+            <div class="issuer-line">TEL 080-1431-0069</div>
+          </div>
+          <div class="seal" id="sealMount"></div>
+        </div>
+      </div>
+
+      <div class="total-banner">
+        <span class="total-banner-label">ご請求金額</span>
+        <span class="total-banner-value" id="pvGrand">¥0</span>
+      </div>
+      <p class="lead">下記の通りご請求申し上げます。</p>
+
+      <table class="detail">
+        <thead>
+          <tr>
+            <th class="c-name">品　目</th>
+            <th class="c-qty">数量</th>
+            <th class="c-unit">単位</th>
+            <th class="c-price">単価</th>
+            <th class="c-amount">金額</th>
+          </tr>
+        </thead>
+        <tbody id="pvItems"></tbody>
+      </table>
+
+      <div class="bottom">
+        <div class="bank">
+          <h3>お振込先</h3>
+          <table>
+            <tr><th>銀行名</th><td>京都銀行　河原町支店</td></tr>
+            <tr><th>口座種別</th><td>普通</td></tr>
+            <tr><th>口座番号</th><td>3869768</td></tr>
+            <tr><th>口座名義</th><td>イトウタケシ</td></tr>
+          </table>
+          <div class="notes-box">
+            <h3>備考</h3>
+            <p id="pvNotes"></p>
+          </div>
+        </div>
+
+        <table class="sum">
+          <tr><th>小計</th><td id="pvSub">¥0</td></tr>
+          <tr><th>消費税（10%）</th><td id="pvTax">¥0</td></tr>
+          <tr class="sum-total"><th>合計</th><td id="pvTotal">¥0</td></tr>
+        </table>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
