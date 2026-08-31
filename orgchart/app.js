@@ -928,8 +928,8 @@ function drawConnectorsToCanvas(ctx, rectOf) {
 
 const STATUS_COLORS = {
   recruiting: "#c02626",
-  leaving: "#6b7280",
-  leave: "#6b7280",
+  leaving: "#aeb6c2",
+  leave: "#aeb6c2",
 };
 
 function statusesInUse() {
@@ -946,7 +946,7 @@ function statusesInUse() {
 function drawLegend(ctx, statuses, fontFamily) {
   let x = 2;
   for (const status of statuses) {
-    const color = STATUS_COLORS[status.value] || "#6b7280";
+    const color = STATUS_COLORS[status.value] || "#aeb6c2";
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(x + 5, 10, 5, 0, Math.PI * 2);

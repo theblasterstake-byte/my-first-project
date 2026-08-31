@@ -390,8 +390,8 @@ input[type="text"]:focus, select:focus, textarea:focus {
 
 /* 人の状態 */
 .status-recruiting { color: #c02626; font-weight: 700; }
-.status-leaving { color: #6b7280; }
-.status-leave { color: #6b7280; font-style: italic; }
+.status-leaving { color: #aeb6c2; }
+.status-leave { color: #aeb6c2; font-style: italic; }
 
 .card .members li.status-recruiting {
   color: #c02626;
@@ -400,7 +400,7 @@ input[type="text"]:focus, select:focus, textarea:focus {
 }
 .card .members li.status-leaving,
 .card .members li.status-leave {
-  color: #6b7280;
+  color: #aeb6c2;
   background: #f1f5f9;
   border-color: #d7dee7;
 }
@@ -410,7 +410,7 @@ input[type="text"]:focus, select:focus, textarea:focus {
 .card .leader.status-leaving .title,
 .card .leader.status-leaving .name,
 .card .leader.status-leave .title,
-.card .leader.status-leave .name { color: #6b7280; }
+.card .leader.status-leave .name { color: #aeb6c2; }
 .card .leader.status-leave .title,
 .card .leader.status-leave .name { font-style: italic; }
 
