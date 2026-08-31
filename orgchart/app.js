@@ -1,7 +1,24 @@
 const STORAGE_KEY = "orgchart.departments";
 
-/** @typedef {{title:string, name:string}} Leader */
-/** @typedef {{id:string, name:string, parentId:string|null, leaders:Leader[], members:string[]}} Department */
+/** @typedef {"" | "recruiting" | "leaving" | "leave"} PersonStatus */
+/** @typedef {{title:string, name:string, status:PersonStatus}} Leader */
+/** @typedef {{name:string, status:PersonStatus}} Member */
+/** @typedef {{id:string, name:string, parentId:string|null, leaders:Leader[], members:Member[]}} Department */
+
+/** 人の状態（募集中は赤、退職予定・休職はグレーで表示する） */
+const STATUS_OPTIONS = [
+  { value: "", label: "通常" },
+  { value: "recruiting", label: "募集中" },
+  { value: "leaving", label: "退職予定" },
+  { value: "leave", label: "休職・産育休" },
+];
+
+const STATUS_VALUES = STATUS_OPTIONS.map((option) => option.value);
+
+function normalizeStatus(value) {
+  const status = String(value ?? "").trim();
+  return STATUS_VALUES.includes(status) ? status : "";
+}
 
 /** @type {Department[]} */
 let departments = load();
@@ -15,7 +32,8 @@ const nameInput = document.getElementById("dept-name");
 const parentSelect = document.getElementById("parent-select");
 const leaderRows = document.getElementById("leader-rows");
 const addLeaderBtn = document.getElementById("add-leader");
-const membersInput = document.getElementById("members-input");
+const memberRows = document.getElementById("member-rows");
+const addMemberBtn = document.getElementById("add-member");
 const titleList = document.getElementById("title-list");
 
 const formMode = document.getElementById("form-mode");
@@ -72,10 +90,20 @@ function normalize(raw) {
     name,
     parentId: raw.parentId ? String(raw.parentId) : null,
     leaders: normalizeLeaders(raw),
-    members: Array.isArray(raw.members)
-      ? raw.members.map((m) => String(m).trim()).filter(Boolean)
-      : parseMembers(String(raw.members ?? "")),
+    members: normalizeMembers(raw.members),
   };
+}
+
+/** メンバーは氏名だけの旧形式(文字列)でも読めるようにする */
+function normalizeMembers(raw) {
+  const list = Array.isArray(raw) ? raw : parseNames(String(raw ?? ""));
+  return list
+    .map((member) =>
+      typeof member === "string"
+        ? { name: member.trim(), status: "" }
+        : { name: String(member?.name ?? "").trim(), status: normalizeStatus(member?.status) }
+    )
+    .filter((member) => member.name);
 }
 
 /** 旧形式(leaderTitle / leaderName)のデータも読めるようにする */
@@ -85,6 +113,7 @@ function normalizeLeaders(raw) {
     .map((leader) => ({
       title: String(leader?.title ?? "").trim(),
       name: String(leader?.name ?? "").trim(),
+      status: normalizeStatus(leader?.status),
     }))
     .filter((leader) => leader.title || leader.name);
 
@@ -92,6 +121,7 @@ function normalizeLeaders(raw) {
     leaders.push({
       title: String(raw.leaderTitle ?? "").trim(),
       name: String(raw.leaderName ?? "").trim(),
+      status: "",
     });
   }
   return leaders;
@@ -103,7 +133,7 @@ function createId() {
 
 /* ---------------- helpers ---------------- */
 
-function parseMembers(text) {
+function parseNames(text) {
   return text
     .split(/[\n,、，;；]/)
     .map((s) => s.trim())
@@ -203,65 +233,124 @@ function renderTitleSuggestions() {
   }
 }
 
-function addLeaderRow(title = "", name = "", focus = false) {
+function createStatusSelect(status) {
+  const select = document.createElement("select");
+  select.className = "status-select";
+  select.setAttribute("aria-label", "状態");
+  for (const option of STATUS_OPTIONS) {
+    const el = document.createElement("option");
+    el.value = option.value;
+    el.textContent = option.label;
+    select.appendChild(el);
+  }
+  select.value = status;
+  return select;
+}
+
+function createTextInput(className, placeholder, label, value) {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = className;
+  input.placeholder = placeholder;
+  input.setAttribute("aria-label", label);
+  input.value = value;
+  return input;
+}
+
+function createRemoveButton(label, onRemove) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "row-remove";
+  button.textContent = "×";
+  button.title = label;
+  button.setAttribute("aria-label", label);
+  button.addEventListener("click", onRemove);
+  return button;
+}
+
+function addLeaderRow(leader = { title: "", name: "", status: "" }, focus = false) {
   const row = document.createElement("div");
-  row.className = "leader-row";
+  row.className = "person-row";
 
-  const titleInput = document.createElement("input");
-  titleInput.type = "text";
-  titleInput.className = "leader-title";
-  titleInput.placeholder = "例: 部長";
+  const titleInput = createTextInput("leader-title", "例: 部長", "役職名", leader.title);
   titleInput.setAttribute("list", "title-list");
-  titleInput.setAttribute("aria-label", "役職名");
-  titleInput.value = title;
+  const nameInputField = createTextInput("leader-name", "例: 山田 太郎", "氏名", leader.name);
 
-  const nameField = document.createElement("input");
-  nameField.type = "text";
-  nameField.className = "leader-name";
-  nameField.placeholder = "例: 山田 太郎";
-  nameField.setAttribute("aria-label", "氏名");
-  nameField.value = name;
+  row.append(
+    titleInput,
+    nameInputField,
+    createStatusSelect(leader.status),
+    createRemoveButton("この責任者を削除", () => {
+      row.remove();
+      if (!leaderRows.children.length) addLeaderRow();
+    })
+  );
 
-  const removeBtn = document.createElement("button");
-  removeBtn.type = "button";
-  removeBtn.className = "row-remove";
-  removeBtn.textContent = "×";
-  removeBtn.title = "この責任者を削除";
-  removeBtn.setAttribute("aria-label", "この責任者を削除");
-  removeBtn.addEventListener("click", () => {
-    row.remove();
-    if (!leaderRows.children.length) addLeaderRow();
-  });
-
-  row.append(titleInput, nameField, removeBtn);
   leaderRows.appendChild(row);
   if (focus) titleInput.focus();
 }
 
 function setLeaderRows(leaders) {
   leaderRows.innerHTML = "";
-  if (leaders.length) {
-    for (const leader of leaders) addLeaderRow(leader.title, leader.name);
-  } else {
-    addLeaderRow();
-  }
+  if (leaders.length) leaders.forEach((leader) => addLeaderRow(leader));
+  else addLeaderRow();
 }
 
 function readLeaderRows() {
-  return [...leaderRows.querySelectorAll(".leader-row")]
+  return [...leaderRows.querySelectorAll(".person-row")]
     .map((row) => ({
       title: row.querySelector(".leader-title").value.trim(),
       name: row.querySelector(".leader-name").value.trim(),
+      status: row.querySelector(".status-select").value,
     }))
     .filter((leader) => leader.title || leader.name);
 }
 
-addLeaderBtn.addEventListener("click", () => addLeaderRow("", "", true));
+function addMemberRow(member = { name: "", status: "" }, focus = false) {
+  const row = document.createElement("div");
+  row.className = "person-row member-row";
+
+  const nameField = createTextInput("member-name", "例: 佐藤 花子", "氏名", member.name);
+
+  row.append(
+    nameField,
+    createStatusSelect(member.status),
+    createRemoveButton("このメンバーを削除", () => {
+      row.remove();
+      if (!memberRows.children.length) addMemberRow();
+    })
+  );
+
+  memberRows.appendChild(row);
+  if (focus) nameField.focus();
+}
+
+function setMemberRows(members) {
+  memberRows.innerHTML = "";
+  if (members.length) members.forEach((member) => addMemberRow(member));
+  else addMemberRow();
+}
+
+/** 1行に複数名を書いた場合は、同じ状態のまま分割して登録する */
+function readMemberRows() {
+  const members = [];
+  for (const row of memberRows.querySelectorAll(".person-row")) {
+    const status = row.querySelector(".status-select").value;
+    for (const name of parseNames(row.querySelector(".member-name").value)) {
+      members.push({ name, status });
+    }
+  }
+  return members;
+}
+
+addLeaderBtn.addEventListener("click", () => addLeaderRow(undefined, true));
+addMemberBtn.addEventListener("click", () => addMemberRow(undefined, true));
 
 function resetForm() {
   editingId = null;
   form.reset();
   setLeaderRows([]);
+  setMemberRows([]);
   formMode.textContent = "部門を追加";
   submitBtn.textContent = "追加する";
   cancelEditBtn.hidden = true;
@@ -282,7 +371,7 @@ function startEdit(id) {
   nameInput.value = dept.name;
   parentSelect.value = dept.parentId && byId(dept.parentId) ? dept.parentId : "";
   setLeaderRows(dept.leaders);
-  membersInput.value = dept.members.join("\n");
+  setMemberRows(dept.members);
 
   render();
   nameInput.focus();
@@ -298,7 +387,7 @@ form.addEventListener("submit", (event) => {
     name,
     parentId: parentSelect.value || null,
     leaders: readLeaderRows(),
-    members: parseMembers(membersInput.value),
+    members: readMemberRows(),
   };
 
   if (editingId) {
@@ -417,9 +506,10 @@ function renderList() {
   }
 }
 
-function buildLeaderRow(title, name) {
+function buildLeaderRow(title, name, status) {
   const row = document.createElement("div");
   row.className = "leader";
+  if (status) row.classList.add(`status-${status}`);
 
   if (title) {
     const titleEl = document.createElement("span");
@@ -457,7 +547,7 @@ function buildCard(dept, level) {
     const leaders = document.createElement("div");
     leaders.className = "leaders";
     for (const leader of dept.leaders) {
-      leaders.appendChild(buildLeaderRow(leader.title, leader.name));
+      leaders.appendChild(buildLeaderRow(leader.title, leader.name, leader.status));
     }
     card.appendChild(leaders);
   }
@@ -468,7 +558,8 @@ function buildCard(dept, level) {
     const ul = document.createElement("ul");
     for (const member of dept.members) {
       const li = document.createElement("li");
-      li.textContent = member;
+      li.textContent = member.name;
+      if (member.status) li.classList.add(`status-${member.status}`);
       ul.appendChild(li);
     }
     members.appendChild(ul);
@@ -582,7 +673,7 @@ document.addEventListener("keydown", (event) => {
 /* ---------------- パネルの大きさ ---------------- */
 
 const UI_KEY = "orgchart.ui";
-const DEFAULT_SIDE_WIDTH = 380;
+const DEFAULT_SIDE_WIDTH = 440;
 const MIN_SIDE_WIDTH = 260;
 
 let ui = loadUi();
@@ -614,7 +705,7 @@ function applyUi() {
 
 function setSideWidth(width) {
   const bounds = layout.getBoundingClientRect();
-  const max = Math.max(MIN_SIDE_WIDTH, bounds.width - 380);
+  const max = Math.max(MIN_SIDE_WIDTH, bounds.width - 360);
   ui.sideWidth = Math.round(Math.min(Math.max(width, MIN_SIDE_WIDTH), max));
   applyUi();
 }
@@ -753,10 +844,11 @@ function drawCardToCanvas(ctx, card, rectOf) {
   const memberItems = [...card.querySelectorAll(".members li")];
   for (const li of memberItems) {
     const lr = rectOf(li);
+    const liStyle = getComputedStyle(li);
     roundRectPath(ctx, lr.x, lr.y, lr.w, lr.h, 7);
-    ctx.fillStyle = token("--surface-2", "#f1f5f9");
+    ctx.fillStyle = liStyle.backgroundColor;
     ctx.fill();
-    ctx.strokeStyle = "#e2e8f0";
+    ctx.strokeStyle = liStyle.borderTopColor;
     ctx.lineWidth = 1;
     ctx.stroke();
   }
@@ -834,6 +926,40 @@ function drawConnectorsToCanvas(ctx, rectOf) {
   }
 }
 
+const STATUS_COLORS = {
+  recruiting: "#c02626",
+  leaving: "#6b7280",
+  leave: "#6b7280",
+};
+
+function statusesInUse() {
+  const used = new Set();
+  for (const dept of departments) {
+    for (const person of [...dept.leaders, ...dept.members]) {
+      if (person.status) used.add(person.status);
+    }
+  }
+  return STATUS_OPTIONS.filter((option) => option.value && used.has(option.value));
+}
+
+/** 出力した図だけでも色の意味が分かるよう、凡例を描く */
+function drawLegend(ctx, statuses, fontFamily) {
+  let x = 2;
+  for (const status of statuses) {
+    const color = STATUS_COLORS[status.value] || "#6b7280";
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x + 5, 10, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.font = `${status.value === "leave" ? "italic " : ""}700 15px ${fontFamily}`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(status.label, x + 16, 11);
+    x += 16 + ctx.measureText(status.label).width + 24;
+  }
+}
+
 async function renderChartToCanvas() {
   if (document.fonts && document.fonts.ready) await document.fonts.ready;
 
@@ -842,8 +968,10 @@ async function renderChartToCanvas() {
 
   const base = chart.getBoundingClientRect();
   const margin = 24;
+  const legend = statusesInUse();
+  const legendHeight = legend.length ? 34 : 0;
   const width = base.width + margin * 2;
-  const height = base.height + margin * 2;
+  const height = base.height + margin * 2 + legendHeight;
   const ratio = Math.min(2, 8000 / Math.max(width, height));
 
   const canvas = document.createElement("canvas");
@@ -855,6 +983,11 @@ async function renderChartToCanvas() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.scale(ratio, ratio);
   ctx.translate(margin, margin);
+
+  if (legendHeight) {
+    drawLegend(ctx, legend, getComputedStyle(document.body).fontFamily);
+    ctx.translate(0, legendHeight);
+  }
 
   const rectOf = (el) => {
     const r = el.getBoundingClientRect();
@@ -1055,11 +1188,14 @@ document.getElementById("reset-btn").addEventListener("click", () => {
 });
 
 document.getElementById("sample-btn").addEventListener("click", () => {
-  const company = { id: createId(), name: "株式会社サンプル", parentId: null, leaders: [{ title: "代表取締役社長", name: "山田 太郎" }], members: [] };
-  const sales = { id: createId(), name: "営業部", parentId: company.id, leaders: [{ title: "部長", name: "佐藤 花子" }, { title: "課長", name: "鈴木 一郎" }], members: ["高橋 二郎", "田村 涼子"] };
-  const dev = { id: createId(), name: "開発部", parentId: company.id, leaders: [{ title: "部長", name: "田中 三郎" }], members: ["伊藤 四郎", "渡辺 五郎", "中村 六郎"] };
-  const admin = { id: createId(), name: "管理部", parentId: company.id, leaders: [{ title: "部長", name: "小林 七子" }, { title: "係長", name: "森田 恵" }], members: ["加藤 八郎"] };
-  const dev1 = { id: createId(), name: "第一開発課", parentId: dev.id, leaders: [{ title: "課長", name: "山本 九郎" }], members: ["松本 十郎"] };
+  const person = (name, status = "") => ({ name, status });
+  const lead = (title, name, status = "") => ({ title, name, status });
+
+  const company = { id: createId(), name: "株式会社サンプル", parentId: null, leaders: [lead("代表取締役社長", "山田 太郎")], members: [] };
+  const sales = { id: createId(), name: "営業部", parentId: company.id, leaders: [lead("部長", "佐藤 花子"), lead("課長", "（募集中）", "recruiting")], members: [person("高橋 二郎"), person("田村 涼子", "leave")] };
+  const dev = { id: createId(), name: "開発部", parentId: company.id, leaders: [lead("部長", "田中 三郎")], members: [person("伊藤 四郎"), person("渡辺 五郎", "leaving"), person("中村 六郎")] };
+  const admin = { id: createId(), name: "管理部", parentId: company.id, leaders: [lead("部長", "小林 七子"), lead("係長", "森田 恵")], members: [person("加藤 八郎")] };
+  const dev1 = { id: createId(), name: "第一開発課", parentId: dev.id, leaders: [lead("課長", "山本 九郎")], members: [person("エンジニア", "recruiting")] };
 
   departments = [company, sales, dev, admin, dev1];
   resetForm();

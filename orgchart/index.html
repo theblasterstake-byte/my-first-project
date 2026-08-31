@@ -54,12 +54,13 @@
 
           <fieldset class="group">
             <legend>責任者</legend>
-            <div class="leader-head" aria-hidden="true">
+            <div class="person-head" aria-hidden="true">
               <span>役職名</span>
               <span>氏名</span>
+              <span>状態</span>
               <span></span>
             </div>
-            <div id="leader-rows" class="leader-rows"></div>
+            <div id="leader-rows" class="person-rows"></div>
             <datalist id="title-list"></datalist>
             <button type="button" class="btn ghost add-row" id="add-leader">＋ 責任者を追加</button>
             <p class="hint">部長・課長など、複数の責任者を登録できます。上から順に表示されます。</p>
@@ -67,11 +68,14 @@
 
           <fieldset class="group">
             <legend>メンバー</legend>
-            <div class="field">
-              <label for="members-input">メンバーの氏名</label>
-              <textarea id="members-input" rows="4" placeholder="1行に1名、または読点・カンマ区切り&#10;例:&#10;佐藤 花子&#10;鈴木 一郎"></textarea>
-              <p class="hint">改行・読点(、)・カンマ(,)で区切って複数人まとめて入力できます。</p>
+            <div class="person-head member-head" aria-hidden="true">
+              <span>氏名</span>
+              <span>状態</span>
+              <span></span>
             </div>
+            <div id="member-rows" class="person-rows"></div>
+            <button type="button" class="btn ghost add-row" id="add-member">＋ メンバーを追加</button>
+            <p class="hint">氏名欄に読点(、)やカンマ(,)で区切って入力すると、まとめて追加できます。</p>
           </fieldset>
 
           <div class="form-actions">
@@ -106,6 +110,12 @@
             <button type="button" class="btn" id="full-btn">全画面</button>
           </div>
         </div>
+
+        <p class="legend">
+          <span class="legend-item status-recruiting">募集中（求人が必要）</span>
+          <span class="legend-item status-leaving">退職予定</span>
+          <span class="legend-item status-leave">休職・産育休</span>
+        </p>
 
         <div class="chart-scroll" id="chart-scroll">
           <div class="chart-stage" id="chart-stage">

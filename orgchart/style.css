@@ -89,7 +89,7 @@ h1 { font-size: 1.5rem; margin: 0; letter-spacing: .02em; }
 /* ---------- layout ---------- */
 .layout {
   display: grid;
-  grid-template-columns: var(--side-width, 380px) 12px minmax(0, 1fr);
+  grid-template-columns: var(--side-width, 440px) 12px minmax(0, 1fr);
   gap: 14px;
   align-items: start;
 }
@@ -184,26 +184,33 @@ input[type="text"]:focus, select:focus, textarea:focus {
 
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-/* 責任者の入力行 */
-.leader-head,
-.leader-row {
+/* 責任者・メンバーの入力行 */
+.person-head,
+.person-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 28px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 96px 26px;
   gap: 8px;
   align-items: center;
 }
 
-.leader-head {
+.member-head,
+.member-row {
+  grid-template-columns: minmax(0, 1fr) 96px 26px;
+}
+
+.person-head {
   font-size: .82rem;
   font-weight: 700;
   color: #334155;
   margin-bottom: -4px;
 }
 
-.leader-rows { display: grid; gap: 8px; }
+.person-rows { display: grid; gap: 8px; }
+
+.status-select { font-size: .82rem; padding: 8px 4px; }
 
 .row-remove {
-  width: 28px;
+  width: 26px;
   height: 28px;
   padding: 0;
   border-radius: 8px;
@@ -380,6 +387,45 @@ input[type="text"]:focus, select:focus, textarea:focus {
 [data-level="3"] { --card-bar: #be185d; --card-band: #fce7f3; --card-ink: #9d174d; }
 [data-level="4"] { --card-bar: #7e22ce; --card-band: #f3e8ff; --card-ink: #6b21a8; }
 [data-level="5"] { --card-bar: #15803d; --card-band: #dcfce7; --card-ink: #14532d; }
+
+/* 人の状態 */
+.status-recruiting { color: #c02626; font-weight: 700; }
+.status-leaving { color: #6b7280; }
+.status-leave { color: #6b7280; font-style: italic; }
+
+.card .members li.status-recruiting {
+  color: #c02626;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+.card .members li.status-leaving,
+.card .members li.status-leave {
+  color: #6b7280;
+  background: #f1f5f9;
+  border-color: #d7dee7;
+}
+.card .members li.status-leave { font-style: italic; }
+.card .leader.status-recruiting .title,
+.card .leader.status-recruiting .name { color: #c02626; }
+.card .leader.status-leaving .title,
+.card .leader.status-leaving .name,
+.card .leader.status-leave .title,
+.card .leader.status-leave .name { color: #6b7280; }
+.card .leader.status-leave .title,
+.card .leader.status-leave .name { font-style: italic; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0 0 10px;
+  font-size: .84rem;
+  font-weight: 700;
+}
+.legend-item::before {
+  content: "●";
+  margin-right: 4px;
+}
 
 /* card */
 .card {
