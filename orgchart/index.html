@@ -45,6 +45,11 @@
           </div>
 
           <div class="field">
+            <label for="dept-sub">部門名の下に出す補足（任意）</label>
+            <input type="text" id="dept-sub" placeholder="例: サービス営業">
+          </div>
+
+          <div class="field">
             <label for="parent-select">上位部門</label>
             <select id="parent-select">
               <option value="">（最上位）</option>
@@ -57,6 +62,14 @@
             <div class="shared-parents" id="shared-parents"></div>
             <p class="hint">チェックした部門の下にもぶら下がり、組織図では「共通リソース」としてまとめて表示されます。</p>
           </div>
+
+          <fieldset class="group">
+            <legend>主な役割</legend>
+            <div class="field">
+              <label for="roles-input">役割（1行に1つ）</label>
+              <textarea id="roles-input" rows="4" placeholder="例:&#10;自社サービスの販売&#10;新規顧客への提案&#10;既存顧客のフォロー"></textarea>
+            </div>
+          </fieldset>
 
           <fieldset class="group">
             <legend>責任者</legend>
@@ -103,6 +116,10 @@
         <div class="chart-head">
           <h2 id="chart-title" class="panel-title">組織図</h2>
           <div class="chart-tools">
+            <label class="switch">
+              <input type="checkbox" id="toggle-roles" checked>
+              役割を表示
+            </label>
             <label class="switch">
               <input type="checkbox" id="toggle-members" checked>
               メンバーを表示

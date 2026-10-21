@@ -6,7 +6,7 @@ const STORAGE_KEY = "orgchart.departments";
 /**
  * 上位部門は parentIds に入れる。2 つ以上あるものは「共通リソース」として、
  * ツリーの下の帯にまとめて置き、各上位部門と線でつなぐ。
- * @typedef {{id:string, name:string, parentIds:string[], leaders:Leader[], members:Member[]}} Department
+ * @typedef {{id:string, name:string, subtitle:string, roles:string[], parentIds:string[], leaders:Leader[], members:Member[]}} Department
  */
 
 /** 人の状態（募集中は赤、退職予定・休職はグレーで表示する） */
@@ -33,6 +33,8 @@ let pendingDelete = null;
 
 const form = document.getElementById("dept-form");
 const nameInput = document.getElementById("dept-name");
+const subtitleInput = document.getElementById("dept-sub");
+const rolesInput = document.getElementById("roles-input");
 const parentSelect = document.getElementById("parent-select");
 const sharedParents = document.getElementById("shared-parents");
 const leaderRows = document.getElementById("leader-rows");
@@ -55,6 +57,7 @@ const chartScroll = document.getElementById("chart-scroll");
 const chartStage = document.getElementById("chart-stage");
 const chart = document.getElementById("chart");
 const chartEmpty = document.getElementById("chart-empty");
+const toggleRoles = document.getElementById("toggle-roles");
 const toggleMembers = document.getElementById("toggle-members");
 const zoomLabel = document.getElementById("zoom-level");
 
@@ -93,6 +96,10 @@ function normalize(raw) {
   return {
     id: String(raw.id || createId()),
     name,
+    subtitle: String(raw.subtitle ?? "").trim(),
+    roles: Array.isArray(raw.roles)
+      ? raw.roles.map((role) => String(role).trim()).filter(Boolean)
+      : parseLines(String(raw.roles ?? "")),
     parentIds: normalizeParentIds(raw),
     leaders: normalizeLeaders(raw),
     members: normalizeMembers(raw.members),
@@ -137,6 +144,14 @@ function createId() {
 }
 
 /* ---------------- helpers ---------------- */
+
+/** 改行区切りのテキストを配列にする */
+function parseLines(text) {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
 
 function parseNames(text) {
   return text
@@ -437,6 +452,9 @@ function startEdit(id) {
 
   renderParentOptions();
   nameInput.value = dept.name;
+  subtitleInput.value = dept.subtitle;
+  rolesInput.value = dept.roles.join("\n");
+
   const parentIds = parentsOf(dept).map((parent) => parent.id);
   parentSelect.value = parentIds[0] || "";
   setSharedParentIds(parentIds.slice(1));
@@ -455,6 +473,8 @@ form.addEventListener("submit", (event) => {
 
   const payload = {
     name,
+    subtitle: subtitleInput.value.trim(),
+    roles: parseLines(rolesInput.value),
     parentIds: [...new Set([parentSelect.value, ...readSharedParentIds()].filter(Boolean))],
     leaders: readLeaderRows(),
     members: readMemberRows(),
@@ -621,10 +641,41 @@ function buildCard(dept, level) {
   card.tabIndex = 0;
   card.title = "クリックすると編集できます";
 
+  const head = document.createElement("div");
+  head.className = "dept";
+
   const name = document.createElement("div");
-  name.className = "dept";
+  name.className = "dept-name";
   name.textContent = dept.name;
-  card.appendChild(name);
+  head.appendChild(name);
+
+  if (dept.subtitle) {
+    const subtitle = document.createElement("div");
+    subtitle.className = "dept-sub";
+    subtitle.textContent = dept.subtitle;
+    head.appendChild(subtitle);
+  }
+  card.appendChild(head);
+
+  if (toggleRoles.checked && dept.roles.length) {
+    const roles = document.createElement("div");
+    roles.className = "roles";
+
+    const title = document.createElement("div");
+    title.className = "roles-title";
+    title.textContent = "主な役割";
+
+    const ul = document.createElement("ul");
+    for (const role of dept.roles) {
+      const li = document.createElement("li");
+      // 画像化(PDF)でも同じ見た目になるよう、中点は文字として持たせる
+      li.textContent = `・${role}`;
+      ul.appendChild(li);
+    }
+
+    roles.append(title, ul);
+    card.appendChild(roles);
+  }
 
   if (dept.leaders.length) {
     const leaders = document.createElement("div");
@@ -836,6 +887,7 @@ function render() {
 /* ---------------- chart tools ---------------- */
 
 toggleMembers.addEventListener("change", renderChart);
+toggleRoles.addEventListener("change", renderChart);
 
 document.getElementById("zoom-in").addEventListener("click", () => setZoom(zoom + 0.1));
 document.getElementById("zoom-out").addEventListener("click", () => setZoom(zoom - 0.1));
@@ -993,15 +1045,19 @@ function drawTextElement(ctx, el, rect) {
   const style = getComputedStyle(el);
   ctx.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
   ctx.fillStyle = style.color;
-  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  const padX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) || 0;
-  const lines = wrapText(ctx, text, Math.max(rect.w - padX - 2, 10));
+  const padLeft = parseFloat(style.paddingLeft) || 0;
+  const padRight = parseFloat(style.paddingRight) || 0;
+  const alignLeft = style.textAlign === "left" || style.textAlign === "start";
+  ctx.textAlign = alignLeft ? "left" : "center";
+
+  const lines = wrapText(ctx, text, Math.max(rect.w - padLeft - padRight - 2, 10));
   const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.5;
   const top = rect.y + rect.h / 2 - ((lines.length - 1) * lineHeight) / 2;
+  const x = alignLeft ? rect.x + padLeft : rect.x + rect.w / 2;
 
-  lines.forEach((line, i) => ctx.fillText(line, rect.x + rect.w / 2, top + i * lineHeight));
+  lines.forEach((line, i) => ctx.fillText(line, x, top + i * lineHeight));
 }
 
 function drawCardToCanvas(ctx, card, rectOf) {
@@ -1046,6 +1102,10 @@ function drawCardToCanvas(ctx, card, rectOf) {
   ctx.setLineDash([3, 3]);
   const leaderRows = [...card.querySelectorAll(".leader")];
   const separators = leaderRows.slice(1).map((row) => rectOf(row).y);
+
+  const rolesBlock = card.querySelector(".roles");
+  const leadersBlock = card.querySelector(".leaders");
+  if (rolesBlock && leadersBlock) separators.push(rectOf(leadersBlock).y);
   const membersEl = card.querySelector(".members");
   if (membersEl && leaderRows.length) separators.push(rectOf(membersEl).y);
   for (const y of separators) {
@@ -1062,7 +1122,16 @@ function drawCardToCanvas(ctx, card, rectOf) {
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  drawTextElement(ctx, dept, deptRect);
+  for (const line of card.querySelectorAll(".dept-name, .dept-sub")) {
+    drawTextElement(ctx, line, rectOf(line));
+  }
+
+  const roles = card.querySelector(".roles");
+  if (roles) {
+    for (const line of roles.querySelectorAll(".roles-title, li")) {
+      drawTextElement(ctx, line, rectOf(line));
+    }
+  }
 
   for (const row of leaderRows) {
     // 氏名はインライン要素なので、行の内側の幅を折り返し幅として使う
@@ -1419,13 +1488,14 @@ document.getElementById("sample-btn").addEventListener("click", () => {
   const lead = (title, name, status = "") => ({ title, name, status });
 
   const company = { id: createId(), name: "株式会社サンプル", parentIds: [], leaders: [lead("代表取締役社長", "山田 太郎")], members: [] };
-  const sales = { id: createId(), name: "営業部", parentIds: [company.id], leaders: [lead("部長", "佐藤 花子"), lead("課長", "（募集中）", "recruiting")], members: [person("高橋 二郎"), person("田村 涼子", "leave")] };
+  const sales = { id: createId(), name: "営業部", subtitle: "サービス営業", roles: ["自社サービスの販売", "新規顧客への提案", "既存顧客のフォロー", "追加契約・継続売上の拡大"], parentIds: [company.id], leaders: [lead("部長", "佐藤 花子"), lead("課長", "（募集中）", "recruiting")], members: [person("高橋 二郎"), person("田村 涼子", "leave")] };
   const dev = { id: createId(), name: "開発部", parentIds: [company.id], leaders: [lead("部長", "田中 三郎")], members: [person("伊藤 四郎"), person("渡辺 五郎", "leaving"), person("中村 六郎")] };
   const admin = { id: createId(), name: "管理部", parentIds: [company.id], leaders: [lead("部長", "小林 七子"), lead("係長", "森田 恵")], members: [person("加藤 八郎")] };
   const dev1 = { id: createId(), name: "第一開発課", parentIds: [dev.id], leaders: [lead("課長", "山本 九郎")], members: [person("エンジニア", "recruiting")] };
-  const common = { id: createId(), name: "情報システム課", parentIds: [sales.id, dev.id, admin.id], leaders: [lead("課長", "川口 十三")], members: [person("清水 十四"), person("藤井 十五")] };
+  const common = { id: createId(), name: "情報システム課", subtitle: "全社共通", roles: ["社内システムの運用・保守", "各部門のIT支援"], parentIds: [sales.id, dev.id, admin.id], leaders: [lead("課長", "川口 十三")], members: [person("清水 十四"), person("藤井 十五")] };
 
-  departments = [company, sales, dev, admin, dev1, common];
+  // normalize を通して、未指定の項目(補足・役割など)も既定値で埋める
+  departments = [company, sales, dev, admin, dev1, common].map(normalize);
   resetForm();
   selectedId = null;
   save();

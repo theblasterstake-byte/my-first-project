@@ -507,18 +507,44 @@ input[type="text"]:focus, select:focus, textarea:focus {
 .card.selected { border-color: var(--card-bar); box-shadow: 0 0 0 3px rgba(67, 56, 202, .22); }
 
 .card .dept {
-  font-weight: 700;
-  font-size: 1.12rem;
   padding: 11px 12px;
   background: var(--card-band);
   color: var(--card-ink);
   border-bottom: 1px solid var(--border);
   word-break: break-word;
 }
+.card .dept-name { font-size: 1.12rem; font-weight: 700; }
+.card .dept-sub {
+  margin-top: 2px;
+  font-size: .88rem;
+  font-weight: 600;
+  opacity: .85;
+}
+
+/* 主な役割 */
+.card .roles {
+  padding: 9px 12px 10px;
+  text-align: left;
+}
+.card .roles-title {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .04em;
+  margin-bottom: 3px;
+}
+.card .roles ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.card .roles li {
+  font-size: .92rem;
+  line-height: 1.45;
+  color: var(--text);
+  word-break: break-word;
+}
 
 .card .leaders { display: grid; }
 .card .leader { padding: 10px 12px; }
 .card .leader + .leader { border-top: 1px dashed #b6c2d2; }
+.card .roles + .leaders { border-top: 1px dashed #b6c2d2; }
 .card .leader .title { display: block; font-size: .86rem; font-weight: 600; color: #334155; }
 .card .leader .name { font-size: 1.1rem; font-weight: 700; color: var(--text); word-break: break-word; }
 
