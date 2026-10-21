@@ -764,15 +764,11 @@ function renderChart() {
     const band = document.createElement("div");
     band.className = "shared-band";
 
-    const label = document.createElement("span");
-    label.className = "shared-band-label";
-    label.textContent = "共通リソース";
-
     const cards = document.createElement("div");
     cards.className = "shared-cards";
     for (const dept of shared) cards.appendChild(buildCard(dept, depthOf(dept)));
 
-    band.append(label, cards);
+    band.appendChild(cards);
     chart.appendChild(band);
   }
 
@@ -1266,32 +1262,6 @@ function drawLegend(ctx, statuses, fontFamily) {
   }
 }
 
-/** 共通リソースの枠と見出しを描く */
-function drawSharedBandToCanvas(ctx, rectOf) {
-  const band = chart.querySelector(".shared-band");
-  if (!band) return;
-
-  const r = rectOf(band);
-  ctx.save();
-  roundRectPath(ctx, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, 14);
-  ctx.fillStyle = "rgba(255, 255, 255, .6)";
-  ctx.fill();
-  ctx.setLineDash([7, 5]);
-  ctx.strokeStyle = "#94a3b8";
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.restore();
-
-  const label = band.querySelector(".shared-band-label");
-  const labelRect = rectOf(label);
-  const labelStyle = getComputedStyle(label);
-  ctx.font = `${labelStyle.fontStyle} ${labelStyle.fontWeight} ${labelStyle.fontSize} ${labelStyle.fontFamily}`;
-  ctx.fillStyle = labelStyle.color;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  ctx.fillText(label.textContent, labelRect.x, labelRect.y + labelRect.h / 2);
-}
-
 function drawSharedLinksToCanvas(ctx, rectOf) {
   ctx.save();
   ctx.lineWidth = 2;
@@ -1339,7 +1309,6 @@ async function renderChartToCanvas() {
 
   const rectOf = makeRectOf(base);
 
-  drawSharedBandToCanvas(ctx, rectOf);
   drawConnectorsToCanvas(ctx, rectOf);
   drawSharedLinksToCanvas(ctx, rectOf);
   for (const card of chart.querySelectorAll(".card")) drawCardToCanvas(ctx, card, rectOf);

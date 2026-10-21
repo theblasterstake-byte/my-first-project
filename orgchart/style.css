@@ -370,22 +370,10 @@ input[type="text"]:focus, select:focus, textarea:focus {
 .chart .node,
 .chart .shared-band { position: relative; }
 
-/* 共通リソースの帯 */
+/* 共通リソースの段 */
 .shared-band {
   align-self: stretch;
   margin-top: 64px;
-  padding: 14px 18px 18px;
-  border: 1px dashed #94a3b8;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, .6);
-}
-.shared-band-label {
-  display: inline-block;
-  margin-bottom: 10px;
-  font-size: .88rem;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: .04em;
 }
 /* カードは上位部門の真下に来るよう JS で左位置を決める */
 .shared-cards { position: relative; }
