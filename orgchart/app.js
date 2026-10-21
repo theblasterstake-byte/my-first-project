@@ -3,7 +3,11 @@ const STORAGE_KEY = "orgchart.departments";
 /** @typedef {"" | "recruiting" | "leaving" | "leave"} PersonStatus */
 /** @typedef {{title:string, name:string, status:PersonStatus}} Leader */
 /** @typedef {{name:string, status:PersonStatus}} Member */
-/** @typedef {{id:string, name:string, parentId:string|null, leaders:Leader[], members:Member[]}} Department */
+/**
+ * 上位部門は parentIds に入れる。2 つ以上あるものは「共通リソース」として、
+ * ツリーの下の帯にまとめて置き、各上位部門と線でつなぐ。
+ * @typedef {{id:string, name:string, parentIds:string[], leaders:Leader[], members:Member[]}} Department
+ */
 
 /** 人の状態（募集中は赤、退職予定・休職はグレーで表示する） */
 const STATUS_OPTIONS = [
@@ -30,6 +34,7 @@ let pendingDelete = null;
 const form = document.getElementById("dept-form");
 const nameInput = document.getElementById("dept-name");
 const parentSelect = document.getElementById("parent-select");
+const sharedParents = document.getElementById("shared-parents");
 const leaderRows = document.getElementById("leader-rows");
 const addLeaderBtn = document.getElementById("add-leader");
 const memberRows = document.getElementById("member-rows");
@@ -88,7 +93,7 @@ function normalize(raw) {
   return {
     id: String(raw.id || createId()),
     name,
-    parentId: raw.parentId ? String(raw.parentId) : null,
+    parentIds: normalizeParentIds(raw),
     leaders: normalizeLeaders(raw),
     members: normalizeMembers(raw.members),
   };
@@ -140,17 +145,38 @@ function parseNames(text) {
     .filter(Boolean);
 }
 
+/** 旧形式(parentId)のデータも読めるようにする */
+function normalizeParentIds(raw) {
+  const list = Array.isArray(raw.parentIds) ? raw.parentIds : [raw.parentId];
+  return [...new Set(list.map((id) => (id ? String(id) : "")).filter(Boolean))];
+}
+
 function byId(id) {
   return departments.find((d) => d.id === id) || null;
 }
 
+/** 実在する上位部門だけを返す */
+function parentsOf(dept) {
+  return dept.parentIds.map(byId).filter(Boolean);
+}
+
+/** 複数の部門にぶら下がる部門（共通リソース） */
+function isShared(dept) {
+  return parentsOf(dept).length > 1;
+}
+
+function sharedDepartments() {
+  return departments.filter(isShared);
+}
+
+/** ツリー上の子部門（共通リソースは帯に分けるので含めない） */
 function childrenOf(id) {
-  return departments.filter((d) => d.parentId === id);
+  return departments.filter((d) => !isShared(d) && d.parentIds.includes(id) && byId(id));
 }
 
 /** ルート（親が存在しないもの）を返す。孤児も root 扱いにして必ず描画する。 */
 function roots() {
-  return departments.filter((d) => !d.parentId || !byId(d.parentId));
+  return departments.filter((d) => !isShared(d) && !parentsOf(d).length);
 }
 
 /** id の子孫（自分自身を含む）の id 集合 */
@@ -160,7 +186,7 @@ function descendantIds(id) {
   while (added) {
     added = false;
     for (const d of departments) {
-      if (d.parentId && ids.has(d.parentId) && !ids.has(d.id)) {
+      if (!ids.has(d.id) && d.parentIds.some((parentId) => ids.has(parentId))) {
         ids.add(d.id);
         added = true;
       }
@@ -169,18 +195,14 @@ function descendantIds(id) {
   return ids;
 }
 
-function depthOf(dept) {
-  let depth = 0;
-  let current = dept;
-  const seen = new Set([dept.id]);
-  while (current.parentId) {
-    const parent = byId(current.parentId);
-    if (!parent || seen.has(parent.id)) break;
-    seen.add(parent.id);
-    current = parent;
-    depth += 1;
-  }
-  return depth;
+/** ルートからの深さ（共通リソースは一番深い上位部門の 1 つ下に置く） */
+function depthOf(dept, seen = new Set()) {
+  if (seen.has(dept.id)) return 0;
+  seen.add(dept.id);
+
+  const parents = parentsOf(dept);
+  if (!parents.length) return 0;
+  return 1 + Math.max(...parents.map((parent) => depthOf(parent, seen)));
 }
 
 /** 一覧表示用に、ツリー順（親→子）に並べ替える */
@@ -193,9 +215,9 @@ function flattenTree() {
     }
   };
   walk(roots(), 0);
-  // ループなどで漏れたものを末尾に追加
+  // 共通リソースとループなどで漏れたものを末尾に追加
   for (const d of departments) {
-    if (!out.some((row) => row.dept.id === d.id)) out.push({ dept: d, depth: 0 });
+    if (!out.some((row) => row.dept.id === d.id)) out.push({ dept: d, depth: depthOf(d) });
   }
   return out;
 }
@@ -217,6 +239,52 @@ function renderParentOptions() {
 
   if (current && parentSelect.querySelector(`option[value="${CSS.escape(current)}"]`)) {
     parentSelect.value = current;
+  }
+
+  renderSharedParentChoices();
+}
+
+/** 「共通リソース」として追加でぶら下げる上位部門のチェックボックス */
+function renderSharedParentChoices() {
+  const excluded = editingId ? descendantIds(editingId) : new Set();
+  const checked = new Set(
+    [...sharedParents.querySelectorAll("input:checked")].map((input) => input.value)
+  );
+
+  sharedParents.innerHTML = "";
+  const rows = flattenTree().filter(({ dept }) => !excluded.has(dept.id));
+
+  if (!rows.length) {
+    const empty = document.createElement("p");
+    empty.className = "none";
+    empty.textContent = "他に選べる部門がありません。";
+    sharedParents.appendChild(empty);
+    return;
+  }
+
+  for (const { dept, depth } of rows) {
+    const label = document.createElement("label");
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = dept.id;
+    input.checked = checked.has(dept.id);
+
+    const text = document.createElement("span");
+    text.textContent = "　".repeat(depth) + dept.name;
+
+    label.append(input, text);
+    sharedParents.appendChild(label);
+  }
+}
+
+function readSharedParentIds() {
+  return [...sharedParents.querySelectorAll("input:checked")].map((input) => input.value);
+}
+
+function setSharedParentIds(ids) {
+  const wanted = new Set(ids);
+  for (const input of sharedParents.querySelectorAll("input")) {
+    input.checked = wanted.has(input.value);
   }
 }
 
@@ -369,7 +437,9 @@ function startEdit(id) {
 
   renderParentOptions();
   nameInput.value = dept.name;
-  parentSelect.value = dept.parentId && byId(dept.parentId) ? dept.parentId : "";
+  const parentIds = parentsOf(dept).map((parent) => parent.id);
+  parentSelect.value = parentIds[0] || "";
+  setSharedParentIds(parentIds.slice(1));
   setLeaderRows(dept.leaders);
   setMemberRows(dept.members);
 
@@ -385,7 +455,7 @@ form.addEventListener("submit", (event) => {
 
   const payload = {
     name,
-    parentId: parentSelect.value || null,
+    parentIds: [...new Set([parentSelect.value, ...readSharedParentIds()].filter(Boolean))],
     leaders: readLeaderRows(),
     members: readMemberRows(),
   };
@@ -394,9 +464,8 @@ form.addEventListener("submit", (event) => {
     const dept = byId(editingId);
     if (dept) {
       // 自分の子孫を親に指定すると循環するため無視する
-      if (payload.parentId && descendantIds(editingId).has(payload.parentId)) {
-        payload.parentId = dept.parentId;
-      }
+      const loops = descendantIds(editingId);
+      payload.parentIds = payload.parentIds.filter((parentId) => !loops.has(parentId));
       Object.assign(dept, payload);
       selectedId = dept.id;
     }
@@ -444,7 +513,12 @@ confirmOk.addEventListener("click", () => {
   } else if (pendingDelete) {
     const target = byId(pendingDelete);
     if (target) {
-      for (const child of childrenOf(target.id)) child.parentId = target.parentId;
+      for (const dept of departments) {
+        if (!dept.parentIds.includes(target.id)) continue;
+        const rest = dept.parentIds.filter((parentId) => parentId !== target.id);
+        // 上位部門がなくなる部門は、消した部門の上位部門に引き継ぐ
+        dept.parentIds = rest.length ? rest : [...target.parentIds];
+      }
       departments = departments.filter((d) => d.id !== target.id);
     }
   }
@@ -489,6 +563,11 @@ function renderList() {
     meta.className = "depth";
     meta.textContent = `${dept.members.length}名`;
 
+    const sharedTag = document.createElement("span");
+    sharedTag.className = "shared-tag";
+    sharedTag.textContent = "共通";
+    sharedTag.title = `${parentsOf(dept).length}部門の共通リソース`;
+
     const editBtn = document.createElement("button");
     editBtn.type = "button";
     editBtn.className = "mini";
@@ -501,7 +580,9 @@ function renderList() {
     delBtn.textContent = "削除";
     delBtn.addEventListener("click", () => askDelete(dept.id));
 
-    li.append(dot, name, meta, editBtn, delBtn);
+    li.append(dot, name);
+    if (isShared(dept)) li.appendChild(sharedTag);
+    li.append(meta, editBtn, delBtn);
     deptList.appendChild(li);
   }
 }
@@ -534,6 +615,8 @@ function buildCard(dept, level) {
   const card = document.createElement("div");
   card.className = "card";
   card.dataset.level = String(level % LEVEL_COLORS);
+  card.dataset.deptId = dept.id;
+  if (isShared(dept)) card.classList.add("shared");
   if (dept.id === selectedId) card.classList.add("selected");
   card.tabIndex = 0;
   card.title = "クリックすると編集できます";
@@ -600,15 +683,118 @@ function buildNode(dept, visited, level = 0) {
   return node;
 }
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/** 要素の位置を組織図の左上からの座標で返す */
+function makeRectOf(base) {
+  return (el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left - base.left, y: r.top - base.top, w: r.width, h: r.height };
+  };
+}
+
 function renderChart() {
   chart.innerHTML = "";
-  const top = roots();
   chartEmpty.hidden = departments.length > 0;
 
-  const visited = new Set(top.map((d) => d.id));
-  for (const dept of top) chart.appendChild(buildNode(dept, visited, 0));
+  const links = document.createElementNS(SVG_NS, "svg");
+  links.setAttribute("class", "links");
+  chart.appendChild(links);
 
+  const treeRow = document.createElement("div");
+  treeRow.className = "tree-row";
+  const top = roots();
+  const visited = new Set(top.map((d) => d.id));
+  for (const dept of top) treeRow.appendChild(buildNode(dept, visited, 0));
+  chart.appendChild(treeRow);
+
+  const shared = sharedDepartments();
+  if (shared.length) {
+    const band = document.createElement("div");
+    band.className = "shared-band";
+
+    const label = document.createElement("span");
+    label.className = "shared-band-label";
+    label.textContent = "共通リソース";
+
+    const cards = document.createElement("div");
+    cards.className = "shared-cards";
+    for (const dept of shared) cards.appendChild(buildCard(dept, depthOf(dept)));
+
+    band.append(label, cards);
+    chart.appendChild(band);
+  }
+
+  drawSharedLinks(links);
   applyZoom();
+}
+
+/**
+ * 共通リソースと各上位部門をつなぐ線の座標を返す。
+ * 画面(SVG)と PDF(canvas)で同じ計算を使う。
+ */
+function sharedLinkPaths(rectOf) {
+  const band = chart.querySelector(".shared-band");
+  if (!band) return [];
+
+  const bandTop = rectOf(band).y;
+  const paths = [];
+  let index = 0;
+
+  for (const card of band.querySelectorAll(".card")) {
+    const dept = byId(card.dataset.deptId);
+    if (!dept) continue;
+
+    const target = rectOf(card);
+    const targetX = target.x + target.w / 2;
+    const railY = bandTop - 18 - index * 9;
+    const color = getComputedStyle(card).getPropertyValue("--card-bar").trim() || "#94a3b8";
+
+    for (const parent of parentsOf(dept)) {
+      const parentCard = chart.querySelector(
+        `.tree-row .card[data-dept-id="${CSS.escape(parent.id)}"]`
+      );
+      if (!parentCard) continue;
+
+      // ツリーの接続線と重ならないよう、親カードの中心から少しずらして下ろす
+      const from = rectOf(parentCard);
+      const fromX = from.x + from.w * 0.78;
+      paths.push({
+        color,
+        points: [
+          [fromX, from.y + from.h],
+          [fromX, railY],
+          [targetX, railY],
+          [targetX, target.y],
+        ],
+      });
+    }
+    index += 1;
+  }
+
+  return paths;
+}
+
+function drawSharedLinks(svg) {
+  const previousTransform = chart.style.transform;
+  chart.style.transform = "none";
+
+  const paths = sharedLinkPaths(makeRectOf(chart.getBoundingClientRect()));
+  svg.setAttribute("width", chart.offsetWidth);
+  svg.setAttribute("height", chart.offsetHeight);
+
+  for (const path of paths) {
+    const line = document.createElementNS(SVG_NS, "polyline");
+    line.setAttribute("points", path.points.map((point) => point.join(",")).join(" "));
+    line.setAttribute("fill", "none");
+    line.setAttribute("stroke", path.color);
+    line.setAttribute("stroke-width", "2");
+    line.setAttribute("stroke-dasharray", "6 4");
+    line.setAttribute("stroke-linejoin", "round");
+    svg.appendChild(line);
+  }
+
+  chart.style.transform = previousTransform;
 }
 
 /** 拡大率を反映し、スクロールできるよう土台の実寸も合わせる */
@@ -960,6 +1146,48 @@ function drawLegend(ctx, statuses, fontFamily) {
   }
 }
 
+/** 共通リソースの枠と見出しを描く */
+function drawSharedBandToCanvas(ctx, rectOf) {
+  const band = chart.querySelector(".shared-band");
+  if (!band) return;
+
+  const r = rectOf(band);
+  ctx.save();
+  roundRectPath(ctx, r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1, 14);
+  ctx.fillStyle = "rgba(255, 255, 255, .6)";
+  ctx.fill();
+  ctx.setLineDash([7, 5]);
+  ctx.strokeStyle = "#94a3b8";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.restore();
+
+  const label = band.querySelector(".shared-band-label");
+  const labelRect = rectOf(label);
+  const labelStyle = getComputedStyle(label);
+  ctx.font = `${labelStyle.fontStyle} ${labelStyle.fontWeight} ${labelStyle.fontSize} ${labelStyle.fontFamily}`;
+  ctx.fillStyle = labelStyle.color;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillText(label.textContent, labelRect.x, labelRect.y + labelRect.h / 2);
+}
+
+function drawSharedLinksToCanvas(ctx, rectOf) {
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.lineJoin = "round";
+
+  for (const path of sharedLinkPaths(rectOf)) {
+    ctx.strokeStyle = path.color;
+    ctx.beginPath();
+    path.points.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 async function renderChartToCanvas() {
   if (document.fonts && document.fonts.ready) await document.fonts.ready;
 
@@ -989,12 +1217,11 @@ async function renderChartToCanvas() {
     ctx.translate(0, legendHeight);
   }
 
-  const rectOf = (el) => {
-    const r = el.getBoundingClientRect();
-    return { x: r.left - base.left, y: r.top - base.top, w: r.width, h: r.height };
-  };
+  const rectOf = makeRectOf(base);
 
+  drawSharedBandToCanvas(ctx, rectOf);
   drawConnectorsToCanvas(ctx, rectOf);
+  drawSharedLinksToCanvas(ctx, rectOf);
   for (const card of chart.querySelectorAll(".card")) drawCardToCanvas(ctx, card, rectOf);
 
   chart.style.transform = previousTransform;
@@ -1191,13 +1418,14 @@ document.getElementById("sample-btn").addEventListener("click", () => {
   const person = (name, status = "") => ({ name, status });
   const lead = (title, name, status = "") => ({ title, name, status });
 
-  const company = { id: createId(), name: "株式会社サンプル", parentId: null, leaders: [lead("代表取締役社長", "山田 太郎")], members: [] };
-  const sales = { id: createId(), name: "営業部", parentId: company.id, leaders: [lead("部長", "佐藤 花子"), lead("課長", "（募集中）", "recruiting")], members: [person("高橋 二郎"), person("田村 涼子", "leave")] };
-  const dev = { id: createId(), name: "開発部", parentId: company.id, leaders: [lead("部長", "田中 三郎")], members: [person("伊藤 四郎"), person("渡辺 五郎", "leaving"), person("中村 六郎")] };
-  const admin = { id: createId(), name: "管理部", parentId: company.id, leaders: [lead("部長", "小林 七子"), lead("係長", "森田 恵")], members: [person("加藤 八郎")] };
-  const dev1 = { id: createId(), name: "第一開発課", parentId: dev.id, leaders: [lead("課長", "山本 九郎")], members: [person("エンジニア", "recruiting")] };
+  const company = { id: createId(), name: "株式会社サンプル", parentIds: [], leaders: [lead("代表取締役社長", "山田 太郎")], members: [] };
+  const sales = { id: createId(), name: "営業部", parentIds: [company.id], leaders: [lead("部長", "佐藤 花子"), lead("課長", "（募集中）", "recruiting")], members: [person("高橋 二郎"), person("田村 涼子", "leave")] };
+  const dev = { id: createId(), name: "開発部", parentIds: [company.id], leaders: [lead("部長", "田中 三郎")], members: [person("伊藤 四郎"), person("渡辺 五郎", "leaving"), person("中村 六郎")] };
+  const admin = { id: createId(), name: "管理部", parentIds: [company.id], leaders: [lead("部長", "小林 七子"), lead("係長", "森田 恵")], members: [person("加藤 八郎")] };
+  const dev1 = { id: createId(), name: "第一開発課", parentIds: [dev.id], leaders: [lead("課長", "山本 九郎")], members: [person("エンジニア", "recruiting")] };
+  const common = { id: createId(), name: "情報システム課", parentIds: [sales.id, dev.id, admin.id], leaders: [lead("課長", "川口 十三")], members: [person("清水 十四"), person("藤井 十五")] };
 
-  departments = [company, sales, dev, admin, dev1];
+  departments = [company, sales, dev, admin, dev1, common];
   resetForm();
   selectedId = null;
   save();

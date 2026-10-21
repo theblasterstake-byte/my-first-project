@@ -207,6 +207,29 @@ input[type="text"]:focus, select:focus, textarea:focus {
 
 .person-rows { display: grid; gap: 8px; }
 
+/* 共通リソースの上位部門えらび */
+.shared-parents {
+  display: grid;
+  gap: 4px;
+  max-height: 150px;
+  overflow: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  font-size: .9rem;
+}
+.shared-parents label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+}
+.shared-parents input { accent-color: var(--accent); }
+.shared-parents .none { color: var(--muted); font-size: .84rem; }
+
 .status-select { font-size: .82rem; padding: 8px 4px; }
 
 .row-remove {
@@ -269,6 +292,14 @@ input[type="text"]:focus, select:focus, textarea:focus {
 
 .dept-list .name { flex: 1; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dept-list .depth { color: var(--muted); font-size: .84rem; font-weight: 600; }
+.dept-list .shared-tag {
+  font-size: .72rem;
+  font-weight: 700;
+  color: var(--muted);
+  border: 1px dashed #94a3b8;
+  border-radius: 999px;
+  padding: 0 6px;
+}
 .dept-list .mini {
   font-size: .84rem;
   font-weight: 600;
@@ -318,13 +349,45 @@ input[type="text"]:focus, select:focus, textarea:focus {
 .chart-stage { margin: 0 auto; }
 
 .chart {
+  position: relative;
   display: flex;
-  justify-content: center;
-  gap: 24px;
+  flex-direction: column;
+  align-items: center;
   transform-origin: top left;
   min-width: max-content;
   width: max-content;
 }
+
+.tree-row { display: flex; justify-content: center; gap: 24px; }
+
+/* 上位部門とつなぐ線 */
+.chart .links {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+.chart .node,
+.chart .shared-band { position: relative; }
+
+/* 共通リソースの帯 */
+.shared-band {
+  margin-top: 64px;
+  padding: 14px 18px 18px;
+  border: 1px dashed #94a3b8;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .6);
+}
+.shared-band-label {
+  display: inline-block;
+  margin-bottom: 10px;
+  font-size: .88rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+.shared-cards { display: flex; justify-content: center; align-items: flex-start; gap: 24px; }
+.card.shared { border-style: dashed; }
 
 .empty {
   text-align: center;
