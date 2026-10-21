@@ -776,8 +776,63 @@ function renderChart() {
     chart.appendChild(band);
   }
 
+  const previousTransform = chart.style.transform;
+  chart.style.transform = "none";
+  layoutSharedCards();
   drawSharedLinks(links);
+  chart.style.transform = previousTransform;
+
   applyZoom();
+}
+
+/** 共通リソースのカードを、所属する上位部門の真下（複数なら中間）に置く */
+function layoutSharedCards() {
+  const band = chart.querySelector(".shared-band");
+  if (!band) return;
+
+  const cardsBox = band.querySelector(".shared-cards");
+  const rectOf = makeRectOf(chart.getBoundingClientRect());
+  const boxRect = rectOf(cardsBox);
+
+  const items = [...cardsBox.children].map((card) => {
+    const rect = rectOf(card);
+    const dept = byId(card.dataset.deptId);
+    const centers = (dept ? parentsOf(dept) : [])
+      .map((parent) =>
+        chart.querySelector(`.tree-row .card[data-dept-id="${CSS.escape(parent.id)}"]`)
+      )
+      .filter(Boolean)
+      .map((el) => {
+        const parentRect = rectOf(el);
+        return parentRect.x + parentRect.w / 2;
+      });
+
+    const center = centers.length
+      ? centers.reduce((sum, x) => sum + x, 0) / centers.length
+      : boxRect.x + boxRect.w / 2;
+
+    return { card, width: rect.w, height: rect.h, left: center - boxRect.x - rect.w / 2 };
+  });
+
+  if (!items.length) return;
+
+  // 重なったら右へずらし、はみ出した分は全体を戻す
+  const gap = 24;
+  items.sort((a, b) => a.left - b.left);
+  let right = -Infinity;
+  for (const item of items) {
+    if (item.left < right + gap) item.left = right + gap;
+    right = item.left + item.width;
+  }
+
+  const overflow = right - boxRect.w;
+  if (overflow > 0) for (const item of items) item.left -= overflow;
+
+  const leftMost = Math.min(...items.map((item) => item.left));
+  if (leftMost < 0) for (const item of items) item.left -= leftMost;
+
+  for (const item of items) item.card.style.left = `${Math.round(item.left)}px`;
+  cardsBox.style.height = `${Math.max(...items.map((item) => item.height))}px`;
 }
 
 /**
@@ -807,9 +862,10 @@ function sharedLinkPaths(rectOf) {
       );
       if (!parentCard) continue;
 
-      // ツリーの接続線と重ならないよう、親カードの中心から少しずらして下ろす
+      // 子部門への線と重なるときだけ、親カードの中心からずらして下ろす
       const from = rectOf(parentCard);
-      const fromX = from.x + from.w * 0.78;
+      const hasChildren = childrenOf(parent.id).length > 0;
+      const fromX = from.x + from.w * (hasChildren ? 0.78 : 0.5);
       paths.push({
         color,
         points: [
@@ -827,9 +883,6 @@ function sharedLinkPaths(rectOf) {
 }
 
 function drawSharedLinks(svg) {
-  const previousTransform = chart.style.transform;
-  chart.style.transform = "none";
-
   const paths = sharedLinkPaths(makeRectOf(chart.getBoundingClientRect()));
   svg.setAttribute("width", chart.offsetWidth);
   svg.setAttribute("height", chart.offsetHeight);
@@ -844,8 +897,6 @@ function drawSharedLinks(svg) {
     line.setAttribute("stroke-linejoin", "round");
     svg.appendChild(line);
   }
-
-  chart.style.transform = previousTransform;
 }
 
 /** 拡大率を反映し、スクロールできるよう土台の実寸も合わせる */

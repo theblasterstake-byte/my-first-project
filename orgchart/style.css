@@ -372,6 +372,7 @@ input[type="text"]:focus, select:focus, textarea:focus {
 
 /* 共通リソースの帯 */
 .shared-band {
+  align-self: stretch;
   margin-top: 64px;
   padding: 14px 18px 18px;
   border: 1px dashed #94a3b8;
@@ -386,7 +387,9 @@ input[type="text"]:focus, select:focus, textarea:focus {
   color: var(--muted);
   letter-spacing: .04em;
 }
-.shared-cards { display: flex; justify-content: center; align-items: flex-start; gap: 24px; }
+/* カードは上位部門の真下に来るよう JS で左位置を決める */
+.shared-cards { position: relative; }
+.shared-cards .card { position: absolute; top: 0; }
 .card.shared { border-style: dashed; }
 
 .empty {
