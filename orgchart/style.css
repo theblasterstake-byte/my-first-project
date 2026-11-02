@@ -350,6 +350,7 @@ input[type="text"]:focus, select:focus, textarea:focus {
 
 .chart {
   position: relative;
+  padding: 0 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -420,13 +421,13 @@ input[type="text"]:focus, select:focus, textarea:focus {
   height: 22px;
   background: var(--line);
 }
-/* horizontal bar */
+/* horizontal bar（兄弟の間のすき間もまたいで一本につなぐ） */
 .branch::after {
   content: "";
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  left: -10px;
+  right: -10px;
   height: 2px;
   background: var(--line);
 }

@@ -904,15 +904,39 @@ function sharedLinkPaths(rectOf) {
       );
       if (!parentCard) continue;
 
-      // 子部門への線と重なるときだけ、親カードの中心からずらして下ろす
       const from = rectOf(parentCard);
-      const hasChildren = childrenOf(parent.id).length > 0;
-      const fromX = from.x + from.w * (hasChildren ? 0.78 : 0.5);
+      const node = parentCard.closest(".node");
+
+      if (!childrenOf(parent.id).length || !node) {
+        // 下に何もない親からは、まっすぐ下ろす
+        const fromX = from.x + from.w / 2;
+        paths.push({
+          color,
+          points: [
+            [fromX, from.y + from.h],
+            [fromX, railY],
+            [targetX, railY],
+            [targetX, target.y],
+          ],
+        });
+        continue;
+      }
+
+      // 配下の部門と重ならないよう、subtree の外側のすき間を通す
+      const box = rectOf(node);
+      const corridors = [box.x - 10, box.x + box.w + 10];
+      const corridorX = corridors.reduce((best, x) =>
+        Math.abs(x - targetX) < Math.abs(best - targetX) ? x : best
+      );
+      const startX = corridorX < from.x ? from.x : from.x + from.w;
+      const startY = from.y + from.h / 2;
+
       paths.push({
         color,
         points: [
-          [fromX, from.y + from.h],
-          [fromX, railY],
+          [startX, startY],
+          [corridorX, startY],
+          [corridorX, railY],
           [targetX, railY],
           [targetX, target.y],
         ],
@@ -935,8 +959,8 @@ function drawSharedLinks(svg) {
     line.setAttribute("fill", "none");
     line.setAttribute("stroke", path.color);
     line.setAttribute("stroke-width", "2");
-    line.setAttribute("stroke-dasharray", "6 4");
     line.setAttribute("stroke-linejoin", "round");
+    line.setAttribute("stroke-linecap", "round");
     svg.appendChild(line);
   }
 }
@@ -1311,8 +1335,8 @@ function drawLegend(ctx, statuses, fontFamily) {
 function drawSharedLinksToCanvas(ctx, rectOf) {
   ctx.save();
   ctx.lineWidth = 2;
-  ctx.setLineDash([6, 4]);
   ctx.lineJoin = "round";
+  ctx.lineCap = "round";
 
   for (const path of sharedLinkPaths(rectOf)) {
     ctx.strokeStyle = path.color;
