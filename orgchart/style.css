@@ -481,8 +481,43 @@ input[type="text"]:focus, select:focus, textarea:focus {
   margin-right: 4px;
 }
 
+/* 左右の並び替え */
+.card-order {
+  position: absolute;
+  top: 7px;
+  left: 6px;
+  right: 6px;
+  display: flex;
+  justify-content: space-between;
+  opacity: 0;
+  transition: opacity .15s;
+  pointer-events: none;
+}
+.card:hover .card-order,
+.card:focus-within .card-order,
+.card.selected .card-order { opacity: 1; pointer-events: auto; }
+
+.order-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: .8rem;
+  line-height: 1;
+  color: var(--card-ink);
+  background: rgba(255, 255, 255, .9);
+  border: 1px solid var(--card-bar);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.order-btn:hover:not(:disabled) { background: #fff; }
+.order-btn:disabled { opacity: .25; cursor: default; }
+
 /* card */
 .card {
+  position: relative;
   width: 252px;
   background: #fff;
   border: 1px solid var(--border);

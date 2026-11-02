@@ -211,6 +211,28 @@ function descendantIds(id) {
 }
 
 /** ルートからの深さ（共通リソースは一番深い上位部門の 1 つ下に置く） */
+/** 組織図で横に並ぶ仲間（同じ親を持つ部門、またはルート同士・共通リソース同士） */
+function siblingsOf(dept) {
+  if (isShared(dept)) return sharedDepartments();
+  const parent = parentsOf(dept)[0];
+  return parent ? childrenOf(parent.id) : roots();
+}
+
+/** 左右の並び順を入れ替える。並び順は departments の並びがそのまま使われる */
+function moveSibling(dept, offset) {
+  const siblings = siblingsOf(dept);
+  const target = siblings[siblings.indexOf(dept) + offset];
+  if (!target) return;
+
+  const from = departments.indexOf(dept);
+  const to = departments.indexOf(target);
+  [departments[from], departments[to]] = [departments[to], departments[from]];
+
+  selectedId = dept.id;
+  save();
+  render();
+}
+
 function depthOf(dept, seen = new Set()) {
   if (seen.has(dept.id)) return 0;
   seen.add(dept.id);
@@ -699,6 +721,30 @@ function buildCard(dept, level) {
     members.appendChild(ul);
     card.appendChild(members);
   }
+
+  const siblings = siblingsOf(dept);
+  const position = siblings.indexOf(dept);
+
+  const order = document.createElement("div");
+  order.className = "card-order";
+  for (const [offset, label, title] of [
+    [-1, "←", "ひとつ左へ"],
+    [1, "→", "ひとつ右へ"],
+  ]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "order-btn";
+    button.textContent = label;
+    button.title = title;
+    button.setAttribute("aria-label", `${dept.name}を${title}`);
+    button.disabled = !siblings[position + offset];
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      moveSibling(dept, offset);
+    });
+    order.appendChild(button);
+  }
+  card.appendChild(order);
 
   const open = () => startEdit(dept.id);
   card.addEventListener("click", open);
